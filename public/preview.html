@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Oneliner — frontend preview</title>
+  <style>
+    :root { color-scheme:dark; --ink:#edf2ee; --muted:#a0afaa; --line:#354249; --bg:#10171b; --surface:#1b262b; --accent:#e5b877; --green:#8bc9a8; --forest:#0d1519; --orange:#e5ae71; --red:#f09a8a; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    button,input,select,textarea { font:inherit; }
+    button { cursor:pointer; }
+    a { color:inherit; text-decoration:none; }
+    :focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+    .shell { display:grid; grid-template-columns:232px minmax(0,1fr); min-height:100vh; }
+    .sidebar { position:sticky; top:0; display:flex; flex-direction:column; height:100vh; padding:30px 19px 22px; background:var(--forest); color:var(--ink); }
+    .brand { display:flex; align-items:center; gap:10px; padding:0 10px; font-size:23px; font-weight:780; letter-spacing:-.07em; }
+    .brand-mark { display:grid; place-items:center; width:30px; height:30px; border-radius:9px; background:var(--accent); color:var(--forest); font-size:23px; }
+    .side-label { margin:57px 12px 16px; color:#879995; font-size:10px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+    .side-nav { display:grid; gap:5px; }
+    .side-nav a { display:flex; align-items:center; gap:13px; padding:11px 12px; border-radius:10px; color:#aebeba; font-size:13px; font-weight:650; }
+    .side-nav a:hover { background:#243137; color:var(--ink); }
+    .side-nav a.current { background:#2a3335; color:var(--accent); }
+    .icon { width:21px; text-align:center; font-size:20px; line-height:1; font-weight:400; }
+    .side-bottom { margin-top:auto; }
+    .side-note { padding:16px; border:1px solid #39474b; border-radius:12px; background:#1d292e; }
+    .side-note strong { display:block; margin-bottom:4px; font-size:13px; }
+    .side-note span { color:#a8b9b2; font-size:12px; }
+    .profile { display:flex; align-items:center; gap:10px; margin-top:21px; padding:0 6px; font-size:12px; font-weight:650; }
+    .profile small { display:block; color:#9babaa; font-size:11px; font-weight:400; }
+    .avatar { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:#313c3c; color:var(--accent); font-size:13px; font-weight:800; }
+    main { width:min(100%,1500px); margin:auto; padding:28px clamp(24px,3.3vw,56px) 60px; }
+    .topline { display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom:34px; }
+    .preview-flag { color:#a7b5af; font-size:12px; font-weight:650; }
+    .preview-flag::before { display:inline-block; width:7px; height:7px; margin-right:8px; border-radius:50%; background:var(--accent); content:""; }
+    .week-pill { padding:8px 13px; border:1px solid var(--line); border-radius:99px; background:var(--surface); color:#c2cdc7; font-size:12px; font-weight:650; }
+    .hero { margin-bottom:28px; }
+    .eyebrow,.kicker { margin:0 0 8px; color:var(--accent); font-size:10px; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { margin-bottom:7px; font-size:clamp(31px,3.4vw,46px); line-height:1.1; letter-spacing:-.055em; }
+    .hero p:last-child,.subtle { margin:0; color:var(--muted); font-size:12px; }
+    .hero p:last-child { font-size:14px; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+    .metric,.card { min-width:0; border:1px solid var(--line); border-radius:17px; background:var(--surface); box-shadow:0 9px 30px #0003; }
+    .metric { min-height:116px; padding:18px 20px; }
+    .metric-label { display:flex; justify-content:space-between; color:#b2c0b9; font-size:12px; font-weight:650; }
+    .metric-label span:last-child { color:#81918d; font-size:17px; line-height:1; }
+    .metric strong { display:block; margin-top:15px; font-size:30px; line-height:1; letter-spacing:-.05em; }
+    .metric strong.green,.positive { color:var(--green); }
+    .metric small { display:block; margin-top:6px; color:#9daca5; font-size:11px; }
+    .columns { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(310px,1fr); gap:20px; align-items:start; }
+    .capture,.inbox,.friends,.ledger { padding:24px; }
+    .card-head { display:flex; justify-content:space-between; align-items:start; gap:12px; margin-bottom:22px; }
+    h2 { margin:0 0 5px; font-size:22px; line-height:1.2; letter-spacing:-.04em; }
+    h3 { margin:0 0 4px; font-size:18px; line-height:1.2; letter-spacing:-.035em; }
+    .pill { flex:none; padding:6px 10px; border-radius:99px; background:#3b342b; color:#f0ca96; font-size:11px; font-weight:750; }
+    label { display:block; margin-bottom:7px; color:#c5d0c9; font-size:11px; font-weight:730; }
+    textarea,input,select { width:100%; border:1px solid #3a484d; border-radius:9px; background:#141e22; color:var(--ink); }
+    textarea { min-height:96px; padding:12px 13px; resize:vertical; }
+    input,select { height:40px; padding:0 11px; }
+    .note-actions,.capture-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; }
+    .note-actions span,.capture-foot p { margin:0; color:#9aaba3; font-size:11px; }
+    .button { display:inline-flex; justify-content:center; align-items:center; gap:9px; min-height:40px; padding:0 14px; border:1px solid #55615f; border-radius:9px; background:#2a3538; color:var(--ink); font-size:12px; font-weight:760; white-space:nowrap; }
+    .button:hover { background:#354246; }
+    .button.primary { border-color:var(--accent); background:var(--accent); color:#1c211d; }
+    .button.primary:hover { background:#f0cb94; }
+    .divider { display:flex; align-items:center; gap:12px; margin:24px 0 16px; color:#96a8a0; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    .divider::after { flex:1; height:1px; background:var(--line); content:""; }
+    .notice { display:flex; gap:9px; margin-bottom:17px; padding:10px 12px; border-radius:9px; background:#322d28; color:#e0cfb8; font-size:11px; }
+    .notice b { color:var(--accent); }
+    .fields { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; }
+    .fields .wide { grid-column:span 2; }
+    .capture-foot { margin-top:21px; }
+    .stack { display:grid; gap:20px; }
+    .inbox .card-head,.friends .card-head { margin-bottom:17px; }
+    .count { display:grid; place-items:center; min-width:29px; height:29px; border-radius:8px; background:#443529; color:#efc08c; font-size:12px; font-weight:800; }
+    .inbox-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-top:1px solid #344046; }
+    .inbox-row strong { display:block; font-size:12px; }
+    .inbox-row small { color:#98aaa2; font-size:11px; }
+    .up,.down { color:var(--accent); }
+    .text-button { padding:0; border:0; background:transparent; color:var(--accent); font-size:11px; font-weight:760; white-space:nowrap; }
+    .group-name { margin:0 0 13px; color:#a9b9b0; font-size:11px; }
+    .friend-row { display:grid; grid-template-columns:17px minmax(0,1fr) 51px 40px 45px; gap:6px; align-items:center; padding:9px 0; border-top:1px solid #344046; font-size:12px; }
+    .rank { color:#8ea19a; font-weight:760; } .friend-row strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .friend-row .result { color:var(--green); font-weight:800; text-align:right; }
+    .friend-row small { color:#a1b1aa; font-size:10px; text-align:right; }
+    .friend-head { color:#92a49d; font-size:9px; font-weight:760; letter-spacing:.08em; text-transform:uppercase; }
+    .friend-head span:nth-child(n+3) { text-align:right; }
+    .friends-foot { display:flex; justify-content:space-between; gap:10px; margin-top:11px; color:#9caca5; font-size:10px; }
+    .ledger { margin-top:20px; padding-bottom:8px; }
+    .ledger .card-head { align-items:center; margin-bottom:14px; }
+    .ledger h2 { margin:0; }
+    .ledger table { width:100%; border-collapse:collapse; text-align:left; }
+    .ledger th { padding:10px 8px; border-bottom:1px solid var(--line); color:#91a39b; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+    .ledger td { padding:13px 8px; border-bottom:1px solid #344046; font-size:12px; }
+    .ledger tr:last-child td { border-bottom:0; }
+    .ledger td:first-child { font-weight:760; }
+    .trade-note { color:#a8b7af; }
+    .result-win { color:var(--green); font-weight:800; } .result-loss { color:var(--red); font-weight:800; } .result-pending { color:var(--orange); font-weight:800; }
+    .footer { margin:18px 0 0; color:#889b93; font-size:11px; text-align:center; }
+    .mobile-nav { display:none; }
+    @media (max-width:1150px) { .shell { grid-template-columns:205px minmax(0,1fr); } .columns { grid-template-columns:1fr; } .stack { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:820px) {
+      .shell { display:block; } .sidebar { display:none; } main { padding:22px 22px 94px; }
+      .mobile-nav { position:fixed; z-index:5; inset:auto 0 0; display:grid; grid-template-columns:repeat(4,1fr); padding:7px 7px max(7px,env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:#111b1ff4; backdrop-filter:blur(14px); }
+      .mobile-nav a { display:grid; justify-items:center; gap:2px; padding:4px; color:#97a9a2; font-size:10px; font-weight:700; }
+      .mobile-nav a.current { color:var(--accent); }
+    }
+    @media (max-width:620px) {
+      .topline { margin-bottom:26px; } .week-pill { padding:7px 10px; font-size:10px; }
+      .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .metric { min-height:105px; padding:14px 16px; } .metric strong { font-size:27px; }
+      .stack { grid-template-columns:1fr; gap:15px; } .columns { gap:15px; } .capture,.inbox,.friends { padding:19px; }
+      .fields { grid-template-columns:repeat(2,minmax(0,1fr)); } .ledger { padding:20px 17px 7px; } .table-scroll { overflow-x:auto; } .ledger table { min-width:570px; }
+    }
+    @media (max-width:390px) { main { padding-inline:14px; } .note-actions span { max-width:135px; } .capture-foot { align-items:end; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">o.</span>oneliner<span style="color:var(--accent)">.</span></a>
+      <p class="side-label">Workspace</p>
+      <nav class="side-nav">
+        <a class="current" href="#capture"><span class="icon" aria-hidden="true">⊕</span>Capture</a>
+        <a href="#inbox"><span class="icon" aria-hidden="true">◷</span>Needs an exit</a>
+        <a href="#review"><span class="icon" aria-hidden="true">▦</span>Weekly review</a>
+        <a href="#groups"><span class="icon" aria-hidden="true">♧</span>Friends</a>
+      </nav>
+      <div class="side-bottom">
+        <div class="side-note"><strong>One trade at a time.</strong><span>Capture the idea while it is fresh. Review the pattern when the week is done.</span></div>
+        <div class="profile"><span class="avatar" aria-hidden="true">Y</span><span>Your journal<small>Private by default</small></span></div>
+      </div>
+    </aside>
+    <main id="top">
+      <div class="topline"><span class="preview-flag">Frontend concept · sample data</span><span class="week-pill">◷ &nbsp; 12–18 Oct 2026 · UTC</span></div>
+      <header class="hero"><p class="eyebrow">Saturday, 17 October</p><h1>A clearer view of your week.</h1><p>Keep the trade. Keep the reason. Learn from both.</p></header>
+      <section class="metrics" id="review" aria-label="Weekly performance">
+        <div class="metric"><div class="metric-label"><span>Total R</span><span aria-hidden="true">↗</span></div><strong class="green">+4.25R</strong><small>Completed trades this week</small></div>
+        <div class="metric"><div class="metric-label"><span>Win rate</span><span aria-hidden="true">◎</span></div><strong>62.5%</strong><small>5 wins from 8 trades</small></div>
+        <div class="metric"><div class="metric-label"><span>Completed</span><span aria-hidden="true">✓</span></div><strong>08</strong><small>Results recorded</small></div>
+        <div class="metric"><div class="metric-label"><span>Needs an exit</span><span aria-hidden="true">◷</span></div><strong>02</strong><small>Pick up where you left off</small></div>
+      </section>
+      <div class="columns">
+        <section class="card capture" id="capture" aria-labelledby="capture-title">
+          <div class="card-head"><div><p class="kicker">Quick capture</p><h2 id="capture-title">One line is enough to start.</h2><p class="subtle">Write it as you would to a friend. Review the details before saving.</p></div><span class="pill">✦ AI assisted</span></div>
+          <label for="note">Trade note</label><textarea id="note">CL short 87.64, stop 87.90, opening range breakout</textarea>
+          <div class="note-actions"><span>Your original note stays with the trade.</span><button class="button" type="button">Extract details ↗</button></div>
+          <div class="divider">Editable preview</div>
+          <div class="notice"><b aria-hidden="true">✓</b><span>We found these details in your note. Check them before saving.</span></div>
+          <div class="fields">
+            <div><label for="symbol">Symbol</label><input id="symbol" value="CL"></div>
+            <div><label for="direction">Position</label><select id="direction"><option>Long</option><option selected>Short</option></select></div>
+            <div><label for="entry">Entry</label><input id="entry" inputmode="decimal" value="87.64"></div>
+            <div><label for="stop">Initial stop</label><input id="stop" inputmode="decimal" value="87.90"></div>
+            <div class="wide"><label for="setup">Setup name</label><input id="setup" value="Opening range breakout"></div>
+            <div class="wide"><label for="opened">Opened at · UTC</label><input id="opened" type="datetime-local" value="2026-10-17T14:42"></div>
+          </div>
+          <div class="capture-foot"><p>Exit price and result can be added later.</p><button class="button primary" type="button">Save trade ↗</button></div>
+        </section>
+        <div class="stack">
+          <section class="card inbox" id="inbox" aria-labelledby="inbox-title">
+            <div class="card-head"><div><p class="kicker">Unfinished entries</p><h3 id="inbox-title">Needs an exit</h3><p class="subtle">Finish a trade whenever you are ready.</p></div><span class="count">2</span></div>
+            <div class="inbox-row"><div><strong><span class="down">↓</span> NQ short · 20,155.00</strong><small>Morning reversal · Today</small></div><button class="text-button" type="button">Add exit →</button></div>
+            <div class="inbox-row"><div><strong><span class="up">↑</span> ES long · 5,725.25</strong><small>Pullback continuation · Thu</small></div><button class="text-button" type="button">Add exit →</button></div>
+          </section>
+          <section class="card friends" id="groups" aria-labelledby="friends-title">
+            <div class="card-head"><div><p class="kicker">Private comparison</p><h3 id="friends-title">Friends this week</h3><p class="subtle">Only weekly totals are shared.</p></div><span class="pill">3 members</span></div>
+            <p class="group-name">♧ &nbsp; Sunday Crew · 12–18 Oct</p>
+            <div class="friend-row friend-head"><span></span><span></span><span>R</span><span>Win</span><span>Trades</span></div>
+            <div class="friend-row"><span class="rank">01</span><strong>You</strong><span class="result">+4.25R</span><small>62.5%</small><small>8</small></div>
+            <div class="friend-row"><span class="rank">02</span><strong>Alex M.</strong><span class="result">+3.00R</span><small>60%</small><small>10</small></div>
+            <div class="friend-row"><span class="rank">03</span><strong>Sam K.</strong><span class="result">+1.75R</span><small>66.7%</small><small>6</small></div>
+            <div class="friends-foot"><span>Self-reported results</span><button class="text-button" type="button">View group →</button></div>
+          </section>
+        </div>
+      </div>
+      <section class="card ledger" aria-labelledby="ledger-title">
+        <div class="card-head"><div><p class="kicker">Sunday review</p><h2 id="ledger-title">Your trading week</h2></div><button class="button" type="button">Past weeks ⌄</button></div>
+        <div class="table-scroll"><table><thead><tr><th scope="col">Trade</th><th scope="col">Setup</th><th scope="col">Note</th><th scope="col">Result</th></tr></thead><tbody>
+          <tr><td>GC <span class="up">↑</span></td><td>Trend continuation</td><td class="trade-note">Stayed with the move.</td><td class="result-win">+1.50R</td></tr>
+          <tr><td>YM <span class="down">↓</span></td><td>Failed breakout</td><td class="trade-note">Waited for the retest.</td><td class="result-loss">−1.00R</td></tr>
+          <tr><td>NQ <span class="down">↓</span></td><td>Morning reversal</td><td class="trade-note">Good entry, outcome pending.</td><td class="result-pending">Needs exit</td></tr>
+        </tbody></table></div>
+      </section>
+      <p class="footer">Oneliner frontend preview · Sample figures and inactive actions</p>
+    </main>
+  </div>
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a class="current" href="#capture"><span class="icon" aria-hidden="true">⊕</span>Capture</a>
+    <a href="#inbox"><span class="icon" aria-hidden="true">◷</span>Inbox</a>
+    <a href="#review"><span class="icon" aria-hidden="true">▦</span>Review</a>
+    <a href="#groups"><span class="icon" aria-hidden="true">♧</span>Friends</a>
+  </nav>
+</body>
+</html>
