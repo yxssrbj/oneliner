@@ -22,6 +22,10 @@
 - Before changing Next.js files, read the relevant local guide under `node_modules/next/dist/docs/`, as required by `AGENTS.md`.
 - Work in an isolated Git worktree when executing this plan, per the Superpowers worktree skill. Provider credentials and a Docker-compatible runtime are not present yet; do not imply live integration passed without them.
 
+## Working agreement
+
+You own the problem, review each small plan, try the result, and decide whether to continue. I implement one task at a time and then show the changed files, explain the important decisions, give you commands to run and normal/edge cases to try, and identify any unverified claim or risk. I address your findings before starting the next task. The MVP counts as working only when the phone flow in the spec succeeds and another account cannot access private trade data.
+
 ## Review Focus
 
 - A stop equal to entry or on the profit side must fail at the database, even if the browser is bypassed (Task 1 SQL test).
