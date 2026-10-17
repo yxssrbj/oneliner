@@ -1,5 +1,7 @@
 # Oneliner MVP design
 
+**Status:** Earlier design draft. The [product definition](../../product/oneliner-mvp.md) is the current source for what to build and what counts as done. The technical choices below remain proposals until that definition is reviewed.
+
 ## Purpose and release boundary
 
 Oneliner is a mobile-friendly trading journal for futures traders. A trader can capture a trade in a short natural-language note, finish it later, review the week, and optionally compare summary performance with friends. The first release is small enough to deploy for a handful of testers and useful without a broker connection.

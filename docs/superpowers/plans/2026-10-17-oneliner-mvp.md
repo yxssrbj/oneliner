@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Status:** Paused technical draft. Review the [product definition](../../product/oneliner-mvp.md) first; this file does not authorize or determine the build order until the product scope and done criteria are accepted.
+
 **Goal:** Ship a mobile web journal where a trader captures a natural-language note, completes the trade later, reviews the opening week, and opts into private aggregate comparisons.
 
 **Architecture:** Keep Next.js as the web app and API boundary. The browser uses Supabase Auth and owner-scoped Postgres rows; Postgres constraints and row-level security enforce the trade rules. A server-only OpenAI call suggests fields, while private database functions return group summaries without exposing another member's trades.
