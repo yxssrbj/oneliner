@@ -27,6 +27,7 @@ test('migration derives R from entry, stop, and exit', () => {
 test('nonblank checks cover form feed and vertical tab', () => {
   const migration = readFileSync(migrationUrl, 'utf8')
   for (const field of ['display_name', 'original_note', 'symbol', 'setup']) {
-    expect(migration).toContain(`btrim(${field}, E' \\t\\n\\r\\f\\v')`)
+    expect(migration).toContain(`btrim(${field}, E' \\t\\n\\r\\f' || chr(11))`)
   }
+  expect(migration).not.toContain('\\v')
 })
