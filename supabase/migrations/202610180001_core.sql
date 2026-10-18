@@ -1,17 +1,17 @@
 create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
-  display_name text not null check (btrim(display_name, E' \t\n\r') <> '')
+  display_name text not null check (btrim(display_name, E' \t\n\r\f\v') <> '')
 );
 
 create table public.trades (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users (id) on delete cascade,
-  original_note text not null check (btrim(original_note, E' \t\n\r') <> ''),
-  symbol text not null check (btrim(symbol, E' \t\n\r') <> ''),
+  original_note text not null check (btrim(original_note, E' \t\n\r\f\v') <> ''),
+  symbol text not null check (btrim(symbol, E' \t\n\r\f\v') <> ''),
   side text not null check (side in ('long', 'short')),
   entry_price numeric not null check (entry_price > 0 and entry_price < 'Infinity'::numeric),
   stop_price numeric not null check (stop_price > 0 and stop_price < 'Infinity'::numeric),
-  setup text not null check (btrim(setup, E' \t\n\r') <> ''),
+  setup text not null check (btrim(setup, E' \t\n\r\f\v') <> ''),
   opened_at timestamptz not null,
   exit_price numeric check (exit_price is null or (exit_price > 0 and exit_price < 'Infinity'::numeric)),
   r_result numeric generated always as (

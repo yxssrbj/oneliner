@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(37);
+select plan(41);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_column('public', 'profiles', 'display_name', 'profiles have display names');
@@ -19,6 +19,7 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
 insert into public.profiles (id, display_name) values (auth.uid(), 'Trader One');
 select is((select display_name from public.profiles where id = auth.uid()), 'Trader One', 'owner can read own profile');
+select throws_ok($$update public.profiles set display_name = E'\f' where id = auth.uid()$$, '23514', null, 'form-feed-only display name rejected');
 
 insert into public.trades
   (id, owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, exit_price, idempotency_key)
@@ -48,8 +49,11 @@ select throws_ok($$insert into public.trades (owner_id, original_note, symbol, s
 select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', 'ES', 'long', 100, 100, 'setup', now(), gen_random_uuid())$$, '23514', null, 'long stop at entry rejected');
 select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', 'ES', 'short', 100, 99, 'setup', now(), gen_random_uuid())$$, '23514', null, 'short stop below entry rejected');
 select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), ' ', 'ES', 'long', 100, 99, 'setup', now(), gen_random_uuid())$$, '23514', null, 'blank note rejected');
+select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), E'\f', 'ES', 'long', 100, 99, 'setup', now(), gen_random_uuid())$$, '23514', null, 'form-feed-only note rejected');
 select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', ' ', 'long', 100, 99, 'setup', now(), gen_random_uuid())$$, '23514', null, 'blank symbol rejected');
+select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', E'\v', 'long', 100, 99, 'setup', now(), gen_random_uuid())$$, '23514', null, 'vertical-tab-only symbol rejected');
 select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', 'ES', 'long', 100, 99, ' ', now(), gen_random_uuid())$$, '23514', null, 'blank setup rejected');
+select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', 'ES', 'long', 100, 99, E'\f\v', now(), gen_random_uuid())$$, '23514', null, 'form-feed-and-vertical-tab-only setup rejected');
 select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', 'ES', 'flat', 100, 99, 'setup', now(), gen_random_uuid())$$, '23514', null, 'invalid side rejected');
 select throws_ok($$insert into public.trades (owner_id, original_note, symbol, side, entry_price, stop_price, setup, opened_at, idempotency_key) values (auth.uid(), 'note', 'ES', 'long', 100, 99, 'setup', now(), '20000000-0000-0000-0000-000000000001')$$, '23505', null, 'duplicate owner idempotency key rejected');
 select throws_ok($$update public.trades set owner_id = '00000000-0000-0000-0000-000000000002' where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'owner cannot be changed');
