@@ -20,13 +20,13 @@ test('email code signs in and opens the mobile shell', async ({ page, request })
     return messageId
   }).not.toBe('')
 
-  await page.getByLabel('Code').fill('000000')
-  await page.getByRole('button', { name: 'Verify code' }).click()
-  await expect(page.locator('.auth-form [role="alert"]')).toContainText('Invalid or expired')
-
   const message = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${messageId}`)).json()
   const code = /Enter this code in Oneliner:\s*<strong>(\d{6})<\/strong>/.exec(message.HTML)?.[1]
   expect(code).toMatch(/^\d{6}$/)
+  await page.getByLabel('Code').fill(code === '000000' ? '000001' : '000000')
+  await page.getByRole('button', { name: 'Verify code' }).click()
+  await expect(page.locator('.auth-form [role="alert"]')).toContainText('Invalid or expired')
+
   await page.getByLabel('Code').fill(code!)
   await page.getByRole('button', { name: 'Verify code' }).click()
   await expect(page).toHaveURL('http://localhost:3012/')
