@@ -1,6 +1,6 @@
 # Oneliner MVP: product definition
 
-**Status:** For your review. This document defines what the first release must do and how we will decide that it works. It does not choose the implementation.
+**Status:** Approved for MVP implementation. This document defines what the first release must do and how we will decide that it works. It does not choose the implementation.
 
 ## Who it is for and why
 
