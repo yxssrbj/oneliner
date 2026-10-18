@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import './components/app-shell.css';
 
 export const metadata: Metadata = {
   title: "Oneliner",

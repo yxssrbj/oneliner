@@ -1,1 +1,5 @@
 project_id = "oneliner"
+
+[auth.email.template.magic_link]
+subject = "Your Oneliner sign-in code"
+content_path = "./supabase/templates/sign-in-code.html"
