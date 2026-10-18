@@ -42,3 +42,7 @@ next-env.d.ts
 
 # Local git worktrees
 /.worktrees/
+
+# Local Supabase CLI state, including generated service credentials
+/supabase/.branches/
+/supabase/.temp/
