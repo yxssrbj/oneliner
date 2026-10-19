@@ -4,23 +4,24 @@ import { useEffect, useRef, useState } from 'react'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import { summarizeTrades } from '../../lib/trades/summary'
 import { nextWeekStartUtc } from '../../lib/trades/week'
+import { demoTradesForWeek } from '../../lib/trades/demo'
 import ExitForm from './exit-form'
 import TradeEditForm, { resultLabel, type SavedTrade } from './trade-edit-form'
 
 type Summary = ReturnType<typeof summarizeTrades>
 type Loaded = { key: string; trades: SavedTrade[]; summary?: Summary; error?: string }
 
-function TradeCard({ trade, onSaved }: { trade: SavedTrade; onSaved: (trade: SavedTrade) => void }) {
+function TradeCard({ trade, onSaved, readOnly = false }: { trade: SavedTrade; onSaved: (trade: SavedTrade) => void; readOnly?: boolean }) {
   return <article className="trade-card">
     <div className="trade-card-heading"><h3>{trade.symbol} <span>{trade.side}</span></h3><span className={trade.r_result === null ? 'outcome-pending' : Number(trade.r_result) > 0 ? 'outcome-win' : Number(trade.r_result) < 0 ? 'outcome-loss' : ''}>{resultLabel(trade.r_result)}</span></div>
     <p className="trade-note">{trade.original_note}</p>
     <dl className="trade-details"><div><dt>Entry</dt><dd>{trade.entry_price}</dd></div><div><dt>Initial stop</dt><dd>{trade.stop_price}</dd></div><div><dt>Setup</dt><dd>{trade.setup}</dd></div><div><dt>Opened (UTC)</dt><dd>{new Date(trade.opened_at).toISOString().replace('T', ' ').slice(0, 19)}</dd></div>{trade.exit_price !== null && <div><dt>Exit</dt><dd>{trade.exit_price}</dd></div>}</dl>
-    <details><summary>{trade.exit_price === null ? 'Add exit' : 'Correct exit'}</summary><ExitForm key={trade.exit_price} trade={trade} onSaved={onSaved} /></details>
-    <details><summary>Correct trade details</summary><TradeEditForm key={JSON.stringify(trade)} trade={trade} onSaved={onSaved} /></details>
+    {!readOnly && <><details><summary>{trade.exit_price === null ? 'Add exit' : 'Correct exit'}</summary><ExitForm key={trade.exit_price} trade={trade} onSaved={onSaved} /></details>
+    <details><summary>Correct trade details</summary><TradeEditForm key={JSON.stringify(trade)} trade={trade} onSaved={onSaved} /></details></>}
   </article>
 }
 
-export default function TradeWorkspace({ mode, userId, initialWeek }: { mode: 'inbox' | 'review'; userId: string; initialWeek: string }) {
+export default function TradeWorkspace({ mode, userId, initialWeek, demo = false }: { mode: 'inbox' | 'review'; userId: string; initialWeek: string; demo?: boolean }) {
   const [week, setWeek] = useState(initialWeek)
   const [revision, setRevision] = useState(0)
   const [loaded, setLoaded] = useState<Loaded | null>(null)
@@ -29,16 +30,20 @@ export default function TradeWorkspace({ mode, userId, initialWeek }: { mode: 'i
   const signedOut = useRef(false)
   const url = mode === 'inbox' ? '/api/trades?status=open' : `/api/trades?weekStart=${week}`
   const key = `${url}:${revision}`
+  const demoTrades = demo ? demoTradesForWeek(week) : []
+  const demoSummary = demo ? summarizeTrades(demoTrades.map(trade => ({ r_result: trade.r_result === null ? null : Number(trade.r_result) }))) : undefined
   useEffect(() => {
+    if (demo) return
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || (session && session.user.id !== userId)) {
         signedOut.current = true; setSessionChanged(true); setLoaded(null); setMessage('')
       }
     })
     return () => subscription.unsubscribe()
-  }, [userId])
+  }, [userId, demo])
   useEffect(() => {
     let active = true
+    if (demo) return
     async function load() {
       try {
         const response = await fetch(url, { cache: 'no-store' })
@@ -51,14 +56,14 @@ export default function TradeWorkspace({ mode, userId, initialWeek }: { mode: 'i
     }
     void load()
     return () => { active = false }
-  }, [key, url])
+  }, [demo, key, url, week])
   function saved(trade: SavedTrade) {
     if (signedOut.current) return
     setMessage(`${trade.symbol}: ${resultLabel(trade.r_result)}. Saved.`)
     setRevision(value => value + 1)
   }
   if (sessionChanged) return <p role="alert">Your session changed. Reload this page to continue.</p>
-  const current = loaded?.key === key ? loaded : null
+  const current = demo ? { key, trades: demoTrades, summary: demoSummary } : loaded?.key === key ? loaded : null
   const trades = current?.trades ?? []
   const pending = trades.filter(trade => trade.exit_price === null)
   const summary = current?.summary
@@ -68,6 +73,7 @@ export default function TradeWorkspace({ mode, userId, initialWeek }: { mode: 'i
     setWeek(date.toISOString().slice(0, 10)); setMessage('')
   }
   return <div className="trade-workspace">
+    {demo && <p role="note">Demo preview — sample data only. Nothing is saved.</p>}
     {mode === 'review' ? <>
       <p>Your opening week, Monday to Sunday in UTC. Late exits update the week the trade opened.</p>
       <div className="week-picker"><button onClick={() => moveWeek(-7)} aria-label="Previous week">← Previous</button><strong>Week of {week}</strong><button onClick={() => moveWeek(7)} aria-label="Next week">Next →</button></div>
@@ -83,8 +89,8 @@ export default function TradeWorkspace({ mode, userId, initialWeek }: { mode: 'i
           return <tr key={day}><th scope="row">{date.toLocaleDateString('en', { weekday: 'short', timeZone: 'UTC' })}</th><td>{daily.completedCount}</td><td>{daily.unfinishedCount}</td><td>{daily.totalR.toFixed(2)}R</td></tr>
         })}</tbody></table></div></section>
       </>}
-      <section><h2>{mode === 'inbox' ? `Waiting for an exit (${pending.length})` : 'Pending outcomes'}</h2>{pending.length ? <div className="trade-list">{pending.map(trade => <TradeCard key={trade.id} trade={trade} onSaved={saved} />)}</div> : <p>{mode === 'inbox' ? 'All caught up. No trades are waiting for an exit.' : 'No pending outcomes this week.'}</p>}</section>
-      {mode === 'review' && <section><h2>Trades opened this week</h2>{trades.length ? <div className="trade-list">{trades.map(trade => <TradeCard key={trade.id} trade={trade} onSaved={saved} />)}</div> : <p>No trades opened this week.</p>}</section>}
+      <section><h2>{mode === 'inbox' ? `Waiting for an exit (${pending.length})` : 'Pending outcomes'}</h2>{pending.length ? <div className="trade-list">{pending.map(trade => <TradeCard key={trade.id} trade={trade} onSaved={saved} readOnly={demo} />)}</div> : <p>{mode === 'inbox' ? 'All caught up. No trades are waiting for an exit.' : 'No pending outcomes this week.'}</p>}</section>
+      {mode === 'review' && <section><h2>Trades opened this week</h2>{trades.length ? <div className="trade-list">{trades.map(trade => <TradeCard key={trade.id} trade={trade} onSaved={saved} readOnly={demo} />)}</div> : <p>No trades opened this week.</p>}</section>}
     </>}
   </div>
 }

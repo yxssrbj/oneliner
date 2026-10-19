@@ -51,6 +51,16 @@ test('review shows summary, daily table, pending and recent trades with original
   expect(screen.getAllByText('my original note').length).toBeGreaterThan(0)
   expect(fetchMock.mock.calls[0][0]).toBe('/api/trades?weekStart=2026-10-19')
 })
+test('local demo review previews sample outcomes without reading or writing trades', async () => {
+  render(<TradeWorkspace mode="review" userId="owner" initialWeek="2026-10-19" demo />)
+  expect(await screen.findByRole('note')).toHaveTextContent('Demo preview — sample data only. Nothing is saved.')
+  expect(screen.getByText((_, element) => element?.tagName === 'DD' && element.textContent === '+2.50R')).toBeInTheDocument()
+  expect(screen.getByText('50.0%')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Pending outcomes' })).toBeInTheDocument()
+  expect(screen.getAllByText('GC short 2671.3 orb stop 2676.3')).toHaveLength(2)
+  expect(fetchMock).not.toHaveBeenCalled()
+  expect(screen.queryByText('Add exit')).not.toBeInTheDocument()
+})
 test('load failures are recoverable and an empty inbox is clear', async () => {
   fetchMock.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(Response.json({ trades: [] }))
   render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)

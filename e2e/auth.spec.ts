@@ -33,6 +33,12 @@ test('email code signs in and opens the mobile shell', async ({ page, request })
   await expect(page.getByRole('heading', { name: 'Capture' })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Main navigation' }).last()).toBeVisible()
 
+  await page.goto('/review?demo=1')
+  await expect(page.getByRole('note')).toHaveText('Demo preview — sample data only. Nothing is saved.')
+  await expect(page.locator('.week-metrics')).toContainText('+2.50R')
+  await expect(page.locator('.week-metrics')).toContainText('50.0%')
+  expect((await (await page.request.get('/api/trades')).json()).trades).toEqual([])
+
   const before = await page.evaluate(async () => {
     const response = await fetch('/api/profile')
     return { status: response.status, body: await response.json() }

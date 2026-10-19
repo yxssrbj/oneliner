@@ -7,9 +7,10 @@ import TradeWorkspace from '../components/trade-workspace'
 
 export const instant = false
 
-export default async function Review() {
+export default async function Review({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {
   await connection()
   const auth = await getAuthenticatedUser()
   if (!auth) redirect('/sign-in')
-  return <AppShell title="Review"><TradeWorkspace mode="review" userId={auth.user.id} initialWeek={weekStartUtc(new Date())} /></AppShell>
+  const demo = process.env.NODE_ENV === 'development' && (await searchParams).demo === '1'
+  return <AppShell title="Review"><TradeWorkspace mode="review" userId={auth.user.id} initialWeek={weekStartUtc(new Date())} demo={demo} /></AppShell>
 }
