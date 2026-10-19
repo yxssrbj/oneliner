@@ -44,10 +44,7 @@
     .preview-tag { display: inline-block; margin-bottom: 12px; padding: 6px 10px; border-color: #554629; color: var(--gold); letter-spacing: .04em; text-transform: uppercase; }
     h1 { margin: 0; font-size: clamp(30px, 3vw, 40px); letter-spacing: -.045em; line-height: 1.08; }
     .lede { margin: 9px 0 30px; color: var(--muted); line-height: 1.5; }
-    .tabs { display: inline-flex; gap: 5px; padding: 5px; margin-bottom: 22px; border-radius: 13px; background: var(--surface); }
-    .tab { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; }
-    .tab[aria-selected="true"] { background: var(--surface-raised); color: var(--gold); box-shadow: inset 0 0 0 1px #383a46; }
-    .panel[hidden] { display: none; }
+    .page[hidden] { display: none; }
     .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 27px 0 14px; }
     .section-heading h2 { margin: 0; font-size: 21px; letter-spacing: -.025em; }
     .section-heading p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
@@ -72,6 +69,11 @@
     .result-preview small { margin-top: 2px; color: var(--muted); font-size: 10px; }
     .button { min-height: 43px; width: 100%; margin-top: 13px; border: 0; border-radius: 10px; background: var(--gold); color: #211c10; font-size: 13px; font-weight: 750; }
     .hint { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .outcome-toggle { display: flex; justify-content: space-between; gap: 12px; padding: 13px 0 0; margin-top: 17px; border-top: 1px solid var(--line); color: var(--gold); font-size: 13px; font-weight: 700; list-style: none; cursor: pointer; }
+    .outcome-toggle::-webkit-details-marker { display: none; }
+    .outcome-toggle::after { content: "＋"; }
+    details[open] .outcome-toggle::after { content: "−"; }
+    .outcome-editor { padding-top: 16px; }
     .metric-hero { display: flex; justify-content: space-between; align-items: center; gap: 30px; padding: 25px 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
     .metric-label { color: var(--muted); font-size: 14px; }
     .metric-total { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
@@ -124,8 +126,6 @@
       .topbar { margin-bottom: 27px; }
       .topbar p { font-size: 12px; }
       .week-pill { font-size: 11px; }
-      .tabs { display: flex; width: 100%; }
-      .tab { flex: 1; padding-inline: 8px; font-size: 12px; }
       .review-grid { grid-template-columns: 1fr; }
       .metric-total strong { font-size: 46px; }
       .card { padding: 17px; }
@@ -144,8 +144,8 @@
         <p class="nav-label">Workspace</p>
         <nav class="nav-list" aria-label="Primary navigation">
           <button class="nav-item" type="button"><span class="nav-icon" aria-hidden="true">＋</span>Capture</button>
-          <button class="nav-item" type="button" data-open-inbox aria-current="page"><span class="nav-icon" aria-hidden="true">☷</span>Inbox <span class="count">2</span></button>
-          <button class="nav-item" type="button" data-open-review><span class="nav-icon" aria-hidden="true">▦</span>Review</button>
+          <button class="nav-item" type="button" data-page-link="inbox" aria-current="page"><span class="nav-icon" aria-hidden="true">☷</span>Inbox <span class="count">2</span></button>
+          <button class="nav-item" type="button" data-page-link="review"><span class="nav-icon" aria-hidden="true">▦</span>Review</button>
           <button class="nav-item" type="button"><span class="nav-icon" aria-hidden="true">♧</span>Friends</button>
         </nav>
         <div class="side-foot">Private journal · Sample account</div>
@@ -153,37 +153,42 @@
       <main class="dashboard">
         <header class="topbar"><p>Good afternoon, Yassine</p><span class="week-pill">12–18 Oct · UTC</span></header>
         <span class="preview-tag">Task 4 · Visual preview</span>
-        <h1 id="page-title">Finish the week clearly.</h1>
-        <p class="lede">Add exits when you are ready, then review the trades opened this week.</p>
+        <h1 id="page-title">Outcomes to finish</h1>
+        <p class="lede" id="page-lede">Add an exit when you are ready. Your original note stays attached to the trade.</p>
 
-        <div class="tabs" role="tablist" aria-label="Trade review screens">
-          <button class="tab" id="inbox-tab" type="button" role="tab" aria-selected="true" aria-controls="inbox-panel">Needs an outcome · 2</button>
-          <button class="tab" id="review-tab" type="button" role="tab" aria-selected="false" aria-controls="review-panel">Weekly review</button>
-        </div>
-
-        <section class="panel" id="inbox-panel" role="tabpanel" aria-labelledby="inbox-tab">
+        <section class="page" id="inbox-panel" aria-label="Trade outcome inbox">
           <div class="section-heading"><div><h2>Missing outcomes</h2><p>Finish recording these trades to include them in your stats.</p></div><span class="count">2 left</span></div>
           <div class="inbox-grid">
             <article class="card trade-card">
               <div class="trade-head"><p class="trade-date">Tue 13 Oct, 15:42</p><span class="status">Needs an exit</span></div>
               <p class="original-note">CL short 87.64, stop 87.90, opening range breakout</p>
               <div class="chips"><span class="chip">CL</span><span class="chip short">Short</span><span class="chip">Entry 87.64</span><span class="chip">Stop 87.90</span><span class="chip">Opening range breakout</span></div>
-              <div class="field-row"><div><label for="exit-cl">Exit price</label><input id="exit-cl" inputmode="decimal" placeholder="e.g. 87.42" value="87.42"></div><div class="result-preview"><strong>+0.85R</strong><small>Win · preview</small></div></div>
-              <button class="button" type="button">Save exit</button>
-              <p class="hint">R is calculated from your entry and initial stop. This preview does not save changes.</p>
+              <details>
+                <summary class="outcome-toggle">Add outcome <span>Enter exit price</span></summary>
+                <div class="outcome-editor">
+                  <div class="field-row"><div><label for="exit-cl">Exit price</label><input id="exit-cl" inputmode="decimal" placeholder="e.g. 87.42" value="87.42"></div><div class="result-preview"><strong>+0.85R</strong><small>Win · preview</small></div></div>
+                  <button class="button" type="button">Save exit</button>
+                  <p class="hint">R is calculated from your entry and initial stop. This preview does not save changes.</p>
+                </div>
+              </details>
             </article>
             <article class="card trade-card">
               <div class="trade-head"><p class="trade-date">Thu 15 Oct, 10:05</p><span class="status">Needs an exit</span></div>
               <p class="original-note">GC long 2671.3, stop 2666.8, opening range breakout</p>
               <div class="chips"><span class="chip">GC</span><span class="chip long">Long</span><span class="chip">Entry 2671.3</span><span class="chip">Stop 2666.8</span><span class="chip">Opening range breakout</span></div>
-              <div class="field-row"><div><label for="exit-gc">Exit price</label><input id="exit-gc" inputmode="decimal" placeholder="Enter exit"></div><div class="result-preview"><strong>—</strong><small>Enter an exit</small></div></div>
-              <button class="button" type="button">Save exit</button>
+              <details>
+                <summary class="outcome-toggle">Add outcome <span>Enter exit price</span></summary>
+                <div class="outcome-editor">
+                  <div class="field-row"><div><label for="exit-gc">Exit price</label><input id="exit-gc" inputmode="decimal" placeholder="Enter exit"></div><div class="result-preview"><strong>—</strong><small>Enter an exit</small></div></div>
+                  <button class="button" type="button">Save exit</button>
+                </div>
+              </details>
             </article>
           </div>
           <p class="private-note">Your original note stays private and unchanged.</p>
         </section>
 
-        <section class="panel" id="review-panel" role="tabpanel" aria-labelledby="review-tab" hidden>
+        <section class="page" id="review-panel" aria-label="Weekly review" hidden>
           <div class="metric-hero">
             <div><span class="metric-label">Total R · your week · 12–18 Oct</span><div class="metric-total"><strong>+3.9R</strong><span>7 closed of 9 trades</span></div></div>
             <div class="metrics"><div class="metric"><span>Win rate</span><strong>71%</strong></div><div class="metric"><span>Completed</span><strong>7</strong></div><div class="metric"><span>Still open</span><strong>2</strong></div></div>
@@ -199,7 +204,7 @@
               <section class="card" aria-label="Trades opened this week"><div class="trade-row"><div><strong>NQ short · Liquidity sweep</strong><small>Mon · nq short 20184 sweep stop 20210</small></div><span class="result">+2.6R</span></div><div class="trade-row"><div><strong>ES long · VWAP reclaim</strong><small>Wed · es long 5794.25 vwap stop 5789</small></div><span class="result loss">−1.0R</span></div><div class="trade-row"><div><strong>CL short · Opening range breakout</strong><small>Tue · Original note stays with the trade</small></div><span class="result">+0.8R</span></div></section>
             </div>
             <div>
-              <div class="section-heading"><div><h2>Needs an outcome</h2><p>Complete these to update the week.</p></div><button class="link-button" type="button" data-open-inbox>Complete 2 →</button></div>
+              <div class="section-heading"><div><h2>Needs an outcome</h2><p>Complete these to update the week.</p></div><button class="link-button" type="button" data-page-link="inbox">Complete 2 →</button></div>
               <section class="card" aria-label="Trades missing an outcome"><div class="open-row"><div><strong>CL short · Opening range breakout</strong><small>Tue · Entry 87.64 · Stop 87.90</small></div><span class="status">Open</span></div><div class="open-row"><div><strong>GC long · Opening range breakout</strong><small>Thu · Entry 2671.3 · Stop 2666.8</small></div><span class="status">Open</span></div></section>
               <p class="private-note">Week is based on when each trade was opened. Personal notes stay private.</p>
             </div>
@@ -211,25 +216,24 @@
     </div>
   </div>
   <script>
-    const inboxTab = document.querySelector('#inbox-tab')
-    const reviewTab = document.querySelector('#review-tab')
     const inboxPanel = document.querySelector('#inbox-panel')
     const reviewPanel = document.querySelector('#review-panel')
-    const navInbox = document.querySelector('.sidebar [data-open-inbox]')
-    const navReview = document.querySelector('.sidebar [data-open-review]')
-    function show(view) {
-      const inbox = view === 'inbox'
-      inboxTab.setAttribute('aria-selected', String(inbox))
-      reviewTab.setAttribute('aria-selected', String(!inbox))
+    const title = document.querySelector('#page-title')
+    const lede = document.querySelector('#page-lede')
+    function showPage(name) {
+      const inbox = name === 'inbox'
       inboxPanel.hidden = !inbox
       reviewPanel.hidden = inbox
-      navInbox.toggleAttribute('aria-current', inbox)
-      navReview.toggleAttribute('aria-current', !inbox)
+      title.textContent = inbox ? 'Outcomes to finish' : 'Your weekly review'
+      lede.textContent = inbox
+        ? 'Add an exit when you are ready. Your original note stays attached to the trade.'
+        : 'Review results for trades opened 12–18 Oct. Open trades are listed separately.'
+      document.querySelectorAll('.sidebar [data-page-link]').forEach(button => {
+        if (button.dataset.pageLink === name) button.setAttribute('aria-current', 'page')
+        else button.removeAttribute('aria-current')
+      })
     }
-    inboxTab.addEventListener('click', () => show('inbox'))
-    reviewTab.addEventListener('click', () => show('review'))
-    document.querySelectorAll('[data-open-inbox]').forEach(button => button.addEventListener('click', () => show('inbox')))
-    document.querySelectorAll('[data-open-review]').forEach(button => button.addEventListener('click', () => show('review')))
+    document.querySelectorAll('[data-page-link]').forEach(button => button.addEventListener('click', () => showPage(button.dataset.pageLink)))
   </script>
 </body>
 </html>
