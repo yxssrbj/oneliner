@@ -7,6 +7,7 @@ import { nextWeekStartUtc } from '../../lib/trades/week'
 import { demoTradesForWeek } from '../../lib/trades/demo'
 import ExitForm from './exit-form'
 import TradeEditForm, { resultLabel, type SavedTrade } from './trade-edit-form'
+import ChartDataImport from './chart-data-import'
 
 type Summary = ReturnType<typeof summarizeTrades>
 type Loaded = { key: string; trades: SavedTrade[]; summary?: Summary; error?: string }
@@ -17,6 +18,7 @@ function TradeCard({ trade, onSaved, readOnly = false }: { trade: SavedTrade; on
     <p className="trade-note">{trade.original_note}</p>
     <dl className="trade-details"><div><dt>Entry</dt><dd>{trade.entry_price}</dd></div><div><dt>Initial stop</dt><dd>{trade.stop_price}</dd></div><div><dt>Setup</dt><dd>{trade.setup}</dd></div><div><dt>Opened (UTC)</dt><dd>{new Date(trade.opened_at).toISOString().replace('T', ' ').slice(0, 19)}</dd></div>{trade.exit_price !== null && <div><dt>Exit</dt><dd>{trade.exit_price}</dd></div>}</dl>
     {!readOnly && <><details><summary>{trade.exit_price === null ? 'Add exit' : 'Correct exit'}</summary><ExitForm key={trade.exit_price} trade={trade} onSaved={onSaved} /></details>
+    <ChartDataImport tradeId={trade.id} />
     <details><summary>Correct trade details</summary><TradeEditForm key={JSON.stringify(trade)} trade={trade} onSaved={onSaved} /></details></>}
   </article>
 }

@@ -58,6 +58,15 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #e8b9
 .trade-details dd{margin:.35rem 0 0;font-size:.85rem;overflow-wrap:anywhere}
 .trade-card details{border-top:1px solid #30323d;margin-top:.8rem;padding-top:.8rem}
 .trade-card summary{cursor:pointer;color:#e8b94e;font-size:.9rem;min-height:1.8rem}
+.chart-data-import{border-top:1px solid #30323d;margin-top:.8rem;padding-top:.8rem}
+.trade-workspace .chart-data-toggle{background:transparent;color:#e8b94e;padding:.3rem 0}
+.chart-data-panel{display:grid;gap:.7rem;min-width:0}
+.chart-data-panel p{margin:.2rem 0;font-size:.85rem}
+.chart-data-panel input[type=file]{max-width:100%;color:#a8a9b8}
+.chart-data-plot{width:100%;height:auto;background:#111218;border:1px solid #30323d;border-radius:.5rem}
+.chart-data-plot line{stroke:#484a58;stroke-width:1}
+.chart-data-plot polyline{fill:none;stroke:#82cba9;stroke-width:2;vector-effect:non-scaling-stroke}
+.chart-data-range{overflow-wrap:anywhere;color:#a8a9b8}
 .trade-form fieldset{display:grid;gap:.7rem;border:0;margin:0;padding:.8rem 0 0;min-width:0}
 .trade-form input,.trade-form select{width:100%;min-width:0;background:#111218;color:#e9e8e7;border:1px solid #484a58;border-radius:.5rem;padding:.75rem;font:inherit}
 .trade-form label{font-size:.9rem;display:block}
