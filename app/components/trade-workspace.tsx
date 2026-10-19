@@ -30,7 +30,7 @@ export default function TradeWorkspace({ mode, userId, initialWeek, demo = false
   const signedOut = useRef(false)
   const url = mode === 'inbox' ? '/api/trades?status=open' : `/api/trades?weekStart=${week}`
   const key = `${url}:${revision}`
-  const demoTrades = demo ? demoTradesForWeek(week) : []
+  const demoTrades = demo ? demoTradesForWeek(week, initialWeek) : []
   const demoSummary = demo ? summarizeTrades(demoTrades.map(trade => ({ r_result: trade.r_result === null ? null : Number(trade.r_result) }))) : undefined
   useEffect(() => {
     if (demo) return
