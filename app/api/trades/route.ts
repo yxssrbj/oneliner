@@ -1,3 +1,5 @@
+import { nextWeekStartUtc } from '../../../lib/trades/week'
+import { summarizeTrades } from '../../../lib/trades/summary'
 import { getAuthenticatedUser } from '../../../lib/supabase/server'
 import { comparePrices, isPrice, validateDraft } from '../../../lib/trades/validation'
 
@@ -34,18 +36,32 @@ export async function GET(request: Request) {
   const auth = await getAuthenticatedUser()
   if (!auth) return failure('Sign in required.', 401)
   const params = new URL(request.url).searchParams
-  const week = params.get('week')
+  if (['week', 'weekStart', 'status', 'inbox'].some(key => params.getAll(key).length > 1)) return failure('Supply each filter once.', 400)
+  if (params.has('week') && params.has('weekStart') && params.get('week') !== params.get('weekStart')) return failure('Conflicting week filters.', 400)
+  if (params.has('status') && params.get('status') !== 'open') return failure('Status must be open.', 400)
+  if (params.has('inbox') && !['true', 'false'].includes(params.get('inbox')!)) return failure('Inbox must be true or false.', 400)
+  if (params.has('status') && params.get('inbox') === 'false') return failure('Conflicting status filters.', 400)
+  const week = params.get('weekStart') ?? params.get('week')
   let start: Date | undefined
-  if (week) {
+  if (week !== null) {
     start = new Date(`${week}T00:00:00.000Z`)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(week) || !Number.isFinite(start.getTime()) || start.toISOString().slice(0, 10) !== week || start.getUTCDay() !== 1) return failure('Week must be a Monday date (YYYY-MM-DD), in UTC.', 400)
   }
   try {
     let query = auth.supabase.from('trades').select(columns).eq('owner_id', auth.user.id)
-    if (params.get('inbox') === 'true') query = query.is('exit_price', null)
-    if (start) query = query.gte('opened_at', start.toISOString()).lt('opened_at', new Date(start.getTime() + 7 * 86400000).toISOString())
-    const { data, error } = await query.order('opened_at', { ascending: false })
-    if (error) return failure('Could not load trades.', 500)
-    return Response.json({ trades: data }, { headers })
+    if (params.get('status') === 'open' || params.get('inbox') === 'true') query = query.is('exit_price', null)
+    if (start) query = query.gte('opened_at', start.toISOString()).lt('opened_at', `${nextWeekStartUtc(week!)}T00:00:00.000Z`)
+    query = query.order('opened_at', { ascending: false }).order('id', { ascending: false })
+    const first = await query.range(0, 999)
+    if (first.error) return failure('Could not load trades.', 500)
+    const data = first.data ?? []
+    let pageSize = data.length
+    while (pageSize === 1000) {
+      const page = await query.range(data.length, data.length + 999)
+      if (page.error) return failure('Could not load trades.', 500)
+      pageSize = page.data?.length ?? 0
+      data.push(...(page.data ?? []))
+    }
+    return Response.json({ trades: data, ...(start ? { summary: summarizeTrades((data ?? []).map(trade => ({ r_result: trade.r_result === null ? null : Number(trade.r_result) }))) } : {}) }, { headers })
   } catch { return failure('Could not load trades.', 500) }
 }
