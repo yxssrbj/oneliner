@@ -85,19 +85,14 @@
     .metric span { color: var(--muted); font-size: 12px; }
     .metric strong { margin-top: 6px; font-size: 21px; }
     .review-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(310px, .75fr); gap: 18px; align-items: start; }
-    .chart { padding: 19px 20px 16px; }
-    .chart-title { margin: 0 0 14px; font-size: 15px; }
-    .chart-bars { display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; height: 126px; border-bottom: 1px solid #414350; }
-    .day { display: grid; height: 100%; grid-template-rows: 1fr 1fr auto; justify-items: center; align-items: center; }
-    .bar { width: 28px; border-radius: 6px; background: var(--mint); align-self: end; }
-    .bar.loss { grid-row: 2; align-self: start; background: var(--red); }
-    .bar.pending { border: 2px dashed var(--gold); background: transparent; }
-    .day-label { grid-row: 3; padding-top: 10px; color: var(--muted); font-size: 12px; }
-    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 15px; color: var(--muted); font-size: 12px; }
-    .legend span { display: inline-flex; align-items: center; gap: 6px; }
-    .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--mint); }
-    .dot.loss { background: var(--red); }
-    .dot.pending { border: 1px dashed var(--gold); background: transparent; }
+    .daily-breakdown { padding: 4px 20px; }
+    .day-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 78px; align-items: center; gap: 12px; padding: 15px 0; }
+    .day-row + .day-row { border-top: 1px solid var(--line); }
+    .day-name { font-size: 14px; font-weight: 700; }
+    .day-detail { color: var(--muted); font-size: 13px; }
+    .day-total { text-align: right; font-size: 14px; font-weight: 750; }
+    .day-total.positive { color: var(--mint); }
+    .day-total.negative { color: var(--red); }
     .open-row, .trade-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .open-row + .open-row, .trade-row + .trade-row { padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--line); }
     .open-row strong, .trade-row strong { display: block; font-size: 14px; }
@@ -197,11 +192,15 @@
           <div class="review-grid">
             <div>
               <div class="section-heading"><div><h2>Each day</h2><p>Results grouped by the day each trade was opened.</p></div></div>
-              <section class="card chart" aria-label="Trade results by day"><p class="chart-title">Trades opened this week</p><div class="chart-bars" aria-hidden="true">
-                <div class="day"><i class="bar" style="height:44px"></i><span class="day-label">Mon</span></div><div class="day"><i class="bar loss" style="height:22px"></i><span class="day-label">Tue</span></div><div class="day"><i class="bar" style="height:33px"></i><span class="day-label">Wed</span></div><div class="day"><i class="bar pending" style="height:31px"></i><span class="day-label">Thu</span></div><div class="day"><i class="bar" style="height:18px"></i><span class="day-label">Fri</span></div>
-              </div><div class="legend"><span><i class="dot"></i>Win</span><span><i class="dot loss"></i>Loss</span><span><i class="dot pending"></i>Needs an outcome</span></div></section>
-              <div class="section-heading"><h2>Trades opened this week</h2></div>
-              <section class="card" aria-label="Trades opened this week"><div class="trade-row"><div><strong>NQ short · Liquidity sweep</strong><small>Mon · nq short 20184 sweep stop 20210</small></div><span class="result">+2.6R</span></div><div class="trade-row"><div><strong>ES long · VWAP reclaim</strong><small>Wed · es long 5794.25 vwap stop 5789</small></div><span class="result loss">−1.0R</span></div><div class="trade-row"><div><strong>CL short · Opening range breakout</strong><small>Tue · Original note stays with the trade</small></div><span class="result">+0.8R</span></div></section>
+              <section class="card daily-breakdown" aria-label="Trade results by day">
+                <div class="day-row"><strong class="day-name">Monday</strong><span class="day-detail">2 closed · 2 wins</span><span class="day-total positive">+2.6R</span></div>
+                <div class="day-row"><strong class="day-name">Tuesday</strong><span class="day-detail">1 closed · 1 loss</span><span class="day-total negative">−1.0R</span></div>
+                <div class="day-row"><strong class="day-name">Wednesday</strong><span class="day-detail">1 closed · 1 win</span><span class="day-total positive">+1.5R</span></div>
+                <div class="day-row"><strong class="day-name">Thursday</strong><span class="day-detail">3 trades · 1 win · 2 open</span><span class="day-total positive">+0.8R</span></div>
+                <div class="day-row"><strong class="day-name">Friday</strong><span class="day-detail">2 closed · 1 win · 1 loss</span><span class="day-total">0.0R</span></div>
+              </section>
+              <div class="section-heading"><h2>Recent trades</h2></div>
+              <section class="card" aria-label="Recent trades"><div class="trade-row"><div><strong>NQ short · Liquidity sweep</strong><small>Mon · nq short 20184 sweep stop 20210</small></div><span class="result">+2.6R</span></div><div class="trade-row"><div><strong>ES long · VWAP reclaim</strong><small>Tue · es long 5794.25 vwap stop 5789</small></div><span class="result loss">−1.0R</span></div><div class="trade-row"><div><strong>CL short · Opening range breakout</strong><small>Thu · Original note stays with the trade</small></div><span class="result">+0.8R</span></div></section>
             </div>
             <div>
               <div class="section-heading"><div><h2>Needs an outcome</h2><p>Complete these to update the week.</p></div><button class="link-button" type="button" data-page-link="inbox">Complete 2 →</button></div>
