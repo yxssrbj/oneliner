@@ -50,9 +50,9 @@ export default function SignInForm() {
       <label htmlFor="email">Email</label>
       <input id="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} disabled={sent || pending} />
       {sent && <>
-        <p>Enter the six-digit code sent to {email}.</p>
+        <p>Enter the code sent to {email}.</p>
         <label htmlFor="code">Code</label>
-        <input id="code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={(event) => setCode(event.target.value)} disabled={pending} />
+        <input id="code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}|[0-9]{8}" maxLength={8} required value={code} onChange={(event) => setCode(event.target.value)} disabled={pending} />
       </>}
       {error && <p role="alert" className="error">{error}</p>}
       <button type="submit" disabled={pending}>{pending ? 'Please wait…' : sent ? 'Verify code' : 'Send code'}</button>

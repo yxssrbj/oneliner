@@ -29,11 +29,13 @@ test('requires an email before requesting a code', async () => {
   expect(signInWithOtp).not.toHaveBeenCalled()
 })
 
-test('requests a code and asks for the six-digit token', async () => {
+test('requests a code and accepts the configured eight-digit token', async () => {
   render(<SignInForm />)
   await userEvent.type(screen.getByLabelText(/email/i), 'trader@example.com')
   await userEvent.click(screen.getByRole('button', { name: /send code/i }))
   expect(await screen.findByLabelText(/code/i)).toBeInTheDocument()
+  expect(screen.getByText(/enter the code sent to/i)).toBeInTheDocument()
+  expect(screen.getByLabelText(/code/i)).toHaveAttribute('maxlength', '8')
   expect(signInWithOtp).toHaveBeenCalledWith({ email: 'trader@example.com' })
 })
 
@@ -53,9 +55,9 @@ test('successful verification navigates to the signed-in shell', async () => {
   render(<SignInForm />)
   await userEvent.type(screen.getByLabelText(/email/i), 'trader@example.com')
   await userEvent.click(screen.getByRole('button', { name: /send code/i }))
-  await userEvent.type(await screen.findByLabelText(/code/i), '123456')
+  await userEvent.type(await screen.findByLabelText(/code/i), '12345678')
   await userEvent.click(screen.getByRole('button', { name: /verify code/i }))
-  expect(verifyOtp).toHaveBeenCalledWith({ email: 'trader@example.com', token: '123456', type: 'email' })
+  expect(verifyOtp).toHaveBeenCalledWith({ email: 'trader@example.com', token: '12345678', type: 'email' })
   expect(replace).toHaveBeenCalledWith('/')
   expect(refresh).toHaveBeenCalled()
 })
