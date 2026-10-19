@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(46);
+select plan(49);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_column('public', 'profiles', 'display_name', 'profiles have display names');
@@ -30,8 +30,11 @@ values
   ('10000000-0000-0000-0000-000000000003', auth.uid(), 'breakeven', 'ES', 'long', 100, 99, 'breakout', now(), 100, '20000000-0000-0000-0000-000000000003'),
   ('10000000-0000-0000-0000-000000000004', auth.uid(), 'unfinished', 'ES', 'long', 100, 99, 'breakout', now(), null, '20000000-0000-0000-0000-000000000004');
 
-update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z"}]'::jsonb where id = '10000000-0000-0000-0000-000000000001';
-select throws_ok($$update public.trades set chart_data = '{}'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data must be a JSON array');
+update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z","open":101,"high":104,"low":100,"close":103,"volume":25}]'::jsonb where id = '10000000-0000-0000-0000-000000000001';
+select throws_ok($$update public.trades set chart_data = '{}'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data must be an array');
+select throws_ok($$update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z"}]'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data requires complete bars');
+select throws_ok($$update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z","open":101,"high":99,"low":100,"close":103,"volume":25}]'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data rejects invalid OHLC geometry');
+select throws_ok($$update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z","open":101,"high":104,"low":100,"close":103,"volume":25},{"time":"2026-10-19T09:30:00Z","open":101,"high":104,"low":100,"close":103,"volume":25}]'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data rejects duplicate timestamps');
 
 select is((select r_result from public.trades where id = '10000000-0000-0000-0000-000000000001'), 2::numeric, 'long win is 2R');
 select is((select r_result from public.trades where id = '10000000-0000-0000-0000-000000000002'), -2::numeric, 'short loss is -2R');

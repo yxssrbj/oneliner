@@ -91,5 +91,9 @@ export function parseTradingViewChartCsv(csv: string): ChartBar[] {
   })
 
   if (!bars.length) throw new Error('CSV has no chart rows.')
-  return bars.sort((left, right) => left.time.localeCompare(right.time))
+  bars.sort((left, right) => left.time.localeCompare(right.time))
+  if (bars.some((bar, index) => index > 0 && bar.time === bars[index - 1].time)) {
+    throw new Error('Chart rows must have unique timestamps.')
+  }
+  return bars
 }

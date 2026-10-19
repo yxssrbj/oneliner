@@ -54,3 +54,23 @@ test('does not reveal database errors or claim data was saved', async () => {
   expect(response.status).toBe(500)
   expect(await response.text()).not.toContain('private detail')
 })
+
+test('stops reading an oversized streamed body without content length', async () => {
+  let chunks = 0
+  const body = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (chunks++ < 2) controller.enqueue(new Uint8Array(1_100_000))
+      else controller.close()
+    },
+  }, { highWaterMark: 0 })
+  const upload = new Request(`http://localhost/api/trades/${id}/chart-data`, {
+    method: 'PUT',
+    body,
+    // Node requires this extension when constructing a streaming request.
+    duplex: 'half',
+  } as RequestInit)
+
+  const response = await PUT(upload, context)
+  expect(response.status).toBe(413)
+  expect(chunks).toBe(2)
+})

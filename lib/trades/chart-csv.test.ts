@@ -31,6 +31,11 @@ test('keeps volume optional when the chart export omits it', () => {
     .toEqual([{ time: '2026-10-19T09:30:00.000Z', open: 1, high: 2, low: 0, close: 1, volume: null }])
 })
 
+test('rejects duplicate chart timestamps after sorting', () => {
+  expect(() => parseTradingViewChartCsv('time,open,high,low,close\n2026-10-19T09:30:00Z,1,2,0,1\n2026-10-19T09:30:00Z,1,2,0,1'))
+    .toThrow('Chart rows must have unique timestamps.')
+})
+
 test('rejects ambiguous timestamps and malformed quoted cells', () => {
   expect(() => parseTradingViewChartCsv('time,open,high,low,close\n2026-10-19T09:30:00,1,2,0,1'))
     .toThrow('Row 2 has an invalid timestamp or missing timezone.')
