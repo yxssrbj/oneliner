@@ -1,0 +1,15 @@
+.capture-form{background:#1d1f2a;border:1px solid #30323d;border-radius:1.25rem;padding:1.25rem}
+.capture-form>p:first-child{margin-top:0}
+.capture-form fieldset{border:0;margin:0;padding:0;display:grid;gap:.8rem;min-width:0}
+.capture-form label{display:block;font-weight:600;margin-bottom:.2rem}
+.capture-form input,.capture-form textarea,.capture-form select{width:100%;min-width:0;min-height:48px;background:#111218;color:#e9e8e7;border:1px solid #484a58;border-radius:.65rem;padding:.8rem;font:inherit}
+.capture-form textarea{resize:vertical;line-height:1.5}
+.capture-form textarea:focus-visible,.capture-form select:focus-visible{outline:2px solid #e8b94e;outline-offset:2px}
+.capture-form button{min-height:48px;border:0;border-radius:.65rem;background:#e8b94e;color:#201d16;font:inherit;font-weight:700;padding:.9rem;cursor:pointer}
+.capture-form button:disabled,.capture-form fieldset:disabled button{opacity:.6;cursor:wait}
+.capture-form .secondary-button{background:#30323d;color:#e9e8e7}
+.capture-form h2{font-size:1.2rem;margin:1rem 0 .3rem}
+.capture-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.capture-hint{font-size:.9rem;margin:0;line-height:1.5}
+.capture-clarifications{color:#e8b94e;margin:.2rem 0;padding-left:1.25rem;line-height:1.5}
+.capture-success{color:#71c4a4;font-weight:700}
