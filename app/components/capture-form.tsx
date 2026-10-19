@@ -36,8 +36,8 @@ export default function CaptureForm({ userId }: { userId: string }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraft(restored)
     setIdempotencyKey(key)
-    const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') {
+    const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || (session && session.user.id !== userId)) {
         signedOut.current = true
         setLoggedOut(true)
         try { sessionStorage.removeItem(storageKey) } catch { /* Storage may be unavailable. */ }
@@ -45,7 +45,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
       }
     })
     return () => subscription.unsubscribe()
-  }, [storageKey])
+  }, [storageKey, userId])
 
   function persist(next: TradeDraft, key = idempotencyKey) {
     setDraft(next); setSaved(false)
@@ -57,7 +57,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
     setError('')
   }
   async function suggest() {
-    if (!draft || busy.current) return
+    if (!draft || busy.current || signedOut.current) return
     const noteError = validateNote(draft.originalNote)
     if (noteError) { setError(noteError); return }
     busy.current = true; setPending('parse'); setError(''); setClarifications([])
@@ -74,7 +74,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
   }
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!draft || busy.current) return
+    if (!draft || busy.current || signedOut.current) return
     const date = new Date(draft.openedAt)
     const validated = validateDraft({ ...draft, openedAt: Number.isFinite(date.getTime()) ? date.toISOString() : '' })
     if (validated.error) { setError(validated.error); return }
@@ -90,7 +90,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
     finally { busy.current = false; setPending(null) }
   }
 
-  if (!draft) return <p>{loggedOut ? 'Sign in to capture a trade.' : 'Loading your draft…'}</p>
+  if (!draft) return <p>{loggedOut ? 'Your session changed. Reload this page to continue.' : 'Loading your draft…'}</p>
   return <form onSubmit={save} className="capture-form">
     <p>Write the trade as you would send it to a friend, then review the details.</p>
     {saved && <p role="status" className="capture-success">Trade saved.</p>}
