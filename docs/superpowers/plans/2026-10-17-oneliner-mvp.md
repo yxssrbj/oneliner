@@ -130,8 +130,10 @@ After each task, stop and show the diff, checks, normal and edge cases to try, a
 
 ### Task 5: Private friend groups and aggregate comparison
 
+**Status (20 October 2026):** Design approved; implementation in progress on `feat/task-5-private-groups`. Follow the private-group details in the design. Deliver database/RPCs and privacy tests, authenticated routes and tests, Friends/invite UI, then two-account browser verification.
+
 **Files:**
-- Create: `supabase/migrations/202610180002_groups.sql`
+- Create: `supabase/migrations/202610200001_groups.sql`
 - Create: `supabase/tests/database/groups.test.sql`
 - Create: `app/api/groups/route.ts`, `app/api/groups/[groupId]/route.ts`, `app/api/groups/[groupId]/metrics/route.ts`
 - Create: `app/friends/page.tsx`, `app/friends/invite/[token]/page.tsx`
@@ -140,8 +142,8 @@ After each task, stop and show the diff, checks, normal and edge cases to try, a
 **Interfaces:**
 - Tables: `groups(id, owner_id, name, created_at)`, `group_invites(group_id, token)`, `group_members(group_id, user_id, joined_at)`. Group tables have RLS; only owner/current members see allowed group metadata.
 - Authenticated RPCs: `create_group(name)`, `join_group(token)`, `leave_group(group_id)`, `remove_group_member(group_id, member_id)`, `rotate_group_invite(group_id)`, `close_group(group_id)`, `group_weekly_metrics(group_id, week_start)`. Each enforces current membership/ownership. Only the owner can retrieve the invite token.
-- `group_weekly_metrics` returns current members' IDs, display names, total R, win rate, and completed count for a UTC week; include members with no completed trades as `0`, null, `0`. It returns no note, trade ID, price, setup, or individual trade row. A former member cannot call it.
-- All group API routes use the signed-in user's Supabase session. Any `SECURITY DEFINER` function is in a non-exposed schema with a fixed `search_path`, minimal grants, and membership checks inside the function.
+- `group_weekly_metrics` returns current members' display names, total R, win rate, and completed count for a UTC week; include members with no completed trades as `0`, null, `0`. It returns no note, trade ID, price, setup, or individual trade row. A former member cannot call it.
+- All group API routes use the signed-in user's Supabase session. Callable group RPCs may use `SECURITY DEFINER` in the exposed `public` schema with a fixed `search_path`, execution granted only to authenticated users, and identity/membership/ownership checks inside every function. Internal helpers may use a private schema. This resolves the earlier contradiction between callable RPCs and non-exposed functions (approved 20 October 2026).
 
 - [ ] **Step 1: Write failing pgTAP privacy tests.** Assert nonmembers cannot read group metrics; current members receive only aggregate columns; member A cannot select member B's trade; removal revokes access and rotates the invite; the old token cannot rejoin; leaving/closing revokes access.
 - [ ] **Step 2: Run `npx supabase test db` and confirm failure because the group schema/functions are missing.**
