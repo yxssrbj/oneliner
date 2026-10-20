@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { weekStartUtc } from '../../lib/trades/week'
 import GroupForm from './group-form'
 
@@ -25,16 +25,16 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
   const controllerRef = useRef<AbortController | null>(null)
   const mutationRef = useRef<AbortController | null>(null)
 
+  const refresh = useCallback(() => {
+    controllerRef.current?.abort()
+    mutationRef.current?.abort()
+    setDetails(null)
+    setMetrics(null)
+    setGroups([])
+    setRevision(value => value + 1)
+  }, [])
   useEffect(() => () => mutationRef.current?.abort(), [])
   useEffect(() => {
-    const refresh = () => {
-      controllerRef.current?.abort()
-      mutationRef.current?.abort()
-      setDetails(null)
-      setMetrics(null)
-      setGroups([])
-      setRevision(value => value + 1)
-    }
     const visible = () => { if (document.visibilityState === 'visible') refresh() }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', visible)
@@ -42,7 +42,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
       window.removeEventListener('focus', refresh)
       document.removeEventListener('visibilitychange', visible)
     }
-  }, [])
+  }, [refresh])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -57,13 +57,20 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
       setDetails(null)
       setMetrics(null)
       setError('')
+      let listed = false
       try {
         const list = await read('/api/groups')
         if (controller.signal.aborted) return
-        setGroups(list.groups)
-        const groupId = selected || list.groups[0]?.id
+        const available: Group[] = list.groups
+        listed = true
+        setGroups(available)
+        const groupId = available.some(group => group.id === selected) ? selected : available[0]?.id || ''
+        if (groupId !== selected) {
+          setSelected(groupId)
+          window.history.replaceState(null, '', groupId ? `/friends?group=${groupId}` : '/friends')
+          return
+        }
         if (!groupId) return
-        if (!selected) { setSelected(groupId); return }
         const [detail, result] = await Promise.all([
           read(`/api/groups/${groupId}`),
           read(`/api/groups/${groupId}/metrics?weekStart=${week}`),
@@ -73,7 +80,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
         setMetrics(result.metrics)
       } catch (error) {
         if (!controller.signal.aborted) {
-          setGroups([])
+          if (!listed) setGroups([])
           setDetails(null)
           setMetrics(null)
           setError(error instanceof Error ? error.message : 'Could not load groups. Try again.')
@@ -117,7 +124,12 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
       const data = await response.json()
       if (controller.signal.aborted) return
       if (!response.ok) {
-        if ([401, 403, 404].includes(response.status)) { setDetails(null); setMetrics(null) }
+        if ([401, 403, 404].includes(response.status)) {
+          setGroups([])
+          setDetails(null)
+          setMetrics(null)
+          window.history.replaceState(null, '', '/friends')
+        }
         throw new Error(data.error || 'Could not save. Try again.')
       }
       setDetails(null)
@@ -134,11 +146,11 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
   const owner = details?.viewerId === details?.group.ownerId
   return <div className="groups-workspace">
     <p>Compare weekly summaries with a private group of friends.</p>
-    <GroupForm onCreated={select} onProfileSaved={() => setRevision(value => value + 1)} />
+    <GroupForm onCreated={select} onProfileSaved={() => setRevision(value => value + 1)} onIdentityChange={refresh} />
     <nav className="group-list" aria-label="Your groups">
       {groups.map(group => <button key={group.id} onClick={() => select(group.id)} aria-pressed={selected === group.id}>{group.name}</button>)}
     </nav>
-    {selected && <div className="week-picker">
+    {groups.some(group => group.id === selected) && <div className="week-picker">
       <button onClick={() => changeWeek(-1)}>Previous week</button>
       <span>Week of {week}</span>
       <button onClick={() => changeWeek(1)}>Next week</button>
