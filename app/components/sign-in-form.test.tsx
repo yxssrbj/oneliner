@@ -61,3 +61,12 @@ test('successful verification navigates to the signed-in shell', async () => {
   expect(replace).toHaveBeenCalledWith('/')
   expect(refresh).toHaveBeenCalled()
 })
+
+test.each(['50000000-0000-0000-0000-000000000001','https://evil.example'])('invite continuation accepts only a UUID: %s',async(invite)=>{
+  render(<SignInForm invite={invite} />)
+  await userEvent.type(screen.getByLabelText(/email/i),'trader@example.com')
+  await userEvent.click(screen.getByRole('button',{name:/send code/i}))
+  await userEvent.type(await screen.findByLabelText(/code/i),'12345678')
+  await userEvent.click(screen.getByRole('button',{name:/verify code/i}))
+  expect(replace).toHaveBeenCalledWith(invite.startsWith('https')?'/':`/friends/invite/${invite}`)
+})
