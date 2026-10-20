@@ -12,6 +12,8 @@ A trading journal for quick note capture, completing trades, reviewing opening w
 
 The local email inbox is at [localhost:54324](http://localhost:54324). Sign-in uses the numeric code in the email; the local template is in `supabase/templates/sign-in-code.html`.
 
+After moving this checkout, run `npx supabase stop --project-id oneliner`, then `npx supabase start` from the new folder. This preserves local data and recreates containers with the new email-template mount path. Do not use `--no-backup`, which deletes the local data volumes.
+
 Capture is `/`, unfinished trades are `/inbox`, weekly review is `/review`, and private groups are `/friends`. The separate `/preview.html` is a static visual concept with sample data.
 
 ## Private groups
