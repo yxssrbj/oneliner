@@ -9,6 +9,7 @@
 
 ## Durable corrections
 
+- Keep a separate worktree for each active feature, with its folder matching the feature. Reusing Task 3's folder for Task 5 confused navigation; use `git worktree move` when correcting a folder name. Source: user correction and approved move, 20 October 2026.
 - After membership refresh, reconcile selection against the returned groups. Keeping a removed selection can hide other valid groups. Source: Task 5 review and browser regression.
 - Account changes must invalidate identity-derived forms and pending requests as well as displayed results. Cover Friends and invite pages; preserve drafts on ordinary same-account failures. Source: Task 5 review and component/browser regressions.
 - Each push needs current authorization; local atomic commits are permitted. Source: updated global instructions, 20 October 2026.

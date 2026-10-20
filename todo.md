@@ -2,6 +2,8 @@
 
 Branch: `feat/task-5-private-groups` · 20 October 2026
 
+Worktree: `.worktrees/task-5-private-groups` (moved from the former Task 3 folder).
+
 - [x] Record approved sharing and invitation behavior.
 - [x] Implement database authorization, aggregate APIs and Friends screens.
 - [x] Add failing regressions for group removal and account changes; fix both.
