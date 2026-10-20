@@ -1,0 +1,14 @@
+# Oneliner lessons
+
+## Confirmed decisions — 20 October 2026
+
+- Group sharing exposes display names and weekly aggregates only. Raw trades stay owner-only. Source: approved MVP design and `supabase/migrations/202610200001_groups.sql`.
+- Group metadata tables deny direct access. Narrow authenticated database functions check identity and membership explicitly, avoiding recursive membership policies; fixed search paths and restricted grants bound their elevated access. Source: group migration.
+- Membership changes lock the group; removal rotates its invite and joining rechecks the token after the lock. This prevents a waiting old invite from undoing removal. Source: group migration.
+- Comparisons use completed trades from Monday UTC opening weeks; breakeven trades remain in the win-rate denominator. Source: approved design and SQL aggregate tests.
+
+## Durable corrections
+
+- After membership refresh, reconcile selection against the returned groups. Keeping a removed selection can hide other valid groups. Source: Task 5 review and browser regression.
+- Account changes must invalidate identity-derived forms and pending requests as well as displayed results. Cover Friends and invite pages; preserve drafts on ordinary same-account failures. Source: Task 5 review and component/browser regressions.
+- Each push needs current authorization; local atomic commits are permitted. Source: updated global instructions, 20 October 2026.
