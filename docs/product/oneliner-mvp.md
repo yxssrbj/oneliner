@@ -1,6 +1,6 @@
 # Oneliner MVP: product definition
 
-**Status:** Approved for MVP implementation. This document defines what the first release must do and how we will decide that it works. It does not choose the implementation.
+**Status:** Historical MVP baseline, approved before the desktop redesign. See [the current PRD draft](../../specs/prd.md) for the confirmed desktop-only direction, revised registration, and private group chat. Keep this document as the record of earlier decisions; its conflicting phone-first and original scope statements are no longer the target.
 
 ## Who it is for and why
 
