@@ -39,4 +39,10 @@ Browser tests use local Supabase and its email inbox, create disposable test acc
 
 Implementation and local testing are separate from deployment. Hosted Supabase needs the committed migrations applied before deploying this branch. The complete deployed two-account flow still needs verification before inviting testers.
 
-The approved behavior and completion criteria are in [the product definition](docs/product/oneliner-mvp.md); the implementation checklist is in [the MVP plan](docs/superpowers/plans/2026-10-17-oneliner-mvp.md).
+The updated direction is in [the PRD draft](specs/prd.md), with detailed specifications under [specs/features](specs/features/README.md). The [original product definition](docs/product/oneliner-mvp.md) and [MVP plan](docs/superpowers/plans/2026-10-17-oneliner-mvp.md) describe the earlier implementation baseline. The runtime instructions above still describe the existing app, not the proposed password signup and chat.
+
+## Check product direction
+
+In Codex, run `$direction` from this worktree to compare the implementation with `specs/prd.md` and relevant feature specs. You can narrow it, for example `$direction weekly review`. The project skill lives at [.agents/skills/direction/SKILL.md](.agents/skills/direction/SKILL.md).
+
+The check is read-only. It distinguishes demonstrated drift from planned work and unverified behavior, cites requirements and source evidence, and recommends the next correction without changing the product or its requirements.

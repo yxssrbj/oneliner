@@ -1,4 +1,17 @@
-# Oneliner — private friend groups
+# Oneliner — specs and direction review
+
+Branch: `feat/ui-redesign` · 22 October 2026
+
+- [x] Create `specs/prd.md` from confirmed product decisions.
+- [x] Create `specs/features/` and identify the feature-spec boundaries.
+- [x] Create and validate the read-only `$direction` review skill.
+- [ ] User review of the written PRD before detailed implementation planning.
+
+The approved HTML is a visual prototype. Production UI, revised authentication, and group chat implementation have not started on this branch.
+
+Checks: skill format valid; Codex `skills/list` discovers `direction` as enabled with repository scope; a scratch agent review identifies two seeded deviations, distinguishes planned/draft/deferred work, and lists all six requirement IDs. A second empty scratch checkout reports a missing PRD without borrowing another baseline. Document links and requirement IDs checked; application tests and typecheck not run for this documentation/skill-only change. No push authorized.
+
+## Earlier private-groups implementation
 
 Branch: `feat/task-5-private-groups` · 20 October 2026
 

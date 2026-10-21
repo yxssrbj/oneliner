@@ -1,5 +1,11 @@
 # Oneliner lessons
 
+## Confirmed product direction — 22 October 2026
+
+- The redesign targets desktop only; do not introduce phone layouts or oversized controls to fill space. The approved visual reference is `docs/previews/oneliner-desktop.html`. Source: user correction and preview approval, current conversation.
+- New target scope includes signup with email/password/username and private continuous group chat with pictures and a member list. Broker connections remain deferred. These are product decisions, not claims of implemented functionality. Source: current conversation.
+- Keep product requirements in `specs/prd.md` and detailed feature specs in `specs/features/`. The read-only `direction` skill distinguishes drift from unfinished work and cites implementation evidence. Written PRD approval remains pending. Source: user documentation and command requests, 22 October 2026.
+
 ## Confirmed decisions — 20 October 2026
 
 - Group sharing exposes display names and weekly aggregates only. Raw trades stay owner-only. Source: approved MVP design and `supabase/migrations/202610200001_groups.sql`.
