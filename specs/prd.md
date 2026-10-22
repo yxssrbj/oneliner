@@ -2,6 +2,8 @@
 
 Status: Draft for review · 22 October 2026
 
+Canonical location: `specs/` in the primary Oneliner checkout. All feature worktrees use that shared PRD and feature folder; branch-local snapshots do not override them.
+
 This document consolidates the product decisions confirmed in the project conversation. The desktop visual direction is approved; this written PRD and the detailed feature specifications still need review before implementation. Proposed details and deferred work are identified explicitly.
 
 ## Purpose and audience
@@ -99,4 +101,4 @@ The release is ready for friend testing after the user accepts the implementatio
 - Put detailed feature specifications in [features/](features/README.md), with the relevant requirement IDs, approval status, acceptance criteria, exclusions, and unresolved decisions.
 - This PRD defines what to build. Feature specs refine behavior; implementation plans explain how. A new plan or code change does not silently change the product scope.
 - [The original MVP definition](../docs/product/oneliner-mvp.md) and older Superpowers documents record the earlier baseline. The confirmed desktop-only, registration, and chat decisions above replace their conflicting product direction. Preserve historical documents rather than treating them as current competing requirements.
-- Use `$direction` from this worktree to review alignment with the current PRD. Missing planned work is not automatically drift; explicit contradictions or unapproved scope expansion are.
+- Use `$direction` from any Oneliner worktree to review alignment with the current PRD. Missing planned work is not automatically drift; explicit contradictions or unapproved scope expansion are.

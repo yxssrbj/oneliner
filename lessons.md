@@ -20,3 +20,5 @@
 - After membership refresh, reconcile selection against the returned groups. Keeping a removed selection can hide other valid groups. Source: Task 5 review and browser regression.
 - Account changes must invalidate identity-derived forms and pending requests as well as displayed results. Cover Friends and invite pages; preserve drafts on ordinary same-account failures. Source: Task 5 review and component/browser regressions.
 - Each push needs current authorization; local atomic commits are permitted. Source: updated global instructions, 20 October 2026.
+
+- Keep canonical specs in `specs/` in the primary project checkout, shared by every feature worktree. Resolve that checkout through Git; review feature code locally while reading the shared PRD. Do not treat a feature branch’s copied PRD as its own product direction. Source: user correction, 22 October 2026.

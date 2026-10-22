@@ -43,6 +43,6 @@ The updated direction is in [the PRD draft](specs/prd.md), with detailed specifi
 
 ## Check product direction
 
-In Codex, run `$direction` from this worktree to compare the implementation with `specs/prd.md` and relevant feature specs. You can narrow it, for example `$direction weekly review`. The project skill lives at [.agents/skills/direction/SKILL.md](.agents/skills/direction/SKILL.md).
+The canonical `specs/` folder lives in the primary Oneliner checkout, shared by all feature worktrees. In Codex, run `$direction` to compare the current worktree’s implementation with that shared PRD and its feature specs; branch-local specification snapshots are historical copies, not separate requirements. You can narrow it, for example `$direction weekly review`. The canonical command lives at `skills/direction/SKILL.md` in the primary checkout and is registered once in the local Codex skills directory for all worktrees.
 
 The check is read-only. It distinguishes demonstrated drift from planned work and unverified behavior, cites requirements and source evidence, and recommends the next correction without changing the product or its requirements.

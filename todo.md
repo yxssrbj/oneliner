@@ -9,7 +9,7 @@ Branch: `feat/ui-redesign` · 22 October 2026
 
 The approved HTML is a visual prototype. Production UI, revised authentication, and group chat implementation have not started on this branch.
 
-Checks: skill format valid; Codex `skills/list` discovers `direction` as enabled with repository scope; a scratch agent review identifies two seeded deviations, distinguishes planned/draft/deferred work, and lists all six requirement IDs. A second empty scratch checkout reports a missing PRD without borrowing another baseline. Document links and requirement IDs checked; application tests and typecheck not run for this documentation/skill-only change. No push authorized.
+Checks: skill format valid; Codex `skills/list` discovers one shared, enabled `direction` skill in all five project worktrees; a scratch agent review identifies two seeded deviations, distinguishes planned/draft/deferred work, and lists all six requirement IDs. A second empty scratch checkout reports a missing PRD without borrowing another baseline. Shared-spec regression: a linked scratch worktree with a contradictory local PRD still uses the primary checkout’s PRD and detects both seeded deviations. Document links and requirement IDs checked; application tests and typecheck not run for this documentation/skill-only change. No push authorized.
 
 ## Earlier private-groups implementation
 

@@ -1,6 +1,6 @@
 # Feature specifications
 
-[The PRD](../prd.md) defines Oneliner's product direction and release boundaries. This folder holds the detailed feature specs reviewed before implementation.
+[The PRD](../prd.md) defines Oneliner's product direction and release boundaries. The canonical folder is `specs/features/` in the primary Oneliner checkout, shared by all feature worktrees. Add and review feature specifications there.
 
 Planned specifications, not yet written or approved:
 
