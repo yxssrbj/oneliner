@@ -1,6 +1,6 @@
 # Oneliner MVP: product definition
 
-**Status:** Historical MVP baseline. The [shared PRD draft](../../specs/prd.md) records the confirmed desktop-only direction, revised registration, and private group chat. Its conflicting phone-first and earlier scope statements are no longer the target.
+**Status:** Historical MVP baseline. The [approved shared PRD](../../specs/prd.md) records the desktop-only direction, revised registration, and private group chat. This historical document's conflicting phone-first and earlier scope statements are no longer the target.
 
 ## Who it is for and why
 

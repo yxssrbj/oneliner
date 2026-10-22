@@ -1,10 +1,10 @@
 # Oneliner — product requirements
 
-Status: Draft for review · 22 October 2026
+Status: Approved by the project owner · 22 October 2026
 
 Canonical location: `specs/` in the primary Oneliner checkout. All feature worktrees use that shared PRD and feature folder; branch-local snapshots do not override them.
 
-This document consolidates the product decisions confirmed in the project conversation. The desktop visual direction is approved; this written PRD and the detailed feature specifications still need review before implementation. Proposed details and deferred work are identified explicitly.
+This document consolidates the product decisions confirmed in the project conversation. The project owner approved this PRD on 22 October 2026 after approving the desktop visual direction. Detailed feature specifications and implementation plans still need their own review before implementation. Proposed details and deferred work are identified explicitly.
 
 ## Purpose and audience
 
