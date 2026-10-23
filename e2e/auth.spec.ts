@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-test.use({ viewport: { width: 390, height: 844 } })
+test.use({ viewport: { width: 1280, height: 800 } })
 
-test('email code signs in and opens the mobile shell', async ({ page, request }) => {
+test('email code signs in and opens the desktop shell', async ({ page, request }) => {
   const email = `oneliner-${Date.now()}@example.test`
   expect((await request.get('http://localhost:3012/api/profile')).status()).toBe(401)
   await page.goto('http://localhost:3012/')
@@ -30,7 +30,7 @@ test('email code signs in and opens the mobile shell', async ({ page, request })
   await page.getByLabel('Code').fill(code!)
   await page.getByRole('button', { name: 'Verify code' }).click()
   await expect(page).toHaveURL('http://localhost:3012/')
-  await expect(page.getByRole('heading', { name: 'Capture' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Capture a trade' })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Main navigation' }).last()).toBeVisible()
 
   await page.goto('/review?demo=1')
@@ -58,9 +58,9 @@ test('email code signs in and opens the mobile shell', async ({ page, request })
   })
   expect(saved).toEqual({ status: 200, body: { displayName: 'A trader' } })
 
-  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Inbox' }).click()
-  await expect(page.getByRole('heading', { name: 'Inbox' })).toBeVisible()
-  await page.setViewportSize({ width: 1100, height: 800 })
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Unfinished' }).click()
+  await expect(page.getByRole('heading', { name: 'Unfinished' })).toBeVisible()
+  await page.setViewportSize({ width: 1440, height: 900 })
   await expect(page.getByRole('complementary')).toBeVisible()
-  await expect(page.locator('.mobile-nav').last()).toBeHidden()
+  await expect(page.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(1)
 })

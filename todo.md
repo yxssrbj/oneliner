@@ -29,3 +29,12 @@ Checks: 135 unit tests, 97 SQL assertions, four browser flows, typecheck, lint a
 
 Hosted migrations and deployment remain separate. No push is authorized.
 Detailed requirements: `docs/superpowers/plans/2026-10-17-oneliner-mvp.md`.
+
+## Desktop shell — Task 1 (23 October 2026)
+
+Risk: medium; shared navigation and desktop geometry.
+
+- [x] Observe failing navigation/header contract tests (4 fail, 1 pass).
+- [x] Implement desktop shell and update browser assertions.
+- [x] Verify 148 unit tests, typecheck, lint and 4 local browser flows.
+- [x] Review diff, report evidence and commit locally.

@@ -3,18 +3,24 @@ import { redirect } from 'next/navigation'
 import { getAuthenticatedUser } from '../../lib/supabase/server'
 
 const destinations = [
-  { href: '/', label: 'Capture' },
-  { href: '/inbox', label: 'Inbox' },
-  { href: '/review', label: 'Review' },
-  { href: '/friends', label: 'Friends' },
+  { title: 'Review', href: '/review', label: 'Weekly review' },
+  { title: 'Capture', href: '/', label: 'Capture a trade' },
+  { title: 'Inbox', href: '/inbox', label: 'Unfinished' },
+  { title: 'Friends', href: '/friends', label: 'Groups' },
 ]
 
 export default async function AppShell({ title, children }: { title: string; children: React.ReactNode }) {
   const auth = await getAuthenticatedUser()
   if (!auth) redirect('/sign-in')
+  const pageTitle = destinations.find((item) => item.title === title)?.label ?? title
   return <div className="app-shell">
-    <aside className="desktop-nav"><Link className="brand" href="/">◼ Oneliner</Link><nav aria-label="Main navigation">{destinations.map((item) => <Link key={item.href} href={item.href} aria-current={item.label === title ? 'page' : undefined}>{item.label}</Link>)}</nav></aside>
-    <div className="app-content"><header className="mobile-header"><Link className="brand" href="/">◼ Oneliner</Link></header><main><h1>{title}</h1>{children}</main></div>
-    <nav className="mobile-nav" aria-label="Main navigation">{destinations.map((item) => <Link key={item.href} href={item.href} aria-current={item.label === title ? 'page' : undefined}>{item.label}</Link>)}</nav>
+    <aside className="desktop-nav">
+      <Link className="brand" href="/">◼ Oneliner</Link>
+      <nav aria-label="Main navigation">{destinations.map((item) => <Link key={item.href} href={item.href} aria-current={item.title === title ? 'page' : undefined}>{item.label}</Link>)}</nav>
+    </aside>
+    <div className="app-content">
+      <header className="workspace-header"><h1>{pageTitle}</h1></header>
+      <main>{children}</main>
+    </div>
   </div>
 }

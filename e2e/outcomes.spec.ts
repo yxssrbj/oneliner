@@ -17,14 +17,14 @@ async function signIn(page: Page, request: APIRequestContext, prefix: string) {
   expect(code).toBeTruthy()
   await page.getByLabel('Code').fill(code!)
   await page.getByRole('button', { name: 'Verify code' }).click()
-  await expect(page.getByRole('heading', { name: 'Capture', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Capture a trade', exact: true })).toBeVisible()
 }
 
 test('completes exits, reviews opening weeks, corrects fields and denies another account', async ({ page, request, browser }) => {
   const browserErrors: string[] = []
   page.on('pageerror', error => browserErrors.push(error.message))
   page.on('console', message => { if (message.type() === 'error' && !message.text().includes('503')) browserErrors.push(message.text()) })
-  await page.setViewportSize({ width: 1200, height: 900 })
+  await page.setViewportSize({ width: 1440, height: 900 })
   await signIn(page, request, 'outcomes')
   const trades = []
   for (const [symbol, openedAt] of [['ES', '2026-10-19T00:00:00Z'], ['NQ', '2026-10-20T10:00:00Z'], ['CL', '2026-10-21T10:00:00Z'], ['GC', '2026-10-22T10:00:00Z'], ['YM', '2026-10-18T23:59:59Z']]) {
@@ -59,7 +59,7 @@ test('completes exits, reviews opening weeks, corrects fields and denies another
   expect(week.trades).toHaveLength(4)
   expect(week.summary).toEqual({ totalR: 1, wins: 1, completedCount: 3, unfinishedCount: 1, winRate: 1 / 3 })
   expect((await (await page.request.get('/api/trades?weekStart=2026-10-12')).json()).summary.totalR).toBe(2)
-  await page.getByRole('complementary').getByRole('link', { name: 'Review', exact: true }).click()
+  await page.getByRole('complementary').getByRole('link', { name: 'Weekly review', exact: true }).click()
   // Navigate from the real current UTC week to the fixture opening week.
   while (await page.getByText('Week of 2026-10-19', { exact: true }).count() === 0) {
     const heading = await page.locator('.week-picker strong').innerText()
@@ -82,11 +82,11 @@ test('completes exits, reviews opening weeks, corrects fields and denies another
   const reloadedEs = page.locator('article').filter({ has: page.getByRole('heading', { name: 'ES long', exact: true }) })
   await reloadedEs.getByRole('button', { name: 'Chart data' }).click()
   await expect(reloadedEs.getByRole('img', { name: 'Close price chart for 2 bars' })).toBeVisible()
-  await page.setViewportSize({ width: 390, height: 844 })
-  await expect(page.locator('.mobile-nav')).toBeVisible()
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await expect(page.getByRole('complementary')).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  await page.screenshot({ path: 'test-results/task-4-review-mobile.png', fullPage: true })
-  await page.setViewportSize({ width: 1200, height: 900 })
+  await page.screenshot({ path: 'test-results/task-4-review-1280.png', fullPage: true })
+  await page.setViewportSize({ width: 1440, height: 900 })
   await page.screenshot({ path: 'test-results/task-4-review-desktop.png', fullPage: true })
   const secondContext = await browser.newContext({ baseURL: 'http://localhost:3012' })
   const second = await secondContext.newPage()

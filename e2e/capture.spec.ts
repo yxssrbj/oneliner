@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test.use({ viewport: { width: 390, height: 844 } })
+test.use({ viewport: { width: 1280, height: 800 } })
 
 test('reviews uncertain suggestions, retains a failed save, and saves one private trade', async ({ page, request }) => {
   const email = `capture-${Date.now()}@example.test`
@@ -19,7 +19,7 @@ test('reviews uncertain suggestions, retains a failed save, and saves one privat
   expect(code).toBeTruthy()
   await page.getByLabel('Code').fill(code!)
   await page.getByRole('button', { name: 'Verify code' }).click()
-  await expect(page.getByRole('heading', { name: 'Capture', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Capture a trade', exact: true })).toBeVisible()
 
   await page.route('**/api/parse', (route) => route.fulfill({ json: { suggestion: { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: null, setup: 'ORB', clarifications: ['Please confirm the initial stop price.'] } } }))
   const note = '  CL short 87.64, ORB\n'
