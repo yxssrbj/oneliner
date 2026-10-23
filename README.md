@@ -4,9 +4,9 @@ A trading journal for quick note capture, completing trades, reviewing opening w
 
 ## Run locally
 
-1. Install dependencies with `npm ci`.
+1. Use Node.js 24+ on macOS/Linux. Install SOPS 3.13.3+ and age (`brew install sops age` on macOS), then install dependencies with `npm ci`.
 2. Start a Docker-compatible runtime, then run `npx supabase start`.
-3. Copy `.env.example` to `.env.local`. Set the local Supabase URL and public key reported by the CLI. Add `OPENAI_API_KEY` only if you want AI parsing. Keep credentials out of Git.
+3. Obtain the authorized age identity through your secure channel. Keep it outside the repository at `~/.config/sops/age/keys.txt` with permissions `chmod 600 ~/.config/sops/age/keys.txt`. Export `SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"` (or your actual identity path) in your shell. This checkout loads encrypted configuration from `secrets/app.enc.env`; its public recipient rules are in `.sops.yaml`. Verify it targets your local Supabase before using browser tests.
 4. Run `npx supabase migration up --local` to apply pending migrations without resetting data.
 5. Run `npm run dev` and open [localhost:3000](http://localhost:3000).
 
@@ -15,6 +15,20 @@ The local email inbox is at [localhost:54324](http://localhost:54324). Sign-in u
 After moving this checkout, run `npx supabase stop --project-id oneliner`, then `npx supabase start` from the new folder. This preserves local data and recreates containers with the new email-template mount path. Do not use `--no-backup`, which deletes the local data volumes.
 
 Capture is `/`, unfinished trades are `/inbox`, weekly review is `/review`, and private groups are `/friends`. The separate `/preview.html` is a static visual concept with sample data.
+
+## Encrypted configuration
+
+`npm run dev`, `npm run build`, `npm run start`, and `npm run test:e2e` decrypt configuration into the launched process environment using SOPS. Missing ciphertext, identity, or decryption failure stops startup. After successful decryption, Next.js can still load additional variables from existing `.env*` files; encrypted values take precedence. Extra arguments work normally: `npm run dev -- --port 3100`. Unit tests, lint, and type generation do not need your identity (wrapper tests generate disposable synthetic credentials and require the installed SOPS/age tools).
+
+The wrapper replaces itself with SOPS and then the requested command, preserving exit codes and signals without a background launcher. Each separately launched command must use its own npm wrapper; a server launched in another terminal does not inherit a previous command's decrypted environment. Keep existing plaintext files and backups until startup verification and an explicit later cleanup decision.
+
+To change one value without printing it, putting it in shell history, or writing decrypted configuration to disk, read it silently and pass a JSON string to SOPS on stdin:
+
+```sh
+python3 -c 'import getpass,json; print(json.dumps(getpass.getpass("New value: ")))' | sops set --value-stdin secrets/app.enc.env '["OPENAI_API_KEY"]'
+```
+
+Use the required variable name from `.env.example`. Do not redirect decrypted output to a file or use ordinary `sops edit` when plaintext temporary files are prohibited. Encryption protects the file at rest: `NEXT_PUBLIC_*` values remain public and Next.js embeds them at build time. Rebuild after changing public configuration before `npm run start`.
 
 ## Private groups
 
@@ -30,10 +44,10 @@ npm run typecheck
 npm run lint
 npm run build
 npx supabase test db
-npm run test:e2e
+CI=1 npm run test:e2e
 ```
 
-Browser tests use local Supabase and its email inbox, create disposable test accounts/trades, and run the app on port 3012. Before running them, make sure `.env.local` points to local Supabase and any server already on port 3012 is this checkout with that configuration. Do not point these tests at hosted data.
+Browser tests use local Supabase and its email inbox, create disposable test accounts/trades, and run the app on port 3012. Before running them, verify `secrets/app.enc.env` targets local Supabase and port 3012 is free. Use `CI=1 npm run test:e2e` to require a fresh server and refuse reuse of an unrelated running server. The wrapper gives decrypted values to Playwright and its Next.js child. Do not point these tests at hosted data.
 
 ## Release status
 
