@@ -7,10 +7,10 @@ Specification status:
 | File | Scope | PRD requirements | Status |
 | --- | --- | --- | --- |
 | [desktop-ui.md](desktop-ui.md) | Shared desktop layout, navigation, controls, and states | UI-01–04 | Approved |
-| [desktop-preview-parity.md](desktop-preview-parity.md) | Full desktop screen composition and real settings entry | UI-01–04, ACC, CAP, OUT, REV, GRP, CHAT, IMP | Draft |
+| [desktop-preview-parity.md](desktop-preview-parity.md) | Full desktop screen composition and real settings entry | UI-01–05, ACC, CAP, OUT, REV, GRP, CHAT, IMP | Draft |
 | `trade-journal.md` | Capture, corrections, unfinished trades, and chart imports | CAP-01–05, OUT-01–03, IMP-01 | Not written |
 | `weekly-review.md` | Metric definitions, ordering, charts, and review actions | REV-01–04 | Not written |
-| `accounts.md` | Registration, usernames, recovery, and existing users | ACC-01–03 | Not written |
+| `accounts.md` | Registration, usernames, recovery, and existing users | ACC-01–04 | Not written |
 | `private-groups.md` | Group creation, invitations, members, and comparisons | GRP-01–04 | Not written |
 | `group-chat.md` | Continuous messages, pictures, delivery, and access | CHAT-01–03 | Not written |
 

@@ -2,8 +2,9 @@
 
 Status: Draft for project-owner review · 23 October 2026
 
-Product baseline: [approved PRD](../prd.md), especially UI-01–04, ACC-01–03, CAP-01–05, OUT-01–03, REV-01–04, GRP-01–04, CHAT-01–03, and IMP-01.
+Product baseline: [approved PRD](../prd.md), especially UI-01–05, ACC-01–04, CAP-01–05, OUT-01–03, REV-01–04, GRP-01–04, CHAT-01–03, and IMP-01.
 Visual target: [approved desktop preview](../../docs/previews/oneliner-desktop.html).
+Settings and light-theme proposal: [settings preview](../../docs/previews/oneliner-settings.html).
 Current foundation: the local `feat/ui-redesign` branch has the shared sidebar, header, palette, and sign-out. This draft describes the remaining screen-level work; it does not claim the preview is implemented.
 
 ## Intent
@@ -28,7 +29,9 @@ Considered alternatives:
 - Keep the four existing sidebar destinations and URLs. Match the preview's visual hierarchy: brand, clearly separated journal and group navigation, and a profile row anchored at the bottom. Use the current signed-in user's data; omit count badges unless their values come from authorized live queries.
 - The profile row shows an avatar made from the user's visible name, that name, and a secondary `Personal workspace` label. It opens a **real `/settings` page**. Sign-out remains reachable there; a directly accessible sign-out action in the sidebar may remain if it fits the composition.
 - Settings shows the authenticated email as read-only and lets the owner edit their display name with explicit save, pending, success, validation, and error states. A successful save updates the sidebar and group identity. A missing profile uses a neutral label. Settings never exposes account information to group members.
-- Registration asks for email, password, and desired username, as required by ACC-01. The account feature specification will define username uniqueness, migration of existing email-code users, password recovery, and which credentials can later be changed. The preview's profile-button-to-registration demo is superseded by the real settings destination.
+- Settings lets a password-based user change their password after the required identity check. Existing email-code users must have a safe way to set a password during the account transition; they cannot be asked for a current password they never created. Failed or interrupted changes do not report success or lock the user out; password inputs are never stored in journal drafts.
+- Settings offers a clearly labeled Dark / Light choice. The confirmed choice applies to the whole app, persists after refresh and later sign-in, and follows the signed-in account across devices. A failed preference save shows an error and restores the last confirmed choice. A different account loads its own preference. Dark is the default when no choice exists and matches the approved preview; the light palette needs owner visual review and WCAG AA contrast before implementation.
+- Registration asks for email, password, and desired username, as required by ACC-01. The account feature specification will define username uniqueness, migration of existing email-code users, password recovery, and which credentials can later be changed. The preview's profile-button-to-registration demo is superseded by the real settings destination. Changing username or email is outside the first settings page.
 
 ### Weekly review
 
@@ -48,15 +51,16 @@ Considered alternatives:
 ## Visual and interaction acceptance
 
 1. At 1280 × 800 and 1440 × 900, the review, capture, unfinished, groups, and settings screens retain the preview's major panels and hierarchy without page-level horizontal scrolling or obscured actions. Content may grow vertically; data regions may scroll internally where appropriate.
-2. The profile row opens `/settings`; editing the signed-in display name persists after refresh and updates the sidebar. Another account cannot view or change it. The email is never displayed to other group members.
-3. Review calculations and every visual breakdown agree for completed, unfinished, breakeven, corrected, backdated, and empty-week cases. The chart and setup panels contain no fabricated points.
-4. Capture, correction, incomplete trade completion, import, invite, comparison, chat, and picture flows work with keyboard focus and visible feedback. Failures preserve recoverable user input.
-5. A real browser comparison at both sizes includes populated and empty views plus loading and error states. Reviewers compare each page against the relevant preview section and record intentional differences caused by live data or unsimulated behavior.
+2. The profile row opens `/settings`; editing the signed-in display name persists after refresh and updates the sidebar. Password changes require identity verification and report success only when confirmed; existing email-code users can move to a password without losing access. Another account cannot view or change these settings. The email is never displayed to other group members.
+3. Changing dark/light mode updates the whole app without losing drafts, persists across sessions and devices for that account, and does not carry the previous account's choice into a different account. Both themes retain readable text and focus states; the light palette is reviewed visually before code.
+4. Review calculations and every visual breakdown agree for completed, unfinished, breakeven, corrected, backdated, and empty-week cases. The chart and setup panels contain no fabricated points.
+5. Capture, correction, incomplete trade completion, import, invite, comparison, chat, and picture flows work with keyboard focus and visible feedback. Failures preserve recoverable user input.
+6. A real browser comparison at both sizes includes populated and empty views plus loading and error states. Reviewers compare each page against the relevant preview section and record intentional differences caused by live data or unsimulated behavior.
 
 ## Delivery boundaries
 
 Build this in feature slices: account and settings, weekly review, capture and unfinished entries, then groups and chat. Each slice gets its own approved behavior spec and small implementation plan before code. Existing private data and stored trades must survive the account transition. No broker synchronization, mobile UI, public feed, fake presence, or synthetic production data is added.
 
-## Review decision
+## Confirmed settings scope
 
-The proposed settings scope is deliberately small: editable display name, read-only email, live sidebar identity, and working sign-out. The accounts feature spec will settle the username and password details before changing authentication or schema. The project owner should confirm whether this settings scope matches what they mean by a real settings page.
+The project owner confirmed editable display name, read-only email, password change, sign-out, and dark/light switching for the first real settings page. The account feature spec will settle the exact reauthentication and existing-account transition before changing authentication or schema. The light theme will be shown for visual approval before it is implemented.

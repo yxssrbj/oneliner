@@ -1,6 +1,6 @@
 # Oneliner — product requirements
 
-Status: Approved by the project owner · 22 October 2026
+Status: Approved by the project owner · 22 October 2026; settings and theme direction amended 23 October 2026
 
 Canonical location: `specs/` in the primary Oneliner checkout. All feature worktrees use that shared PRD and feature folder; branch-local snapshots do not override them.
 
@@ -18,6 +18,7 @@ Success means a useful, reliable journal that people keep using: fast capture, e
 - **UI-02 — Balanced density.** Use space for useful information. Avoid oversized inputs and buttons, excessive empty space, and crowded screens. Navigation and controls must remain readable and keyboard accessible.
 - **UI-03 — Interactive and focused.** Use selection states, chart details, filtering where useful, and clear action feedback. Richer personal statistics belong in the weekly review; group comparisons remain simple.
 - **UI-04 — Approved visual reference.** Follow the layout and visual direction in [the desktop preview](../docs/previews/oneliner-desktop.html). Its sample data, simulated actions, and illustrative restrictions are not production requirements or implementation evidence.
+- **UI-05 — Light and dark appearance.** Users can switch between light and dark mode from account settings. Both modes keep the approved layout, readable contrast, visible focus, and persistent selection. Dark mode follows the approved preview; light mode needs its own visual review before implementation.
 
 ## Current release requirements
 
@@ -26,6 +27,7 @@ Success means a useful, reliable journal that people keep using: fast capture, e
 - **ACC-01:** Registration asks for email, password, and desired username. Establish the user's identity during account creation, rather than asking for a name when they first create a group.
 - **ACC-02:** Users can sign in, sign out, and recover access. Moving existing email-code users to the new flow must preserve access to their journals and group memberships.
 - **ACC-03:** Each user's journal is private. Account changes must clear the previous user's displayed data and pending account-specific requests.
+- **ACC-04:** The sidebar profile row opens a real settings page. Users can edit their display name, see their email as read-only, change their password, sign out, and switch appearance. Failed saves and password changes show an error without claiming success or losing journal data.
 
 The password-based flow is a confirmed target, not an implemented replacement for the existing email-code flow. Username rules, later profile editing, email verification, recovery, and existing-account transition details belong in the account feature spec before implementation.
 
