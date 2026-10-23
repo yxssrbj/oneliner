@@ -48,3 +48,14 @@ Risk: high; profile privacy and local sign-out.
 - [x] Verify 162 unit tests, typecheck and lint.
 - [x] Complete expanded local auth journey and all four browser flows.
 - [x] Review all changed lines, report evidence and commit locally.
+
+## Desktop shell — Task 3 (23 October 2026)
+
+Risk: medium; shared CSS and desktop interaction geometry.
+
+- [x] Observe both desktop tests fail on the old focus palette.
+- [x] Apply approved tokens, compact controls and content wrapping.
+- [x] Exercise four routes, long content, loading/error/disabled states.
+- [x] Verify local pointer sign-out and sticky sidebar at both sizes.
+- [x] Inspect screenshots and run tests, typecheck, lint and build.
+- [x] Record existing diagnostics and screen-specific follow-up scope.
