@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node scripts/with-secrets.mjs next dev",
+    "build": "node scripts/with-secrets.mjs next build",
+    "start": "node scripts/with-secrets.mjs next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/with-secrets.mjs playwright test",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
@@ -31,5 +31,8 @@
     "jsdom": "^30.1.3",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }
