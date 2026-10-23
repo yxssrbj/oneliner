@@ -58,9 +58,60 @@ test('email code signs in and opens the desktop shell', async ({ page, request }
   })
   expect(saved).toEqual({ status: 200, body: { displayName: 'A trader' } })
 
+  await page.goto('/friends')
+  await expect(page.getByLabel('Display name')).toHaveValue('A trader')
+  await page.getByLabel('Display name').fill('River trader')
+  await page.getByRole('button', { name: 'Save display name' }).click()
+  await expect(page.locator('.account-name:visible')).toHaveText('River trader')
+
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Unfinished' }).click()
   await expect(page.getByRole('heading', { name: 'Unfinished' })).toBeVisible()
   await page.setViewportSize({ width: 1440, height: 900 })
   await expect(page.getByRole('complementary')).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(1)
+  const privateSave = await page.request.post('/api/trades', {
+    headers: { 'Idempotency-Key': crypto.randomUUID() },
+    data: { originalNote: 'First account private note', symbol: 'ES', side: 'long', entryPrice: '100', stopPrice: '99', setup: 'breakout', openedAt: new Date().toISOString() },
+  })
+  expect(privateSave.status()).toBe(201)
+
+  await page.route('**/auth/v1/logout*', route => route.fulfill({status: 503, contentType: 'application/json', body: JSON.stringify({message: 'Try again'})}))
+  await page.getByRole('button', {name: 'Sign out'}).focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.account-controls [role="alert"]')).toHaveText('Could not sign out. Try again.')
+  await expect(page.locator('.account-name:visible')).toHaveText('Trader')
+  await expect(page.getByRole('button', {name: 'Sign out'})).toBeEnabled()
+  await page.unroute('**/auth/v1/logout*')
+  await page.getByRole('button', {name: 'Sign out'}).focus()
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/\/sign-in$/)
+  expect((await page.request.get('/api/profile')).status()).toBe(401)
+
+  const secondEmail = `second-${Date.now()}@example.test`
+  await page.getByLabel('Email').fill(secondEmail)
+  await page.getByRole('button', {name: 'Send code'}).click()
+  let secondId = ''
+  await expect.poll(async () => {
+    const inbox = await (await request.get('http://127.0.0.1:54324/api/v1/messages')).json()
+    secondId = inbox.messages.find((item: {To: {Address: string}[]}) => item.To.some(recipient => recipient.Address === secondEmail))?.ID ?? ''
+    return secondId
+  }).not.toBe('')
+  const secondMessage = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${secondId}`)).json()
+  const secondCode = /Enter this code in Oneliner:\s*<strong>(\d{6})<\/strong>/.exec(secondMessage.HTML)?.[1]
+  expect(secondCode).toMatch(/^\d{6}$/)
+  await page.getByLabel('Code').fill(secondCode!)
+  await page.getByRole('button', {name: 'Verify code'}).click()
+  await expect(page).toHaveURL('http://localhost:3012/')
+  await expect(page.locator('.account-name:visible')).toHaveText('Trader')
+  await expect(page.locator('.account-name:visible').filter({hasText: 'River trader'})).toHaveCount(0)
+  expect((await (await page.request.get('/api/profile')).json()).displayName).toBeNull()
+  expect((await (await page.request.get('/api/trades')).json()).trades).toEqual([])
+  await page.goBack()
+  await expect(page.locator('.account-name:visible')).toHaveText('Trader')
+  await expect(page.getByText('River trader', {exact: true})).toHaveCount(0)
+  await page.goForward()
+  await expect(page.locator('.account-name:visible')).toHaveText('Trader')
+  await expect(page.getByText('River trader', {exact: true})).toHaveCount(0)
+  await page.goto('/inbox')
+  await expect(page.getByText('First account private note', {exact: true})).toHaveCount(0)
 })

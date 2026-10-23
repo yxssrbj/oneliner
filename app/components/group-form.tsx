@@ -115,6 +115,7 @@ export default function GroupForm({ inviteToken, onCreated, onProfileSaved, onId
         setProfileReady(true)
         setSaved(true)
         onProfileSaved?.()
+        router.refresh()
       } else if (kind === 'create') {
         setName('')
         onCreated?.(data.groupId)

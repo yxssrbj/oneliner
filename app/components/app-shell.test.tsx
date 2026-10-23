@@ -4,8 +4,9 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import AppShell from './app-shell'
 
-const { getAuthenticatedUser } = vi.hoisted(() => ({ getAuthenticatedUser: vi.fn() }))
+const { getAuthenticatedUser, single, eq, select, from } = vi.hoisted(() => ({ getAuthenticatedUser: vi.fn(), single: vi.fn(), eq: vi.fn(), select: vi.fn(), from: vi.fn() }))
 vi.mock('../../lib/supabase/server', () => ({ getAuthenticatedUser }))
+vi.mock('./account-controls', () => ({ default: ({displayName, profileError}: {displayName: string | null; profileError: boolean}) => <div>{displayName ?? 'Trader'}{profileError && <p role="alert">Could not load display name.</p>}</div> }))
 vi.mock('next/navigation', () => ({ redirect: (url: string) => { throw new Error(`redirect:${url}`) } }))
 
 const destinations = [
@@ -17,7 +18,9 @@ const destinations = [
 
 beforeEach(() => {
   cleanup()
-  getAuthenticatedUser.mockResolvedValue({ user: { id: 'trader-id' } })
+  single.mockResolvedValue({ data: null, error: null })
+  eq.mockReturnValue({single}); select.mockReturnValue({eq}); from.mockReturnValue({select})
+  getAuthenticatedUser.mockResolvedValue({ user: { id: 'trader-id', email: 'private@example.test' }, supabase: {from} })
 })
 
 test.each(destinations)('shows the desktop navigation and header for $title', async ({ title, label }) => {
@@ -36,4 +39,26 @@ test.each(destinations)('shows the desktop navigation and header for $title', as
 test('redirects a missing user before rendering private content', async () => {
   getAuthenticatedUser.mockResolvedValue(null)
   await expect(AppShell({ title: 'Capture', children: <p>Private content</p> })).rejects.toThrow('redirect:/sign-in')
+})
+
+test('reads only the signed-in profile name', async () => {
+  single.mockResolvedValue({data: {display_name: 'River'}, error: null})
+  render(await AppShell({title: 'Capture', children: null}))
+  expect(screen.getByText('River')).toBeVisible()
+  expect(from).toHaveBeenCalledWith('profiles')
+  expect(select).toHaveBeenCalledWith('display_name')
+  expect(eq).toHaveBeenCalledWith('id', 'trader-id')
+})
+test.each([null, {code: 'PGRST116'}])('uses a neutral name for an absent profile (%s)', async error => {
+  single.mockResolvedValue({data: null, error})
+  render(await AppShell({title: 'Capture', children: null}))
+  expect(screen.getByText('Trader')).toBeVisible()
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.queryByText('private@example.test')).not.toBeInTheDocument()
+})
+test('shows a neutral name and readable profile error', async () => {
+  single.mockResolvedValue({data: null, error: {code: 'broken'}})
+  render(await AppShell({title: 'Capture', children: null}))
+  expect(screen.getByText('Trader')).toBeVisible()
+  expect(screen.getByRole('alert')).toHaveTextContent('Could not load display name.')
 })

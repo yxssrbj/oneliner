@@ -191,3 +191,12 @@ await waitFor(()=>expect(screen.getByLabelText('Display name')).toHaveValue(''))
 await waitFor(()=>expect(screen.queryByRole('table')).not.toBeInTheDocument())
 expect(screen.queryByRole('button',{name:'Friends'})).not.toBeInTheDocument()
 })
+
+test('saving an existing display name refreshes the server account area', async () => {
+render(<GroupForm/>); await screen.findByDisplayValue('Owner')
+await userEvent.clear(screen.getByLabelText('Display name'))
+await userEvent.type(screen.getByLabelText('Display name'), 'River')
+await userEvent.click(screen.getByRole('button', {name:'Save display name'}))
+expect(await screen.findByRole('status')).toHaveTextContent('Display name saved.')
+expect(refresh).toHaveBeenCalledTimes(1)
+})

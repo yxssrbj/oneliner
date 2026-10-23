@@ -100,3 +100,8 @@ summary:focus-visible,select:focus-visible{outline:2px solid #e8b94e;outline-off
 .invite-page h1{margin-top:2rem}
 .invite-sign-in{display:inline-block;margin-top:1rem}
 @media(min-width:760px){.group-forms:has(form:nth-child(2)){grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.account-controls{margin-top:auto;padding-top:1.5rem;display:grid;gap:.7rem;min-width:0}
+.account-name{overflow-wrap:anywhere}
+.account-controls button{background:transparent;border:1px solid #484a58;color:inherit;border-radius:.5rem;padding:.6rem;cursor:pointer}
+.account-controls button:disabled{opacity:.6;cursor:wait}

@@ -38,3 +38,13 @@ Risk: medium; shared navigation and desktop geometry.
 - [x] Implement desktop shell and update browser assertions.
 - [x] Verify 148 unit tests, typecheck, lint and 4 local browser flows.
 - [x] Review diff, report evidence and commit locally.
+
+## Desktop shell — Task 2 (23 October 2026)
+
+Risk: high; profile privacy and local sign-out.
+
+- [x] Observe failing profile, refresh and auth race regressions.
+- [x] Add own-profile account display and retryable local sign-out.
+- [x] Verify 162 unit tests, typecheck and lint.
+- [x] Complete expanded local auth journey and all four browser flows.
+- [x] Review all changed lines, report evidence and commit locally.
