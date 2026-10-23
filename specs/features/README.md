@@ -6,7 +6,7 @@ Specification status:
 
 | File | Scope | PRD requirements | Status |
 | --- | --- | --- | --- |
-| [desktop-ui.md](desktop-ui.md) | Shared desktop layout, navigation, controls, and states | UI-01–04 | Draft for review |
+| [desktop-ui.md](desktop-ui.md) | Shared desktop layout, navigation, controls, and states | UI-01–04 | Approved |
 | `trade-journal.md` | Capture, corrections, unfinished trades, and chart imports | CAP-01–05, OUT-01–03, IMP-01 | Not written |
 | `weekly-review.md` | Metric definitions, ordering, charts, and review actions | REV-01–04 | Not written |
 | `accounts.md` | Registration, usernames, recovery, and existing users | ACC-01–03 | Not written |

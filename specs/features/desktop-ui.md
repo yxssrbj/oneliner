@@ -1,6 +1,6 @@
 # Desktop layout and navigation
 
-Status: Draft · 22 October 2026
+Status: Approved by the project owner
 
 Product baseline: [approved PRD](../prd.md), requirements **UI-01–04**.
 Visual reference: [approved desktop preview](../../docs/previews/oneliner-desktop.html).
@@ -69,4 +69,4 @@ This first implementation slice establishes the shared desktop layout and visual
 
 No further product question is needed to review this slice. The preview supplies the visual direction; existing routes and workflows supply the behavior to preserve.
 
-After this spec is approved, write a small implementation plan identifying the affected shared components, regression checks, and isolated worktree. Feature-spec approval does not approve that plan or claim any implementation has been verified.
+Next, review a small implementation plan identifying the affected shared components, regression checks, and isolated worktree. This spec's approval does not approve that plan or claim any implementation has been verified.
