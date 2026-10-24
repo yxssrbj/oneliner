@@ -8,8 +8,12 @@ Last updated: 24 October 2026. This file tracks product work across branches; ch
 - [x] Build the working trade journal foundation: email-code sign-in, note capture, outcomes, weekly review, chart CSV import, and private groups.
 - [x] Approve the [desktop preview](docs/previews/oneliner-desktop.html) and [settings preview](docs/previews/oneliner-settings.html).
 - [x] Build the shared desktop sidebar, header, and palette on `feat/ui-redesign`.
-- [ ] Review and approve the [settings spec](specs/features/settings.md) and [implementation plan](docs/superpowers/plans/2026-10-23-account-settings.md). **Next decision.**
-- [ ] Implement and verify account settings: display name, standalone sign-out, account-specific theme, verified password access. The four tasks are detailed in the plan above.
+- [x] Review and approve the [settings spec](specs/features/settings.md) and [implementation plan](docs/superpowers/plans/2026-10-23-account-settings.md).
+- [ ] Implement and verify account settings on `feat/ui-redesign` (**in progress**):
+  - [ ] Real settings route and display-name editing (**current task**).
+  - [ ] Standalone sign-out on settings.
+  - [ ] Account-specific dark and light mode.
+  - [ ] Verified password update and password sign-in.
 - [ ] Specify, implement, and review the remaining [desktop screens](specs/features/desktop-preview-parity.md), one slice at a time: weekly review; capture and unfinished trades; private groups and continuous chat with pictures.
 - [ ] Specify and build email/password/username registration and account recovery, including migration for existing email-code accounts.
 - [ ] Compare the complete app to the approved previews at 1280 × 800 and 1440 × 900, and verify real user journeys and privacy boundaries.
