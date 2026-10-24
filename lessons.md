@@ -32,3 +32,6 @@
 
 - Account appearance belongs in verified user metadata, with one root browser-owner guard for shell and standalone routes. Light colors wait for matching browser ownership; root `data-theme` reads require `instant = false` under Next 16 Cache Components. Source: account settings Task 3 build and delayed-session browser regression, 24 October 2026.
 - A boolean mounted flag can become true again when React Activity resumes a cached page. Bind each async settings save to its effect lifetime and clear readiness on cleanup so old responses cannot recolor or expose a resumed account. Source: Task 3 observed-red Activity regression, 24 October 2026.
+
+- UI ownership checks after `await` cannot undo SDK session persistence. Supabase `updateUser` saves its captured session before returning; preference saves use a bearer-authenticated metadata request without a shared-session commit. Reproduce account replacement and logout with the real SDK/cookie storage. Source: Task 3 fix round 1, 25 October 2026.
+- Reconcile confirmed theme props and matching metadata updates independently from edited profile fields. Initial SDK metadata may lag a stateless preference save, so preserve the server preference until a changed SDK snapshot is observed. Source: Task 3 fix round 1 synchronization and cached-resume regressions, 25 October 2026.

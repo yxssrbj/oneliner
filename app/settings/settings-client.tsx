@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSupabaseBrowserClient, isLocalSignOutPending } from '../../lib/supabase/client'
+import { themeFromUserMetadata } from '../../lib/theme'
+import { createSupabaseBrowserClient, isLocalSignOutPending, saveAccountMetadata } from '../../lib/supabase/client'
 
 export default function SettingsClient({ userId, email, initialDisplayName, initialTheme = 'dark' }: {
   userId: string; email: string; initialDisplayName: string | null; initialTheme?: 'dark' | 'light'
@@ -15,10 +16,12 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
-  const [theme, setTheme] = useState(initialTheme)
+  const [appearance, setAppearance] = useState({ initialTheme, theme: initialTheme })
+  if (appearance.initialTheme !== initialTheme) setAppearance({ initialTheme, theme: initialTheme })
+  const theme = appearance.initialTheme === initialTheme ? appearance.theme : initialTheme
   const [themePending, setThemePending] = useState(false)
   const [themeError, setThemeError] = useState('')
-  const metadata = useRef<Record<string, unknown>>({})
+  const metadata = useRef<Record<string, unknown> | null>(null)
   const themeBusy = useRef(false)
   const active = useRef<object | null>(null)
   const busy = useRef(false)
@@ -30,7 +33,11 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
       if (active.current !== owner) return
       if (event !== 'SIGNED_OUT' && session?.user.id === userId) {
-        metadata.current = session.user.user_metadata ?? {}
+        const currentMetadata = session.user.user_metadata ?? {}
+        if (event === 'USER_UPDATED' || (metadata.current && themeFromUserMetadata(metadata.current) !== themeFromUserMetadata(currentMetadata))) {
+          setAppearance(value => ({ ...value, theme: themeFromUserMetadata(currentMetadata) }))
+        }
+        metadata.current = currentMetadata
         setReady(true)
         return
       }
@@ -85,12 +92,11 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
     setThemePending(true)
     setThemeError('')
     try {
-      const { data, error } = await createSupabaseBrowserClient().auth.updateUser({ data: { ...metadata.current, oneliner_theme: next } })
+      const { data, error } = await saveAccountMetadata(userId, { ...metadata.current, oneliner_theme: next })
       if (active.current !== owner) return
       if (error || data.user?.id !== userId || data.user.user_metadata?.oneliner_theme !== next) throw new Error('Unconfirmed appearance save')
-      metadata.current = data.user.user_metadata
       document.documentElement.dataset.theme = next
-      setTheme(next)
+      setAppearance(value => ({ ...value, theme: next }))
       router.refresh()
     } catch {
       if (active.current === owner) setThemeError('Could not save appearance. Try again.')

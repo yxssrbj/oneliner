@@ -196,3 +196,36 @@ test('a delayed browser session cannot reveal the server account profile', async
     await second.close()
   }
 })
+
+
+test('a delayed appearance response cannot restore the signed-out cookie session', async ({page, request}) => {
+  test.setTimeout(45_000)
+  await page.goto('/sign-in')
+  await signIn(page, request, `settings-delayed-save-${crypto.randomUUID()}@example.test`)
+  await page.goto('/settings')
+  let release!: () => void
+  let started!: () => void
+  const putStarted = new Promise<void>(resolve => {started = resolve})
+  const responseReady = new Promise<void>(resolve => {release = resolve})
+  await page.route('**/auth/v1/user*', async route => {
+    if (route.request().method() !== 'PUT') { await route.continue(); return }
+    const response = await route.fetch()
+    started()
+    await responseReady
+    await route.fulfill({response})
+  })
+  try {
+    await page.getByRole('button', {name: 'Switch to light mode'}).click()
+    await putStarted
+    await page.getByRole('button', {name: 'Sign out', exact: true}).click()
+    await expect(page).toHaveURL(/\/sign-in$/)
+    const completed = page.waitForResponse(response => response.url().includes('/auth/v1/user') && response.request().method() === 'PUT')
+    release()
+    await (await completed).finished()
+    await page.waitForLoadState('networkidle')
+    expect((await page.request.get('/api/profile')).status()).toBe(401)
+    await page.goto('/settings')
+    await expect(page).toHaveURL(/\/sign-in$/)
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  } finally { release() }
+})

@@ -5,14 +5,14 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import '@testing-library/jest-dom/vitest'
 import SettingsClient from './settings-client'
 
-const { refresh, onAuthStateChange, fetchMock, updateUser } = vi.hoisted(() => ({ refresh: vi.fn(), onAuthStateChange: vi.fn(), fetchMock: vi.fn(), updateUser: vi.fn() }))
+const { refresh, onAuthStateChange, fetchMock, saveAccountMetadata } = vi.hoisted(() => ({ refresh: vi.fn(), onAuthStateChange: vi.fn(), fetchMock: vi.fn(), saveAccountMetadata: vi.fn() }))
 vi.mock('next/navigation', () => { const router = { refresh }; return { useRouter: () => router } })
-vi.mock('../../lib/supabase/client', () => ({ isLocalSignOutPending: () => false, createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange, updateUser } }) }))
+vi.mock('../../lib/supabase/client', () => ({ isLocalSignOutPending: () => false, saveAccountMetadata, createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange } }) }))
 
 beforeEach(() => {
   cleanup(); vi.clearAllMocks()
   document.documentElement.dataset.theme = 'dark'
-  updateUser.mockResolvedValue({ data: { user: { id: 'one', user_metadata: { oneliner_theme: 'light' } } }, error: null })
+  saveAccountMetadata.mockResolvedValue({ data: { user: { id: 'one', user_metadata: { oneliner_theme: 'light' } } }, error: null })
   vi.stubGlobal('fetch', fetchMock)
   onAuthStateChange.mockImplementation(listener => {
     listener('INITIAL_SESSION', { user: { id: 'one' } })
@@ -126,11 +126,11 @@ test('a delayed mismatched initial session never reveals the server account iden
 
 test('theme save preserves current metadata and unsaved profile input until confirmed', async () => {
   let finish!: (value: unknown) => void
-  updateUser.mockReturnValue(new Promise(resolve => { finish = resolve }))
+  saveAccountMetadata.mockReturnValue(new Promise(resolve => { finish = resolve }))
   show(); edit('Unsaved name')
   act(() => onAuthStateChange.mock.calls[0][0]('USER_UPDATED', { user: { id: 'one', user_metadata: { other: 'keep', oneliner_theme: 'dark' } } }))
   fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
-  expect(updateUser).toHaveBeenCalledWith({ data: { other: 'keep', oneliner_theme: 'light' } })
+  expect(saveAccountMetadata).toHaveBeenCalledWith('one', { other: 'keep', oneliner_theme: 'light' })
   expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
   expect(screen.getByRole('button', { name: 'Saving appearance…' })).toBeDisabled()
   await act(async () => finish({ data: { user: { id: 'one', user_metadata: { oneliner_theme: 'light' } } }, error: null }))
@@ -141,11 +141,11 @@ test('theme save preserves current metadata and unsaved profile input until conf
 })
 
 test.each(['http', 'network', 'missing', 'wrong-owner', 'unconfirmed'])('a %s theme failure keeps the confirmed theme and allows retry', async failure => {
-  if (failure === 'http') updateUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'Unavailable' } })
-  if (failure === 'network') updateUser.mockRejectedValueOnce(new Error('Offline'))
-  if (failure === 'missing') updateUser.mockResolvedValueOnce({ data: { user: null }, error: null })
-  if (failure === 'wrong-owner') updateUser.mockResolvedValueOnce({ data: { user: { id: 'two', user_metadata: { oneliner_theme: 'light' } } }, error: null })
-  if (failure === 'unconfirmed') updateUser.mockResolvedValueOnce({ data: { user: { id: 'one', user_metadata: { oneliner_theme: 'dark' } } }, error: null })
+  if (failure === 'http') saveAccountMetadata.mockResolvedValueOnce({ data: { user: null }, error: { message: 'Unavailable' } })
+  if (failure === 'network') saveAccountMetadata.mockRejectedValueOnce(new Error('Offline'))
+  if (failure === 'missing') saveAccountMetadata.mockResolvedValueOnce({ data: { user: null }, error: null })
+  if (failure === 'wrong-owner') saveAccountMetadata.mockResolvedValueOnce({ data: { user: { id: 'two', user_metadata: { oneliner_theme: 'light' } } }, error: null })
+  if (failure === 'unconfirmed') saveAccountMetadata.mockResolvedValueOnce({ data: { user: { id: 'one', user_metadata: { oneliner_theme: 'dark' } } }, error: null })
   show(); edit('Unsaved name')
   fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not save appearance. Try again.')
@@ -158,7 +158,7 @@ test.each(['http', 'network', 'missing', 'wrong-owner', 'unconfirmed'])('a %s th
 
 test.each([['SIGNED_OUT', null], ['SIGNED_IN', { user: { id: 'two' } }]])('a late theme response after %s cannot restore an old account', async (event, session) => {
   let finish!: (value: unknown) => void
-  updateUser.mockReturnValue(new Promise(resolve => { finish = resolve }))
+  saveAccountMetadata.mockReturnValue(new Promise(resolve => { finish = resolve }))
   show()
   fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
   act(() => onAuthStateChange.mock.calls[0][0](event, session))
@@ -172,7 +172,7 @@ test.each([['SIGNED_OUT', null], ['SIGNED_IN', { user: { id: 'two' } }]])('a lat
 
 test('a theme response after unmount cannot recolor the next document', async () => {
   let finish!: (value: unknown) => void
-  updateUser.mockReturnValue(new Promise(resolve => { finish = resolve }))
+  saveAccountMetadata.mockReturnValue(new Promise(resolve => { finish = resolve }))
   const view = show()
   fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
   view.unmount()
@@ -191,7 +191,7 @@ test('the single appearance action shares the settings page title row', () => {
 
 test.each([undefined, {}, { oneliner_theme: 'invalid' }])('switching to dark requires a confirmed dark value (%j)', async user_metadata => {
   document.documentElement.dataset.theme = 'light'
-  updateUser.mockResolvedValueOnce({ data: { user: { id: 'one', user_metadata } }, error: null })
+  saveAccountMetadata.mockResolvedValueOnce({ data: { user: { id: 'one', user_metadata } }, error: null })
   render(<SettingsClient userId="one" email="one@example.test" initialDisplayName="River" initialTheme="light" />)
   fireEvent.click(screen.getByRole('button', { name: 'Switch to dark mode' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not save appearance. Try again.')
@@ -202,7 +202,7 @@ test.each([undefined, {}, { oneliner_theme: 'invalid' }])('switching to dark req
 
 test('a delayed theme save cannot regain ownership when a cached page resumes', async () => {
   let finish!: (value: unknown) => void
-  updateUser.mockReturnValue(new Promise(resolve => { finish = resolve }))
+  saveAccountMetadata.mockReturnValue(new Promise(resolve => { finish = resolve }))
   const settings = <SettingsClient userId="one" email="one@example.test" initialDisplayName="River" />
   const view = render(<Activity mode="visible">{settings}</Activity>)
   fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
@@ -215,8 +215,36 @@ test('a delayed theme save cannot regain ownership when a cached page resumes', 
   expect(refresh).not.toHaveBeenCalled()
   act(() => onAuthStateChange.mock.calls.at(-1)![0]('INITIAL_SESSION', {user: {id: 'one'}}))
   expect(screen.getByRole('button', {name: 'Switch to light mode'})).toBeEnabled()
-  updateUser.mockResolvedValueOnce({data: {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}, error: null})
+  saveAccountMetadata.mockResolvedValueOnce({data: {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}, error: null})
   fireEvent.click(screen.getByRole('button', {name: 'Switch to light mode'}))
   await waitFor(() => expect(document.documentElement).toHaveAttribute('data-theme', 'light'))
   expect(refresh).toHaveBeenCalledTimes(1)
+})
+
+test('a matching user update synchronizes the next action without clearing the profile edit', () => {
+  show(); edit('Unsaved name')
+  act(() => onAuthStateChange.mock.calls[0][0]('USER_UPDATED', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}))
+  expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
+  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
+})
+
+test('refreshed verified theme props synchronize the next action without resetting input', () => {
+  const view = show(); edit('Unsaved name')
+  view.rerender(<SettingsClient userId="one" email="one@example.test" initialDisplayName="River" initialTheme="light" />)
+  expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
+  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
+})
+
+test('a cached settings page reconciles a changed same-account preference when it resumes', () => {
+  const settings = <SettingsClient userId="one" email="one@example.test" initialDisplayName="River" />
+  const view = render(<Activity mode="visible">{settings}</Activity>)
+  edit('Unsaved name')
+  view.rerender(<Activity mode="hidden">{settings}</Activity>)
+  onAuthStateChange.mockImplementation(listener => {
+    listener('INITIAL_SESSION', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}})
+    return {data: {subscription: {unsubscribe: vi.fn()}}}
+  })
+  view.rerender(<Activity mode="visible">{settings}</Activity>)
+  expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
+  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
 })

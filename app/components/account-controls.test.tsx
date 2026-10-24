@@ -69,3 +69,9 @@ test('a cached sidebar hides identity again while browser ownership is rechecked
   expect(screen.queryByText('River')).not.toBeInTheDocument()
   expect(screen.getByText('Trader')).toBeVisible()
 })
+
+test('the document adopts a matching confirmed user update', () => {
+  render(<AccountTheme userId="one" initialTheme="dark" />)
+  act(() => onAuthStateChange.mock.calls[0][0]('USER_UPDATED', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}))
+  expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+})

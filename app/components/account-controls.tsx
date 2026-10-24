@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { themeFromUserMetadata } from '../../lib/theme'
 import { createSupabaseBrowserClient, isLocalSignOutPending } from '../../lib/supabase/client'
 
 export default function AccountControls({ userId, displayName, profileError, current = false }: {
@@ -43,8 +44,8 @@ export function AccountTheme({ userId, initialTheme }: { userId: string | null; 
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
       if (!active) return
       if (event !== 'SIGNED_OUT' && userId && session?.user.id === userId) {
-        if (!initialized) {
-          document.documentElement.dataset.theme = initialTheme
+        if (!initialized || event === 'USER_UPDATED') {
+          document.documentElement.dataset.theme = event === 'USER_UPDATED' ? themeFromUserMetadata(session.user.user_metadata) : initialTheme
           document.documentElement.dataset.themeReady = 'true'
           initialized = true
         }
