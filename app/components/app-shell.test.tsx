@@ -69,5 +69,6 @@ test('settings keeps four destinations and marks only the profile row current', 
   expect(within(nav).getAllByRole('link')).toHaveLength(4)
   expect(within(nav).queryByRole('link', { current: 'page' })).not.toBeInTheDocument()
   expect(screen.getByRole('link', { current: 'page' })).toHaveAttribute('href', '/settings')
-  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Settings')
+  expect(screen.getByRole('banner')).toHaveTextContent('Workspace / Settings')
+  expect(within(screen.getByRole('banner')).queryByRole('heading')).not.toBeInTheDocument()
 })

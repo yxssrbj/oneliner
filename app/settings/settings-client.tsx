@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient, isLocalSignOutPending } from '../../lib/supabase/client'
 
-export default function SettingsClient({ userId, email, initialDisplayName }: {
-  userId: string; email: string; initialDisplayName: string | null
+export default function SettingsClient({ userId, email, initialDisplayName, initialTheme = 'dark' }: {
+  userId: string; email: string; initialDisplayName: string | null; initialTheme?: 'dark' | 'light'
 }) {
   const router = useRouter()
   const [displayName, setDisplayName] = useState(initialDisplayName ?? '')
@@ -15,24 +15,46 @@ export default function SettingsClient({ userId, email, initialDisplayName }: {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
-  const active = useRef(true)
+  const [theme, setTheme] = useState(initialTheme)
+  const [themePending, setThemePending] = useState(false)
+  const [themeError, setThemeError] = useState('')
+  const metadata = useRef<Record<string, unknown>>({})
+  const themeBusy = useRef(false)
+  const active = useRef<object | null>(null)
   const busy = useRef(false)
 
   useEffect(() => {
-    active.current = true
+    // Cached pages can resume; each effect owns only its own requests.
+    const owner = {}
+    active.current = owner
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
-      if (event !== 'SIGNED_OUT' && session?.user.id === userId) { setReady(true); return }
-      active.current = false
+      if (active.current !== owner) return
+      if (event !== 'SIGNED_OUT' && session?.user.id === userId) {
+        metadata.current = session.user.user_metadata ?? {}
+        setReady(true)
+        return
+      }
+      document.documentElement.dataset.theme = 'dark'
+      active.current = null
       setHidden(true)
       // Failed local logout also removes the SDK session; preserve its retry.
       if (!isLocalSignOutPending() || event !== 'SIGNED_OUT') router.refresh()
     })
-    return () => { active.current = false; subscription.unsubscribe() }
+    return () => {
+      active.current = null
+      busy.current = false
+      themeBusy.current = false
+      setReady(false)
+      setPending(false)
+      setThemePending(false)
+      subscription.unsubscribe()
+    }
   }, [router, userId])
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy.current || !active.current || !ready) return
+    const owner = active.current
     const name = displayName.trim()
     setSaved(false)
     if (!name || name.length > 80) { setError('Display name must be 1–80 characters.'); return }
@@ -43,22 +65,44 @@ export default function SettingsClient({ userId, email, initialDisplayName }: {
       const response = await fetch('/api/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: name }) })
       const result = await response.json()
       if (!response.ok || typeof result?.displayName !== 'string' || !result.displayName.trim() || result.displayName.length > 80) throw new Error('Unconfirmed profile save')
-      if (!active.current) return
+      if (active.current !== owner) return
       setDisplayName(result.displayName)
       setConfirmedName(result.displayName)
       setSaved(true)
       router.refresh()
     } catch {
-      if (active.current) setError('Could not save display name. Try again.')
+      if (active.current === owner) setError('Could not save display name. Try again.')
     } finally {
-      busy.current = false
-      if (active.current) setPending(false)
+      if (active.current === owner) { busy.current = false; setPending(false) }
+    }
+  }
+
+  async function changeTheme() {
+    if (themeBusy.current || !active.current || !ready) return
+    const owner = active.current
+    const next = theme === 'dark' ? 'light' : 'dark'
+    themeBusy.current = true
+    setThemePending(true)
+    setThemeError('')
+    try {
+      const { data, error } = await createSupabaseBrowserClient().auth.updateUser({ data: { ...metadata.current, oneliner_theme: next } })
+      if (active.current !== owner) return
+      if (error || data.user?.id !== userId || data.user.user_metadata?.oneliner_theme !== next) throw new Error('Unconfirmed appearance save')
+      metadata.current = data.user.user_metadata
+      document.documentElement.dataset.theme = next
+      setTheme(next)
+      router.refresh()
+    } catch {
+      if (active.current === owner) setThemeError('Could not save appearance. Try again.')
+    } finally {
+      if (active.current === owner) { themeBusy.current = false; setThemePending(false) }
     }
   }
 
   if (hidden || !ready) return <p role="status">Updating account…</p>
   return <div className="settings-workspace">
-    <p>Your name and account security.</p>
+    <div className="settings-heading"><div><h1>Settings</h1><p>Your name and account security.</p></div><button className="theme-toggle" type="button" disabled={themePending} onClick={changeTheme}>{themePending ? 'Saving appearance…' : `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}</button></div>
+    {themeError && <p role="alert" className="error">{themeError}</p>}
     <div className="settings-grid">
       <section className="settings-panel" aria-labelledby="profile-title">
         <h2 id="profile-title">Profile</h2>

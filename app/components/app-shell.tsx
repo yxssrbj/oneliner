@@ -23,7 +23,7 @@ export default async function AppShell({ title, children }: { title: string; chi
       <AccountControls current={title === 'Settings'} key={auth.user.id} userId={auth.user.id} displayName={profileError ? null : data?.display_name ?? null} profileError={profileError} />
     </aside>
     <div className="app-content">
-      <header className="workspace-header"><h1>{pageTitle}</h1></header>
+      <header className="workspace-header">{title === 'Settings' ? <div className="workspace-breadcrumb">Workspace / <strong>Settings</strong></div> : <h1>{pageTitle}</h1>}</header>
       <main>{children}</main>
     </div>
   </div>

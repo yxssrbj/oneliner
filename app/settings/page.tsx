@@ -1,6 +1,7 @@
 import { io } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getAuthenticatedUser } from '../../lib/supabase/server'
+import { themeFromUserMetadata } from '../../lib/theme'
 import AppShell from '../components/app-shell'
 import SettingsClient from './settings-client'
 import SignOutButton from '../components/sign-out-button'
@@ -16,7 +17,7 @@ export default async function SettingsPage() {
   const profileError = !!error && error.code !== 'PGRST116'
   return <AppShell title="Settings">
     {profileError && <p role="alert" className="error">Could not load display name. Refresh to try again.</p>}
-    <SettingsClient key={auth.user.id} userId={auth.user.id} email={auth.user.email ?? ''} initialDisplayName={profileError ? null : data?.display_name ?? null} />
+    <SettingsClient key={auth.user.id} userId={auth.user.id} initialTheme={themeFromUserMetadata(auth.user.user_metadata)} email={auth.user.email ?? ''} initialDisplayName={profileError ? null : data?.display_name ?? null} />
     <SignOutButton key={`sign-out:${auth.user.id}`} userId={auth.user.id} />
   </AppShell>
 }

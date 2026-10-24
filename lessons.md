@@ -29,3 +29,6 @@
 - Compare browser failures against the exact baseline before labeling them unrelated. Full-document OTP navigation exposed Home's missing `io()` boundary: baseline 8230b9a passed 6/6 development flows while Task 1 initially failed outcomes. Source: isolated baseline reproduction and caller fix, 24 October 2026.
 
 - Coordinate pending local logout across sidebar and settings auth subscribers: Supabase emits `SIGNED_OUT` even when logout returns an error. Hide private identity immediately but defer that event's refresh until the button handles success/failure, preserving retry; account replacements still refresh. Source: Task 2 real-component integration red/green and local auth browser journey, 24 October 2026.
+
+- Account appearance belongs in verified user metadata, with one root browser-owner guard for shell and standalone routes. Light colors wait for matching browser ownership; root `data-theme` reads require `instant = false` under Next 16 Cache Components. Source: account settings Task 3 build and delayed-session browser regression, 24 October 2026.
+- A boolean mounted flag can become true again when React Activity resumes a cached page. Bind each async settings save to its effect lifetime and clear readiness on cleanup so old responses cannot recolor or expose a resumed account. Source: Task 3 observed-red Activity regression, 24 October 2026.

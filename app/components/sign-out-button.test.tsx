@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { Activity } from 'react'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
@@ -10,6 +11,7 @@ vi.mock('@supabase/ssr', () => ({createBrowserClient: () => ({auth: {signOut, on
 vi.mock('next/navigation', () => { const router = {replace, refresh}; return {useRouter: () => router} })
 beforeEach(() => {
   cleanup(); vi.clearAllMocks()
+  document.documentElement.dataset.theme = 'light'
   onAuthStateChange.mockImplementation(listener => {
     listener('INITIAL_SESSION', {user: {id: 'one'}})
     return {data: {subscription: {unsubscribe: vi.fn()}}}
@@ -21,6 +23,7 @@ test('signs out locally before redirecting and refreshing', async () => {
   show(); fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
   await waitFor(() => expect(replace).toHaveBeenCalledWith('/sign-in'))
   expect(signOut).toHaveBeenCalledWith({scope: 'local'})
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
   expect(refresh).toHaveBeenCalled()
 })
 test.each([false, true])('failed sign-out stays visible and retryable (throw=%s)', async throws => {
@@ -28,6 +31,7 @@ test.each([false, true])('failed sign-out stays visible and retryable (throw=%s)
   else signOut.mockResolvedValueOnce({error: {message: 'network'}})
   show(); fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not sign out. Try again.')
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
   expect(replace).not.toHaveBeenCalled()
   expect(refresh).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
@@ -57,6 +61,7 @@ test('SDK session removal on failed logout keeps retry without redirect', async 
   })
   show(); fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not sign out. Try again.')
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
   expect(refresh).not.toHaveBeenCalled(); expect(replace).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
   await waitFor(() => expect(replace).toHaveBeenCalledWith('/sign-in'))
@@ -79,6 +84,7 @@ test('failed logout hides both identities without refreshing away the settings r
   render(<><AccountControls userId="one" displayName="River" profileError={false}/><SettingsClient userId="one" email="one@example.test" initialDisplayName="River"/><SignOutButton userId="one"/></>)
   fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not sign out. Try again.')
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
   expect(screen.queryByDisplayValue('one@example.test')).not.toBeInTheDocument()
   expect(screen.queryAllByText('River')).toHaveLength(0)
   expect(screen.getByRole('button', {name: 'Sign out'})).toBeEnabled()
@@ -108,4 +114,20 @@ test('a failed old logout cannot show a retry for a replacement account', async 
   expect(screen.getByRole('button', {name: 'Sign out'})).toBeDisabled()
   expect(replace).not.toHaveBeenCalled()
   expect(refresh).toHaveBeenCalledTimes(1)
+})
+
+
+test('a cached sign-out button waits for ownership and ignores an old completion', async () => {
+  let finish!: (value: {error: null}) => void
+  signOut.mockReturnValue(new Promise(resolve => {finish = resolve}))
+  const button = <SignOutButton userId="one"/>
+  const view = render(<Activity mode="visible">{button}</Activity>)
+  fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
+  view.rerender(<Activity mode="hidden">{button}</Activity>)
+  onAuthStateChange.mockImplementation(() => ({data: {subscription: {unsubscribe: vi.fn()}}}))
+  view.rerender(<Activity mode="visible">{button}</Activity>)
+  await act(async () => finish({error: null}))
+  expect(replace).not.toHaveBeenCalled()
+  expect(refresh).not.toHaveBeenCalled()
+  expect(screen.getByRole('button', {name: 'Sign out'})).toBeDisabled()
 })
