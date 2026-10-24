@@ -29,6 +29,7 @@ beforeEach(async () => {
     const url = String(input)
     if (url.endsWith('/verify')) return Response.json(session(JSON.parse(init!.body as string).email.split('@')[0]))
     if (url.endsWith('/user') && init?.method === 'PUT') { started(); return await new Promise<Response>((resolve, reject) => { finish = resolve; rejectPut = reject }) }
+    if (url.includes('/token?grant_type=refresh_token')) return Response.json({...session('one'), user: user('one', 'light')})
     if (url.includes('/logout')) return new Response(null, {status: 204})
     if (url.endsWith('/user')) return Response.json(user(new Headers(init?.headers).get('Authorization')!.replace('Bearer token-', '')))
     throw new Error(`Unexpected test request: ${init?.method} ${url}`)
@@ -39,7 +40,7 @@ beforeEach(async () => {
 afterEach(async () => { cleanup(); await client.auth.stopAutoRefresh(); vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 
 async function beginSave() {
-  render(<SettingsClient userId="one" email="one@example.test" initialDisplayName="River" />)
+  render(<AccountTheme userId="one" initialTheme="dark"><SettingsClient userId="one" email="one@example.test" initialDisplayName="River" /></AccountTheme>)
   await screen.findByRole('button', {name: 'Switch to light mode'})
   fireEvent.click(screen.getByRole('button', {name: 'Switch to light mode'}))
   await pendingPut
@@ -113,7 +114,7 @@ test.each(['replacement', 'signed-out'])('metadata writes reject a %s SDK sessio
 
 
 test('real same-account metadata updates synchronize a resumed settings page and refreshed props', async () => {
-  const content = (mode: 'visible' | 'hidden', theme: 'dark' | 'light') => <><AccountTheme userId="one" initialTheme={theme}/><Activity mode={mode}><SettingsClient userId="one" email="one@example.test" initialDisplayName="River" initialTheme={theme}/></Activity></>
+  const content = (mode: 'visible' | 'hidden', theme: 'dark' | 'light') => <AccountTheme userId="one" initialTheme={theme}><Activity mode={mode}><SettingsClient userId="one" email="one@example.test" initialDisplayName="River"/></Activity></AccountTheme>
   const view = render(content('visible', 'dark'))
   await screen.findByRole('button', {name: 'Switch to light mode'})
   fireEvent.change(screen.getByLabelText('Display name'), {target: {value: 'Unsaved name'}})
@@ -127,5 +128,37 @@ test('real same-account metadata updates synchronize a resumed settings page and
   expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
   view.rerender(content('visible', 'light'))
   expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
+  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
+})
+
+
+test('a real SDK token refresh synchronizes document and action from the same snapshot', async () => {
+  render(<AccountTheme userId="one" initialTheme="dark"><SettingsClient userId="one" email="one@example.test" initialDisplayName="River"/></AccountTheme>)
+  await screen.findByRole('button', {name: 'Switch to light mode'})
+  fireEvent.change(screen.getByLabelText('Display name'), {target: {value: 'Unsaved name'}})
+  await act(async () => { expect((await client.auth.refreshSession()).error).toBeNull() })
+  expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
+  expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
+})
+
+test('a real SDK update followed by a stateless return to dark reconciles a fresh server revision', async () => {
+  const content = (revision: string, mode: 'visible' | 'hidden' = 'visible') => <AccountTheme userId="one" initialTheme="dark" themeRevision={revision}><Activity mode={mode}><SettingsClient userId="one" email="one@example.test" initialDisplayName="River"/></Activity></AccountTheme>
+  const view = render(content('first'))
+  await screen.findByRole('button', {name: 'Switch to light mode'})
+  fireEvent.change(screen.getByLabelText('Display name'), {target: {value: 'Unsaved name'}})
+  view.rerender(content('first', 'hidden'))
+  const update = client.auth.updateUser({data: {oneliner_theme: 'light'}})
+  await pendingPut
+  await act(async () => { finish(Response.json(user('one', 'light'))); await update })
+  expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+  const confirmation = saveAccountMetadata('one', {oneliner_theme: 'dark'})
+  await waitFor(() => expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === 'PUT')).toHaveLength(2))
+  await act(async () => { finish(Response.json(user('one', 'dark'))); await confirmation })
+  expect((await client.auth.getSession()).data.session?.user.user_metadata.oneliner_theme).toBe('light')
+  view.rerender(content('later', 'hidden'))
+  view.rerender(content('later'))
+  await waitFor(() => expect(document.documentElement).toHaveAttribute('data-theme', 'dark'))
+  expect(await screen.findByRole('button', {name: 'Switch to light mode'})).toBeEnabled()
   expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
 })

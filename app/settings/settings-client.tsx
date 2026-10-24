@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { themeFromUserMetadata } from '../../lib/theme'
+import { useAccountTheme } from '../components/account-controls'
 import { createSupabaseBrowserClient, isLocalSignOutPending, saveAccountMetadata } from '../../lib/supabase/client'
 
-export default function SettingsClient({ userId, email, initialDisplayName, initialTheme = 'dark' }: {
-  userId: string; email: string; initialDisplayName: string | null; initialTheme?: 'dark' | 'light'
+export default function SettingsClient({ userId, email, initialDisplayName }: {
+  userId: string; email: string; initialDisplayName: string | null
 }) {
   const router = useRouter()
   const [displayName, setDisplayName] = useState(initialDisplayName ?? '')
@@ -16,9 +16,7 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
-  const [appearance, setAppearance] = useState({ initialTheme, theme: initialTheme })
-  if (appearance.initialTheme !== initialTheme) setAppearance({ initialTheme, theme: initialTheme })
-  const theme = appearance.initialTheme === initialTheme ? appearance.theme : initialTheme
+  const { theme, ownerConfirmed, confirmTheme } = useAccountTheme(userId)
   const [themePending, setThemePending] = useState(false)
   const [themeError, setThemeError] = useState('')
   const metadata = useRef<Record<string, unknown> | null>(null)
@@ -33,11 +31,7 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
       if (active.current !== owner) return
       if (event !== 'SIGNED_OUT' && session?.user.id === userId) {
-        const currentMetadata = session.user.user_metadata ?? {}
-        if (event === 'USER_UPDATED' || (metadata.current && themeFromUserMetadata(metadata.current) !== themeFromUserMetadata(currentMetadata))) {
-          setAppearance(value => ({ ...value, theme: themeFromUserMetadata(currentMetadata) }))
-        }
-        metadata.current = currentMetadata
+        metadata.current = session.user.user_metadata ?? {}
         setReady(true)
         return
       }
@@ -60,7 +54,7 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (busy.current || !active.current || !ready) return
+    if (busy.current || !active.current || !ready || !ownerConfirmed) return
     const owner = active.current
     const name = displayName.trim()
     setSaved(false)
@@ -85,7 +79,7 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
   }
 
   async function changeTheme() {
-    if (themeBusy.current || !active.current || !ready) return
+    if (themeBusy.current || !active.current || !ready || !ownerConfirmed) return
     const owner = active.current
     const next = theme === 'dark' ? 'light' : 'dark'
     themeBusy.current = true
@@ -95,8 +89,7 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
       const { data, error } = await saveAccountMetadata(userId, { ...metadata.current, oneliner_theme: next })
       if (active.current !== owner) return
       if (error || data.user?.id !== userId || data.user.user_metadata?.oneliner_theme !== next) throw new Error('Unconfirmed appearance save')
-      document.documentElement.dataset.theme = next
-      setAppearance(value => ({ ...value, theme: next }))
+      if (!confirmTheme(next)) throw new Error('Account session changed')
       router.refresh()
     } catch {
       if (active.current === owner) setThemeError('Could not save appearance. Try again.')
@@ -105,7 +98,7 @@ export default function SettingsClient({ userId, email, initialDisplayName, init
     }
   }
 
-  if (hidden || !ready) return <p role="status">Updating account…</p>
+  if (hidden || !ready || !ownerConfirmed) return <p role="status">Updating account…</p>
   return <div className="settings-workspace">
     <div className="settings-heading"><div><h1>Settings</h1><p>Your name and account security.</p></div><button className="theme-toggle" type="button" disabled={themePending} onClick={changeTheme}>{themePending ? 'Saving appearance…' : `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}</button></div>
     {themeError && <p role="alert" className="error">{themeError}</p>}

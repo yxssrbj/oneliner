@@ -5,12 +5,22 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import '@testing-library/jest-dom/vitest'
 import SettingsClient from './settings-client'
 
+const appearance = vi.hoisted(() => ({ initialTheme: 'dark' as 'dark' | 'light' }))
+vi.mock('../components/account-controls', async () => {
+  const {useState} = await import('react')
+  return {useAccountTheme: () => {
+    const [theme, setTheme] = useState(appearance.initialTheme)
+    return {theme, ownerConfirmed: true, confirmTheme: (next: 'dark' | 'light') => { setTheme(next); document.documentElement.dataset.theme = next; return true }}
+  }}
+})
+
 const { refresh, onAuthStateChange, fetchMock, saveAccountMetadata } = vi.hoisted(() => ({ refresh: vi.fn(), onAuthStateChange: vi.fn(), fetchMock: vi.fn(), saveAccountMetadata: vi.fn() }))
 vi.mock('next/navigation', () => { const router = { refresh }; return { useRouter: () => router } })
 vi.mock('../../lib/supabase/client', () => ({ isLocalSignOutPending: () => false, saveAccountMetadata, createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange } }) }))
 
 beforeEach(() => {
   cleanup(); vi.clearAllMocks()
+  appearance.initialTheme = 'dark'
   document.documentElement.dataset.theme = 'dark'
   saveAccountMetadata.mockResolvedValue({ data: { user: { id: 'one', user_metadata: { oneliner_theme: 'light' } } }, error: null })
   vi.stubGlobal('fetch', fetchMock)
@@ -190,9 +200,10 @@ test('the single appearance action shares the settings page title row', () => {
 
 
 test.each([undefined, {}, { oneliner_theme: 'invalid' }])('switching to dark requires a confirmed dark value (%j)', async user_metadata => {
+  appearance.initialTheme = 'light'
   document.documentElement.dataset.theme = 'light'
   saveAccountMetadata.mockResolvedValueOnce({ data: { user: { id: 'one', user_metadata } }, error: null })
-  render(<SettingsClient userId="one" email="one@example.test" initialDisplayName="River" initialTheme="light" />)
+  render(<SettingsClient userId="one" email="one@example.test" initialDisplayName="River" />)
   fireEvent.click(screen.getByRole('button', { name: 'Switch to dark mode' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not save appearance. Try again.')
   expect(document.documentElement).toHaveAttribute('data-theme', 'light')
@@ -219,32 +230,4 @@ test('a delayed theme save cannot regain ownership when a cached page resumes', 
   fireEvent.click(screen.getByRole('button', {name: 'Switch to light mode'}))
   await waitFor(() => expect(document.documentElement).toHaveAttribute('data-theme', 'light'))
   expect(refresh).toHaveBeenCalledTimes(1)
-})
-
-test('a matching user update synchronizes the next action without clearing the profile edit', () => {
-  show(); edit('Unsaved name')
-  act(() => onAuthStateChange.mock.calls[0][0]('USER_UPDATED', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}))
-  expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
-  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
-})
-
-test('refreshed verified theme props synchronize the next action without resetting input', () => {
-  const view = show(); edit('Unsaved name')
-  view.rerender(<SettingsClient userId="one" email="one@example.test" initialDisplayName="River" initialTheme="light" />)
-  expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
-  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
-})
-
-test('a cached settings page reconciles a changed same-account preference when it resumes', () => {
-  const settings = <SettingsClient userId="one" email="one@example.test" initialDisplayName="River" />
-  const view = render(<Activity mode="visible">{settings}</Activity>)
-  edit('Unsaved name')
-  view.rerender(<Activity mode="hidden">{settings}</Activity>)
-  onAuthStateChange.mockImplementation(listener => {
-    listener('INITIAL_SESSION', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}})
-    return {data: {subscription: {unsubscribe: vi.fn()}}}
-  })
-  view.rerender(<Activity mode="visible">{settings}</Activity>)
-  expect(screen.getByRole('button', {name: 'Switch to dark mode'})).toBeEnabled()
-  expect(screen.getByLabelText('Display name')).toHaveValue('Unsaved name')
 })

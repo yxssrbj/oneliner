@@ -19,7 +19,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const theme = themeFromUserMetadata(auth?.user.user_metadata);
   return (
     <html lang="en" data-theme={theme} suppressHydrationWarning>
-      <body><AccountTheme key={auth?.user.id ?? 'signed-out'} userId={auth?.user.id ?? null} initialTheme={theme} />{children}</body>
+      <body><AccountTheme key={auth?.user.id ?? 'signed-out'} userId={auth?.user.id ?? null} initialTheme={theme} themeRevision={auth?.user.updated_at}>{children}</AccountTheme></body>
     </html>
   );
 }

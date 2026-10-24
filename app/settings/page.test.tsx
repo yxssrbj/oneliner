@@ -6,10 +6,11 @@ import SettingsPage from './page'
 
 const browserOwner = vi.hoisted(() => ({ id: 'one' }))
 const { getAuthenticatedUser, from, select, eq, single, io } = vi.hoisted(() => ({ getAuthenticatedUser: vi.fn(), from: vi.fn(), select: vi.fn(), eq: vi.fn(), single: vi.fn(), io: vi.fn() }))
+vi.mock('../components/account-controls', () => ({useAccountTheme: () => ({theme: 'dark', ownerConfirmed: true, confirmTheme: () => true})}))
 vi.mock('next/cache', () => ({ io }))
 vi.mock('../../lib/supabase/server', () => ({ getAuthenticatedUser }))
 vi.mock('../components/app-shell', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }))
-vi.mock('next/navigation', () => ({ redirect: (url: string) => { throw new Error(`redirect:${url}`) }, useRouter: () => ({ refresh: vi.fn() }) }))
+vi.mock('next/navigation', () => { const router = {refresh: vi.fn()}; return { redirect: (url: string) => { throw new Error(`redirect:${url}`) }, useRouter: () => router } })
 vi.mock('../../lib/supabase/client', () => ({ isLocalSignOutPending: () => false, createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (listener: (event: string, session: { user: { id: string } }) => void) => { listener('INITIAL_SESSION', { user: { id: browserOwner.id } }); return { data: { subscription: { unsubscribe: vi.fn() } } } } } }) }))
 beforeEach(() => {
   cleanup(); vi.clearAllMocks()

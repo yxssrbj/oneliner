@@ -4,7 +4,7 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import SignOutButton from './sign-out-button'
-import AccountControls from './account-controls'
+import AccountControls, { AccountTheme } from './account-controls'
 import SettingsClient from '../settings/settings-client'
 const {signOut, onAuthStateChange, replace, refresh} = vi.hoisted(() => ({signOut: vi.fn(), onAuthStateChange: vi.fn(), replace: vi.fn(), refresh: vi.fn()}))
 vi.mock('@supabase/ssr', () => ({createBrowserClient: () => ({auth: {signOut, onAuthStateChange}})}))
@@ -81,7 +81,7 @@ test('failed logout hides both identities without refreshing away the settings r
     for (const [listener] of onAuthStateChange.mock.calls) listener('SIGNED_OUT', null)
     return {error: {message: 'unavailable'}}
   })
-  render(<><AccountControls userId="one" displayName="River" profileError={false}/><SettingsClient userId="one" email="one@example.test" initialDisplayName="River"/><SignOutButton userId="one"/></>)
+  render(<AccountTheme userId="one" initialTheme="dark"><AccountControls userId="one" displayName="River" profileError={false}/><SettingsClient userId="one" email="one@example.test" initialDisplayName="River"/><SignOutButton userId="one"/></AccountTheme>)
   fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not sign out. Try again.')
   expect(document.documentElement).toHaveAttribute('data-theme', 'dark')

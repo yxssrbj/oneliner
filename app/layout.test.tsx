@@ -2,8 +2,8 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import RootLayout from './layout'
 
-const { getAuthenticatedUser, io } = vi.hoisted(() => ({ getAuthenticatedUser: vi.fn(), io: vi.fn() }))
-vi.mock('./components/account-controls', () => ({ AccountTheme: () => null }))
+const { getAuthenticatedUser, io, accountTheme } = vi.hoisted(() => ({ getAuthenticatedUser: vi.fn(), io: vi.fn(), accountTheme: vi.fn<(props: {themeRevision?: string}) => null>(() => null) }))
+vi.mock('./components/account-controls', () => ({ AccountTheme: accountTheme }))
 vi.mock('../lib/supabase/server', () => ({ getAuthenticatedUser }))
 vi.mock('next/cache', () => ({ io }))
 beforeEach(() => { vi.clearAllMocks(); io.mockResolvedValue(undefined) })
@@ -27,4 +27,11 @@ test('runtime rendering precedes session initialization', async () => {
   proceed()
   await layout
   expect(getAuthenticatedUser).toHaveBeenCalledTimes(1)
+})
+
+
+test('the root browser guard receives the verified account revision', async () => {
+  getAuthenticatedUser.mockResolvedValue({user: {id: 'one', user_metadata: {oneliner_theme: 'dark'}, updated_at: 'latest'}})
+  renderToStaticMarkup(await RootLayout({params: Promise.resolve({}), children: null}))
+  expect(accountTheme.mock.calls[0][0].themeRevision).toBe('latest')
 })

@@ -75,3 +75,17 @@ test('the document adopts a matching confirmed user update', () => {
   act(() => onAuthStateChange.mock.calls[0][0]('USER_UPDATED', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}))
   expect(document.documentElement).toHaveAttribute('data-theme', 'light')
 })
+
+test('matching token refresh metadata updates the initialized document palette', () => {
+  render(<AccountTheme userId="one" initialTheme="dark" />)
+  act(() => onAuthStateChange.mock.calls[0][0]('TOKEN_REFRESHED', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}))
+  expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+})
+
+test('a new verified revision reconciles the document back to its original theme', () => {
+  const view = render(<AccountTheme userId="one" initialTheme="dark" themeRevision="first" />)
+  act(() => onAuthStateChange.mock.calls[0][0]('USER_UPDATED', {user: {id: 'one', user_metadata: {oneliner_theme: 'light'}}}))
+  expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+  view.rerender(<AccountTheme userId="one" initialTheme="dark" themeRevision="later" />)
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+})
