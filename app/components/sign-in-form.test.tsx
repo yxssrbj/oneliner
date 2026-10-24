@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
@@ -7,20 +7,21 @@ import SignInForm from './sign-in-form'
 
 const signInWithOtp = vi.fn()
 const verifyOtp = vi.fn()
-const replace = vi.fn()
-const refresh = vi.fn()
+const navigate = vi.fn()
 
 vi.mock('../../lib/supabase/client', () => ({
   createSupabaseBrowserClient: () => ({ auth: { signInWithOtp, verifyOtp } }),
 }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ replace, refresh }) }))
 
 beforeEach(() => {
   cleanup()
   vi.clearAllMocks()
+  vi.stubGlobal('location', { replace: navigate })
   signInWithOtp.mockResolvedValue({ error: null })
   verifyOtp.mockResolvedValue({ error: null })
 })
+
+afterEach(() => vi.unstubAllGlobals())
 
 test('requires an email before requesting a code', async () => {
   render(<SignInForm />)
@@ -48,18 +49,17 @@ test('invalid code keeps the form available with a recoverable error', async () 
   await userEvent.click(screen.getByRole('button', { name: /verify code/i }))
   expect(await screen.findByRole('alert')).toHaveTextContent(/invalid or expired/i)
   expect(screen.getByRole('button', { name: /verify code/i })).toBeEnabled()
-  expect(replace).not.toHaveBeenCalled()
+  expect(navigate).not.toHaveBeenCalled()
 })
 
-test('successful verification navigates to the signed-in shell', async () => {
+test('successful verification starts a fresh document to clear previous session routes', async () => {
   render(<SignInForm />)
   await userEvent.type(screen.getByLabelText(/email/i), 'trader@example.com')
   await userEvent.click(screen.getByRole('button', { name: /send code/i }))
   await userEvent.type(await screen.findByLabelText(/code/i), '12345678')
   await userEvent.click(screen.getByRole('button', { name: /verify code/i }))
   expect(verifyOtp).toHaveBeenCalledWith({ email: 'trader@example.com', token: '12345678', type: 'email' })
-  expect(replace).toHaveBeenCalledWith('/')
-  expect(refresh).toHaveBeenCalled()
+  expect(navigate).toHaveBeenCalledWith('/')
 })
 
 test.each(['50000000-0000-0000-0000-000000000001','https://evil.example'])('invite continuation accepts only a UUID: %s',async(invite)=>{
@@ -68,5 +68,5 @@ test.each(['50000000-0000-0000-0000-000000000001','https://evil.example'])('invi
   await userEvent.click(screen.getByRole('button',{name:/send code/i}))
   await userEvent.type(await screen.findByLabelText(/code/i),'12345678')
   await userEvent.click(screen.getByRole('button',{name:/verify code/i}))
-  expect(replace).toHaveBeenCalledWith(invite.startsWith('https')?'/':`/friends/invite/${invite}`)
+  expect(navigate).toHaveBeenCalledWith(invite.startsWith('https')?'/':`/friends/invite/${invite}`)
 })

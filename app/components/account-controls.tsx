@@ -1,11 +1,12 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
-export default function AccountControls({ userId, displayName, profileError }: {
-  userId: string; displayName: string | null; profileError: boolean
+export default function AccountControls({ userId, displayName, profileError, current = false }: {
+  userId: string; displayName: string | null; profileError: boolean; current?: boolean
 }) {
   const router = useRouter()
   const busy = useRef(false)
@@ -49,7 +50,7 @@ export default function AccountControls({ userId, displayName, profileError }: {
   }
 
   return <div className="account-controls" aria-label="Account">
-    <span className="account-name">{hidden ? 'Trader' : displayName || 'Trader'}</span>
+    <Link href="/settings" className="account-profile" aria-current={current ? 'page' : undefined}><span className="account-name">{hidden ? 'Trader' : displayName || 'Trader'}</span><span className="account-workspace">Personal workspace</span><span className="account-arrow" aria-hidden="true">›</span></Link>
     {!hidden && profileError && <p role="alert" className="error">Could not load display name.</p>}
     <button type="button" disabled={pending || (hidden && !error)} onClick={signOut}>{pending ? 'Signing out…' : 'Sign out'}</button>
     {error && <p role="alert" className="error">{error}</p>}

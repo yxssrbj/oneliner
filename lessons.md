@@ -22,3 +22,6 @@
 - Each push needs current authorization; local atomic commits are permitted. Source: updated global instructions, 20 October 2026.
 
 - Keep canonical specs in `specs/` in the primary project checkout, shared by every feature worktree. Resolve that checkout through Git; review feature code locally while reading the shared PRD. Do not treat a feature branch’s copied PRD as its own product direction. Source: user correction, 22 October 2026.
+
+- Private settings rendering must await `io()` before Supabase auth initialization: its session expiry check reads `Date.now()` and triggers Next.js prerender diagnostics. A clean build alone does not prove route navigation; exercise it on the production server. Source: Task 1 production browser regression and Supabase `GoTrueClient.__loadSession`, 24 October 2026.
+- Successful sign-in must start a new document at the validated destination; `router.replace()` plus `router.refresh()` can retain a signed-out private-route result with partial prefetching. Keep the signed-out settings → OTP sign-in → profile-link journey in production browser coverage. Source: Task 1 production isolation/regression, 24 October 2026.

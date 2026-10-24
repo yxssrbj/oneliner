@@ -75,3 +75,12 @@ test('ignores a sign-out completion after the account control unmounts', async (
   await act(async () => finish({error: null}))
   expect(replace).not.toHaveBeenCalled()
 })
+
+test('the profile row opens settings', () => {
+  show()
+  expect(screen.getByRole('link', { name: /River/ })).toHaveAttribute('href', '/settings')
+})
+test('settings marks the profile row current', () => {
+  render(<AccountControls userId="one" displayName="River" profileError={false} current />)
+  expect(screen.getByRole('link', { current: 'page' })).toHaveAttribute('href', '/settings')
+})

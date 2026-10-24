@@ -6,7 +6,7 @@ import AppShell from './app-shell'
 
 const { getAuthenticatedUser, single, eq, select, from } = vi.hoisted(() => ({ getAuthenticatedUser: vi.fn(), single: vi.fn(), eq: vi.fn(), select: vi.fn(), from: vi.fn() }))
 vi.mock('../../lib/supabase/server', () => ({ getAuthenticatedUser }))
-vi.mock('./account-controls', () => ({ default: ({displayName, profileError}: {displayName: string | null; profileError: boolean}) => <div>{displayName ?? 'Trader'}{profileError && <p role="alert">Could not load display name.</p>}</div> }))
+vi.mock('./account-controls', () => ({ default: ({displayName, profileError, current}: {displayName: string | null; profileError: boolean; current: boolean}) => <div><a href="/settings" aria-current={current ? 'page' : undefined}>Settings</a>{displayName ?? 'Trader'}{profileError && <p role="alert">Could not load display name.</p>}</div> }))
 vi.mock('next/navigation', () => ({ redirect: (url: string) => { throw new Error(`redirect:${url}`) } }))
 
 const destinations = [
@@ -61,4 +61,13 @@ test('shows a neutral name and readable profile error', async () => {
   render(await AppShell({title: 'Capture', children: null}))
   expect(screen.getByText('Trader')).toBeVisible()
   expect(screen.getByRole('alert')).toHaveTextContent('Could not load display name.')
+})
+
+test('settings keeps four destinations and marks only the profile row current', async () => {
+  render(await AppShell({ title: 'Settings', children: null }))
+  const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+  expect(within(nav).getAllByRole('link')).toHaveLength(4)
+  expect(within(nav).queryByRole('link', { current: 'page' })).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { current: 'page' })).toHaveAttribute('href', '/settings')
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Settings')
 })

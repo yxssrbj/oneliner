@@ -20,7 +20,7 @@ export default async function AppShell({ title, children }: { title: string; chi
     <aside className="desktop-nav">
       <Link className="brand" href="/">◼ Oneliner</Link>
       <nav aria-label="Main navigation">{destinations.map((item) => <Link key={item.href} href={item.href} aria-current={item.title === title ? 'page' : undefined}>{item.label}</Link>)}</nav>
-      <AccountControls key={auth.user.id} userId={auth.user.id} displayName={profileError ? null : data?.display_name ?? null} profileError={profileError} />
+      <AccountControls current={title === 'Settings'} key={auth.user.id} userId={auth.user.id} displayName={profileError ? null : data?.display_name ?? null} profileError={profileError} />
     </aside>
     <div className="app-content">
       <header className="workspace-header"><h1>{pageTitle}</h1></header>

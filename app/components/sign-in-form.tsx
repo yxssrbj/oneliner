@@ -1,12 +1,10 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
 import { isUuid } from '../../lib/groups/validation'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 export default function SignInForm({invite}:{invite?:string} = {}) {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [sent, setSent] = useState(false)
@@ -36,8 +34,8 @@ export default function SignInForm({invite}:{invite?:string} = {}) {
       const result = await createSupabaseBrowserClient().auth.verifyOtp({ email: email.trim(), token: code, type: 'email' })
       if (result.error) setError('Invalid or expired code. Check it and try again.')
       else {
-        router.replace(isUuid(invite)?`/friends/invite/${invite}`:'/')
-        router.refresh()
+        // A new document clears private routes cached before the account changed.
+        location.replace(isUuid(invite)?`/friends/invite/${invite}`:'/')
       }
     } catch {
       setError('Could not verify the code. Please try again.')
