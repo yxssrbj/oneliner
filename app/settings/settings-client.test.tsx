@@ -6,7 +6,7 @@ import SettingsClient from './settings-client'
 
 const { refresh, onAuthStateChange, fetchMock } = vi.hoisted(() => ({ refresh: vi.fn(), onAuthStateChange: vi.fn(), fetchMock: vi.fn() }))
 vi.mock('next/navigation', () => { const router = { refresh }; return { useRouter: () => router } })
-vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange } }) }))
+vi.mock('../../lib/supabase/client', () => ({ isLocalSignOutPending: () => false, createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange } }) }))
 
 beforeEach(() => {
   cleanup(); vi.clearAllMocks()

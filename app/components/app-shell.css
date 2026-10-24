@@ -103,15 +103,13 @@ summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outli
 
 .account-controls{margin-top:auto;padding-top:1.5rem;display:grid;gap:.7rem;min-width:0}
 .account-name{overflow-wrap:anywhere;font-size:.9rem}
-.account-controls button{background:transparent;border:1px solid #667060;color:inherit;border-radius:.5rem;padding:.6rem;cursor:pointer}
-.account-controls button:disabled{opacity:.6;cursor:wait}
 
 button,input:not([type=checkbox]),select{min-height:40px}
 .group-form button{justify-self:start}
 input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
 button:not(:disabled),a,input,textarea,select{transition:background-color .16s,border-color .16s,color .16s}
 button:not(:disabled):hover{filter:brightness(1.12)}
-.desktop-nav nav a:hover,.account-controls button:hover{background:var(--raised);color:var(--text)}
+.desktop-nav nav a:hover{background:var(--raised);color:var(--text)}
 input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:wait}
 .trade-card-heading h3{overflow-wrap:anywhere;min-width:0}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
@@ -136,3 +134,7 @@ input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:wait}
 .settings-actions button{margin-left:auto;border:0;border-radius:.45rem;padding:.6rem 1rem;background:var(--accent);color:var(--bg);font-weight:600;cursor:pointer}
 .settings-actions button:disabled{opacity:.6;cursor:wait}
 @media(max-width:1050px){.settings-grid{grid-template-columns:minmax(0,1fr)}}
+
+.settings-sign-out{display:grid;justify-items:start;gap:.7rem;margin-top:1.6rem}
+.settings-sign-out button{background:transparent;border:1px solid var(--negative);color:var(--negative);border-radius:.45rem;padding:.6rem 1.1rem;cursor:pointer}
+.settings-sign-out button:disabled{opacity:.6;cursor:wait}

@@ -59,3 +59,12 @@ Risk: medium; shared CSS and desktop interaction geometry.
 - [x] Verify local pointer sign-out and sticky sidebar at both sizes.
 - [x] Inspect screenshots and run tests, typecheck, lint and build.
 - [x] Record existing diagnostics and screen-specific follow-up scope.
+
+## Account settings — Task 2 (24 October 2026)
+
+Branch: `feat/ui-redesign`. Risk: high; logout races and account privacy.
+
+- [x] Prove missing standalone action and failed-logout refresh race red.
+- [x] Extract sign-out, preserve identity guards and update browser callers.
+- [x] Verify focused/full unit tests, typecheck, lint and browser journeys.
+- [x] Review the full diff, write evidence report and commit locally.

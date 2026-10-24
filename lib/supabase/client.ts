@@ -6,3 +6,16 @@ export function createSupabaseBrowserClient() {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
   )
 }
+
+let localSignOutPending = false
+
+export function isLocalSignOutPending() { return localSignOutPending }
+
+export async function signOutLocally() {
+  localSignOutPending = true
+  try {
+    return await createSupabaseBrowserClient().auth.signOut({ scope: 'local' })
+  } finally {
+    localSignOutPending = false
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSupabaseBrowserClient } from '../../lib/supabase/client'
+import { createSupabaseBrowserClient, isLocalSignOutPending } from '../../lib/supabase/client'
 
 export default function SettingsClient({ userId, email, initialDisplayName }: {
   userId: string; email: string; initialDisplayName: string | null
@@ -24,7 +24,8 @@ export default function SettingsClient({ userId, email, initialDisplayName }: {
       if (event !== 'SIGNED_OUT' && session?.user.id === userId) { setReady(true); return }
       active.current = false
       setHidden(true)
-      router.refresh()
+      // Failed local logout also removes the SDK session; preserve its retry.
+      if (!isLocalSignOutPending() || event !== 'SIGNED_OUT') router.refresh()
     })
     return () => { active.current = false; subscription.unsubscribe() }
   }, [router, userId])

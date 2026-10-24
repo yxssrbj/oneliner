@@ -24,7 +24,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900
 
     async function fits() {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
-      const account = page.getByRole('button', { name: 'Sign out', exact: true })
+      const account = page.locator('.account-profile:visible')
       const box = await account.boundingBox()
       expect(box).not.toBeNull()
       expect(box!.y).toBeGreaterThanOrEqual(0)
@@ -103,6 +103,8 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900
     await expect(page.locator('.trade-note')).toHaveText('X'.repeat(1000))
     await fits()
     await page.screenshot({ path: testInfo.outputPath('long-trade-note.png'), fullPage: true })
+    await page.locator('.account-profile:visible').click()
+    await expect(page).toHaveURL(/\/settings$/)
     await page.getByRole('button', { name: 'Sign out', exact: true }).click()
     await expect(page).toHaveURL(/\/sign-in$/)
   })

@@ -10,7 +10,7 @@ vi.mock('next/cache', () => ({ io }))
 vi.mock('../../lib/supabase/server', () => ({ getAuthenticatedUser }))
 vi.mock('../components/app-shell', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }))
 vi.mock('next/navigation', () => ({ redirect: (url: string) => { throw new Error(`redirect:${url}`) }, useRouter: () => ({ refresh: vi.fn() }) }))
-vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (listener: (event: string, session: { user: { id: string } }) => void) => { listener('INITIAL_SESSION', { user: { id: browserOwner.id } }); return { data: { subscription: { unsubscribe: vi.fn() } } } } } }) }))
+vi.mock('../../lib/supabase/client', () => ({ isLocalSignOutPending: () => false, createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (listener: (event: string, session: { user: { id: string } }) => void) => { listener('INITIAL_SESSION', { user: { id: browserOwner.id } }); return { data: { subscription: { unsubscribe: vi.fn() } } } } } }) }))
 beforeEach(() => {
   cleanup(); vi.clearAllMocks()
   browserOwner.id = 'one'
@@ -65,4 +65,12 @@ test('waits for runtime rendering before reading private identity', async () => 
   connect()
   render(await page)
   expect(screen.getByLabelText('Email address')).toHaveValue('one@example.test')
+})
+
+test('settings has one standalone sign-out below its cards', async () => {
+  render(await SettingsPage())
+  const buttons = screen.getAllByRole('button', {name: 'Sign out'})
+  expect(buttons).toHaveLength(1)
+  expect(buttons[0].closest('.settings-panel')).toBeNull()
+  expect(screen.getByRole('heading', {name: 'Profile'}).compareDocumentPosition(buttons[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
