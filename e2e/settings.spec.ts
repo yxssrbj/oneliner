@@ -89,3 +89,41 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900
     expect(errors).toEqual([])
   })
 }
+
+test('a delayed browser session cannot reveal the server account profile', async ({ browser, request }) => {
+  test.setTimeout(30_000)
+  const first = await browser.newContext({ baseURL: 'http://localhost:3012' })
+  const second = await browser.newContext({ baseURL: 'http://localhost:3012' })
+  let releaseScripts!: () => void
+  const scriptsReady = new Promise<void>(resolve => { releaseScripts = resolve })
+  try {
+    const firstPage = await first.newPage()
+    await firstPage.goto('/sign-in')
+    const firstEmail = `settings-delayed-first-${crypto.randomUUID()}@example.test`
+    await signIn(firstPage, request, firstEmail)
+    expect((await firstPage.request.put('/api/profile', { data: { displayName: 'First private owner' } })).ok()).toBeTruthy()
+    const secondPage = await second.newPage()
+    await secondPage.goto('/sign-in')
+    const secondEmail = `settings-delayed-second-${crypto.randomUUID()}@example.test`
+    await signIn(secondPage, request, secondEmail)
+    expect((await secondPage.request.put('/api/profile', { data: { displayName: 'Second owner' } })).ok()).toBeTruthy()
+    const delayed = await first.newPage()
+    // Hold browser startup so its session can change after the server response.
+    await delayed.route('**/_next/static/**/*.js', async route => { await scriptsReady; await route.continue() })
+    await delayed.goto('/settings', { waitUntil: 'commit' })
+    await expect(delayed.getByRole('status')).toHaveText('Updating account…')
+    await expect(delayed.getByLabel('Email address')).toHaveCount(0)
+    await expect(delayed.locator('.settings-identity')).toHaveCount(0)
+    await first.clearCookies()
+    await first.addCookies(await second.cookies())
+    releaseScripts()
+    await expect(delayed.getByLabel('Email address')).toHaveValue(secondEmail)
+    await expect(delayed.getByLabel('Display name')).toHaveValue('Second owner')
+    await expect(delayed.getByLabel('Email address')).not.toHaveValue(firstEmail)
+    await expect(delayed.locator('.settings-identity')).not.toContainText('First private owner')
+  } finally {
+    releaseScripts()
+    await first.close()
+    await second.close()
+  }
+})

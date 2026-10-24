@@ -4,14 +4,16 @@ import { cleanup, render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import SettingsPage from './page'
 
+const browserOwner = vi.hoisted(() => ({ id: 'one' }))
 const { getAuthenticatedUser, from, select, eq, single, io } = vi.hoisted(() => ({ getAuthenticatedUser: vi.fn(), from: vi.fn(), select: vi.fn(), eq: vi.fn(), single: vi.fn(), io: vi.fn() }))
 vi.mock('next/cache', () => ({ io }))
 vi.mock('../../lib/supabase/server', () => ({ getAuthenticatedUser }))
 vi.mock('../components/app-shell', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }))
 vi.mock('next/navigation', () => ({ redirect: (url: string) => { throw new Error(`redirect:${url}`) }, useRouter: () => ({ refresh: vi.fn() }) }))
-vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }) } }) }))
+vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (listener: (event: string, session: { user: { id: string } }) => void) => { listener('INITIAL_SESSION', { user: { id: browserOwner.id } }); return { data: { subscription: { unsubscribe: vi.fn() } } } } } }) }))
 beforeEach(() => {
   cleanup(); vi.clearAllMocks()
+  browserOwner.id = 'one'
   io.mockResolvedValue(undefined)
   single.mockResolvedValue({ data: { display_name: 'River' }, error: null })
   eq.mockReturnValue({ single }); select.mockReturnValue({ eq }); from.mockReturnValue({ select })
@@ -32,6 +34,7 @@ test('loads only the signed-in profile and email', async () => {
 })
 test('a new authenticated owner receives fresh profile state', async () => {
   const view = render(await SettingsPage())
+  browserOwner.id = 'two'
   getAuthenticatedUser.mockResolvedValue({ user: { id: 'two', email: 'two@example.test' }, supabase: { from } })
   single.mockResolvedValue({ data: { display_name: 'Second trader' }, error: null })
   view.rerender(await SettingsPage())

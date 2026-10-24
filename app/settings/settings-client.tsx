@@ -55,7 +55,7 @@ export default function SettingsClient({ userId, email, initialDisplayName }: {
     }
   }
 
-  if (hidden) return <p role="status">Updating account…</p>
+  if (hidden || !ready) return <p role="status">Updating account…</p>
   return <div className="settings-workspace">
     <p>Your name and account security.</p>
     <div className="settings-grid">

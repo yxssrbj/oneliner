@@ -97,12 +97,25 @@ test('settings fields keep their labels when the cached groups form remains moun
   expect(screen.getByRole('textbox', { name: 'Display name' })).toHaveValue('River')
 })
 
-test('keeps edits disabled until the browser confirms the authenticated owner', () => {
+test('keeps private identity absent until the browser confirms the authenticated owner', () => {
   onAuthStateChange.mockImplementation(() => ({ data: { subscription: { unsubscribe: vi.fn() } } }))
   show()
-  expect(screen.getByLabelText('Display name')).toBeDisabled()
-  expect(screen.getByRole('button', { name: 'Save display name' })).toBeDisabled()
+  expect(screen.queryByDisplayValue('one@example.test')).not.toBeInTheDocument()
+  expect(screen.queryByDisplayValue('River')).not.toBeInTheDocument()
+  expect(screen.queryByText('River')).not.toBeInTheDocument()
   act(() => onAuthStateChange.mock.calls[0][0]('INITIAL_SESSION', { user: { id: 'one' } }))
   expect(screen.getByLabelText('Display name')).toBeEnabled()
   expect(screen.getByRole('button', { name: 'Save display name' })).toBeEnabled()
+})
+
+test('a delayed mismatched initial session never reveals the server account identity', () => {
+  onAuthStateChange.mockImplementation(() => ({ data: { subscription: { unsubscribe: vi.fn() } } }))
+  show()
+  expect(screen.queryByDisplayValue('one@example.test')).not.toBeInTheDocument()
+  expect(screen.queryByText('River')).not.toBeInTheDocument()
+  act(() => onAuthStateChange.mock.calls[0][0]('INITIAL_SESSION', { user: { id: 'two' } }))
+  expect(screen.queryByDisplayValue('one@example.test')).not.toBeInTheDocument()
+  expect(screen.queryByText('River')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Save display name' })).not.toBeInTheDocument()
+  expect(refresh).toHaveBeenCalledTimes(1)
 })
