@@ -10,8 +10,8 @@ Last updated: 24 October 2026. This file tracks product work across branches; ch
 - [x] Build the shared desktop sidebar, header, and palette on `feat/ui-redesign`.
 - [x] Review and approve the [settings spec](specs/features/settings.md) and [implementation plan](docs/superpowers/plans/2026-10-23-account-settings.md).
 - [ ] Implement and verify account settings on `feat/ui-redesign` (**in progress**):
-  - [ ] Real settings route and display-name editing (**current task**).
-  - [ ] Standalone sign-out on settings.
+  - [x] Real settings route and display-name editing (reviewed on `feat/ui-redesign`).
+  - [ ] Standalone sign-out on settings (**current task**).
   - [ ] Account-specific dark and light mode.
   - [ ] Verified password update and password sign-in.
 - [ ] Specify, implement, and review the remaining [desktop screens](specs/features/desktop-preview-parity.md), one slice at a time: weekly review; capture and unfinished trades; private groups and continuous chat with pictures.
