@@ -132,6 +132,8 @@ input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:wait}
 .settings-panel input{width:100%;min-width:0;padding:.65rem .8rem;border:1px solid #667060;border-radius:.45rem;background:var(--field);color:var(--text);margin-bottom:.65rem}
 .settings-panel input:read-only{background:var(--raised);color:var(--muted)}
 .settings-panel .field-hint{font-size:.75rem;margin-top:-.5rem}
+.settings-panel .text-button{justify-self:start;border:0;padding:.2rem 0 .8rem;background:transparent;color:var(--accent);font:inherit;font-size:.8rem;cursor:pointer}
+.settings-panel .text-button:disabled{opacity:.6;cursor:wait}
 .settings-actions{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;margin-top:1rem;padding-top:1.2rem;border-top:1px solid var(--line);font-size:.8rem}
 .settings-actions button{margin-left:auto;border:0;border-radius:.45rem;padding:.6rem 1rem;background:var(--accent);color:var(--accent-text);font-weight:600;cursor:pointer}
 .settings-actions button:disabled{opacity:.6;cursor:wait}

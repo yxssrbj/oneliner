@@ -68,3 +68,17 @@ Branch: `feat/ui-redesign`. Risk: high; logout races and account privacy.
 - [x] Extract sign-out, preserve identity guards and update browser callers.
 - [x] Verify focused/full unit tests, typecheck, lint and browser journeys.
 - [x] Review the full diff, write evidence report and commit locally.
+
+## Account settings — Task 4 (25 October 2026)
+
+Branch: `feat/ui-redesign`. Risk: high; password access and verification.
+
+- [x] Inspect Auth SDK/provider semantics and reproduce nonce bypass locally.
+- [x] Research isolated email OTP verification and session consequences.
+- [x] Observe password sign-in and runtime-boundary regressions red.
+- [x] Add password sign-in while preserving OTP and validated invites.
+- [x] Correct the design to isolated OTP verification after local nonce bypass.
+- [x] Record hosted Auth settings read-only; hosted E2E remains unexercised.
+- [x] Verify 285 unit tests, 14 CI browser flows and 8 production flows.
+- [x] Verify typecheck, lint, build and both desktop screenshots.
+- [x] Review every changed auth line, record evidence and commit locally.

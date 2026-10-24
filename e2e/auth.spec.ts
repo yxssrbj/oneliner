@@ -125,3 +125,62 @@ test('email code signs in and opens the desktop shell', async ({ page, request }
   await page.goto('/inbox')
   await expect(page.getByText('First account private note', {exact: true})).toHaveCount(0)
 })
+
+test('password sign-in keeps generic errors and the validated invitation destination', async ({page, request}) => {
+  test.setTimeout(45_000)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  expect(new URL(url).hostname).toBe('127.0.0.1')
+  const headers = {apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!}
+  const email = `password-invite-${crypto.randomUUID()}@example.test`
+  const password = `Example-${crypto.randomUUID()}-42!`
+  expect((await request.post(`${url}/auth/v1/otp`, {headers, data: {email}})).ok()).toBeTruthy()
+  let messageId = ''
+  await expect.poll(async () => {
+    const inbox = await (await request.get('http://127.0.0.1:54324/api/v1/messages')).json()
+    messageId = inbox.messages.find((message: {To: {Address: string}[]}) => message.To.some(recipient => recipient.Address === email))?.ID ?? ''
+    return messageId
+  }).not.toBe('')
+  const message = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${messageId}`)).json()
+  const token = /<strong>(\d{6,8})<\/strong>/.exec(message.HTML)?.[1]
+  expect(token).toBeTruthy()
+  const verified = await request.post(`${url}/auth/v1/verify`, {headers, data: {email, token, type: 'email'}})
+  expect(verified.ok()).toBeTruthy()
+  const session = await verified.json()
+  expect((await request.put(`${url}/auth/v1/user`, {headers: {...headers, Authorization: `Bearer ${session.access_token}`}, data: {password}})).ok()).toBeTruthy()
+  expect((await request.post(`${url}/auth/v1/logout?scope=local`, {headers: {...headers, Authorization: `Bearer ${session.access_token}`}})).ok()).toBeTruthy()
+  const invite = crypto.randomUUID()
+  await page.goto(`/sign-in?invite=${invite}`)
+  await page.getByRole('button', {name: 'Use password instead'}).click()
+  const error = 'Could not sign in. Check your email and password or use an email code.'
+  await page.getByLabel('Email', {exact: true}).fill(`missing-${crypto.randomUUID()}@example.test`)
+  await page.getByLabel('Password', {exact: true}).fill(password)
+  await page.getByRole('button', {name: 'Sign in', exact: true}).click()
+  await expect(page.locator('.auth-form [role="alert"]')).toHaveText(error)
+  await page.getByLabel('Email', {exact: true}).fill(email)
+  await page.getByLabel('Password', {exact: true}).fill('Wrong-password-42!')
+  await page.getByRole('button', {name: 'Sign in', exact: true}).click()
+  await expect(page.locator('.auth-form [role="alert"]')).toHaveText(error)
+  await page.getByLabel('Password', {exact: true}).fill(password)
+  await page.getByRole('button', {name: 'Sign in', exact: true}).click()
+  await expect(page).toHaveURL(`/friends/invite/${invite}`)
+  await expect(page.getByRole('heading', {name: 'Join a private group'})).toBeVisible()
+})
+
+test('sign-in blocks credential entry until its browser listeners are ready', async ({page}) => {
+  test.setTimeout(20_000)
+  let release!: () => void
+  const scripts = new Promise<void>(resolve => {release = resolve})
+  await page.route('**/_next/static/**/*.js', async route => {await scripts; await route.continue()})
+  try {
+    await page.goto('/sign-in?password=updated', {waitUntil: 'commit'})
+    await expect(page.getByLabel('Email', {exact: true})).toBeDisabled()
+    await expect(page.getByLabel('Password', {exact: true})).toBeDisabled()
+    await expect(page.getByRole('button', {name: 'Sign in', exact: true})).toBeDisabled()
+    release()
+    await expect(page.getByLabel('Email', {exact: true})).toBeEnabled()
+    await expect(page.getByLabel('Password', {exact: true})).toBeEnabled()
+    await page.getByLabel('Email', {exact: true}).fill('ready@example.test')
+    await page.getByLabel('Password', {exact: true}).fill('Ready-example-pass-42!')
+    await expect(page.getByLabel('Email', {exact: true})).toHaveValue('ready@example.test')
+  } finally {release()}
+})

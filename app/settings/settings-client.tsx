@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import PasswordForm from './password-form'
 import { useAccountTheme } from '../components/account-controls'
 import { createSupabaseBrowserClient, isLocalSignOutPending, saveAccountMetadata } from '../../lib/supabase/client'
 
@@ -117,6 +118,7 @@ export default function SettingsClient({ userId, email, initialDisplayName }: {
           <div className="settings-actions"><span role="status" className="save-message">{saved ? 'Display name saved.' : pending ? 'Saving display name…' : ''}</span><button type="submit" disabled={pending || !ready}>{pending ? 'Saving…' : 'Save display name'}</button></div>
         </form>
       </section>
+      <PasswordForm key={userId} userId={userId} email={email}/>
     </div>
   </div>
 }

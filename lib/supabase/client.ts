@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 
 export function createSupabaseBrowserClient() {
   return createBrowserClient(
@@ -36,4 +37,12 @@ export async function saveAccountMetadata(userId: string, metadata: Record<strin
     throw new Error('Unconfirmed account preference')
   }
   return { data: { user: { id: user.id, user_metadata: user.user_metadata as Record<string, unknown> } }, error: null }
+}
+
+export function createPasswordVerificationClient() {
+  // Verification must never persist or broadcast over the active account session.
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    auth: {persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: `password-verification-${crypto.randomUUID()}`},
+    global: {fetch: (input, init) => fetch(input, {...init, signal: AbortSignal.timeout(15_000)})},
+  })
 }
