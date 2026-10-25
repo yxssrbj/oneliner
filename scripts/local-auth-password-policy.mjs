@@ -6,13 +6,20 @@ const flag = 'GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_CURRENT_PASSWORD'
 const network = 'supabase_network_oneliner'
 
 function docker(...args) {
-  const result = spawnSync('docker', args, {encoding: 'utf8', maxBuffer: 1024 * 1024})
+  const result = spawnSync('docker', args, {encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: args[0] === 'inspect' ? 3000 : 30_000, killSignal: 'SIGTERM'})
   if (result.error || result.status !== 0) throw new Error(`Docker ${args[0]} failed: ${result.error?.message ?? result.stderr.trim()}`)
   return result.stdout.trim()
 }
 
 function inspect(container) {
   return JSON.parse(docker('inspect', container))[0]
+}
+
+function exists(container) {
+  try {inspect(container); return true} catch (error) {
+    if (String(error.message).toLowerCase().includes('no such object')) return false
+    throw error
+  }
 }
 
 function validate(container) {
@@ -71,9 +78,7 @@ try {
       healthy()
       console.log('Local Auth current-password policy is already enabled.')
     } else {
-      try {inspect(backup); throw new Error('A preserved Auth container already exists; inspect it before applying.')} catch (error) {
-        if (!String(error.message).toLowerCase().includes('no such object')) throw error
-      }
+      if (exists(backup)) throw new Error('A preserved Auth container already exists; inspect it before applying.')
       if (current.State.Health?.Status !== 'healthy') throw new Error('Local Auth is unhealthy; no change made.')
       const env = Object.fromEntries(current.Config.Env.map(entry => [entry.slice(0, entry.indexOf('=')), entry.slice(entry.indexOf('=') + 1)]))
       env[flag] = 'true'
@@ -83,26 +88,30 @@ try {
       for (const [key, value] of Object.entries(current.Config.Labels)) args.push('--label', `${key}=${value}`)
       for (const key of Object.keys(env)) args.push('--env', key)
       args.push(current.Config.Image, 'auth')
-      docker('stop', name)
-      docker('rename', name, backup)
       try {
-        const created = spawnSync('docker', args, {encoding: 'utf8', env: {...process.env, ...env}})
+        docker('stop', name)
+        docker('rename', name, backup)
+        const created = spawnSync('docker', args, {encoding: 'utf8', env: {...process.env, ...env}, timeout: 30_000, killSignal: 'SIGTERM'})
         if (created.error || created.status !== 0) throw new Error(`Docker create failed: ${created.error?.message ?? created.stderr.trim()}`)
         if (inspect(name).Image !== current.Image) throw new Error('Replacement Auth image differs from the original.')
         docker('start', name)
         healthy()
         console.log('Local Auth policy enabled. Original container preserved for rollback; database was untouched.')
       } catch (error) {
-        try {docker('rm', '-f', name)} catch (removeError) {
-          if (!String(removeError.message).toLowerCase().includes('no such container')) throw new AggregateError([error, removeError], 'Could not remove failed Auth replacement.')
+        try {
+          if (exists(backup)) {
+            if (exists(name)) docker('rm', '-f', name)
+            docker('rename', backup, name)
+          }
+          docker('start', name)
+        } catch (recoveryError) {
+          throw new AggregateError([error, recoveryError], 'Could not restore the original Auth container.')
         }
-        docker('rename', backup, name)
-        docker('start', name)
         throw error
       }
     }
   }
 } catch (error) {
-  console.error(error.message)
+  console.error(error.message, ...(error instanceof AggregateError ? error.errors.map(cause => cause.message) : []))
   process.exitCode = 1
 }

@@ -242,7 +242,7 @@ test('a delayed appearance response cannot restore the signed-out cookie session
 
 test('verified password access keeps the OTP account, trades, and group membership', async ({page, request}, testInfo) => {
   test.setTimeout(100_000)
-  execFileSync('node', ['scripts/local-auth-password-policy.mjs', 'check'])
+  execFileSync('node', ['scripts/local-auth-password-policy.mjs', 'check'], {timeout: 10_000, killSignal: 'SIGTERM'})
   page.setDefaultTimeout(10_000)
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
