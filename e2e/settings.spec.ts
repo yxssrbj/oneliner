@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
+import {execFileSync} from 'node:child_process'
 
 async function signIn(page: Page, request: APIRequestContext, email: string, captureIdentity = false) {
   await page.getByLabel('Email', { exact: true }).fill(email)
@@ -241,6 +242,7 @@ test('a delayed appearance response cannot restore the signed-out cookie session
 
 test('verified password access keeps the OTP account, trades, and group membership', async ({page, request}, testInfo) => {
   test.setTimeout(100_000)
+  execFileSync('node', ['scripts/local-auth-password-policy.mjs', 'check'])
   page.setDefaultTimeout(10_000)
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
@@ -337,11 +339,27 @@ test('verified password access keeps the OTP account, trades, and group membersh
   const groups = (await (await page.request.get('/api/groups')).json()).groups
   expect(groups).toEqual(expect.arrayContaining([expect.objectContaining({id: groupId})]))
   await page.goto('/settings')
+  let capability: unknown = 'not called'
+  await page.route('**/rest/v1/rpc/account_has_password', async route => {
+    const response = await route.fetch()
+    capability = await response.json()
+    await route.fulfill({response})
+  })
+  await panel.getByRole('button', {name: 'Use email code instead'}).click()
+  await panel.getByLabel('New password', {exact: true}).fill(`Email-only-${password}`)
+  await panel.getByLabel('Confirm new password', {exact: true}).fill(`Email-only-${password}`)
+  await requestVerification()
+  await panel.getByLabel('Verification code').fill(await verificationCode())
+  await panel.getByRole('button', {name: 'Update password', exact: true}).click()
+  await expect.poll(() => capability).toBe(true)
+  await expect(panel.getByRole('alert')).toHaveText('Your account requires its current password. Enter it to change your password.')
+  await expect(panel.getByLabel('Current password')).toBeVisible()
+  await expect(panel.getByRole('button', {name: 'Use email code instead'})).toHaveCount(0)
   await page.getByLabel('Current password').fill('Wrong-current-password-42!')
   await page.getByLabel('New password', {exact: true}).fill(`Changed-${password}`)
   await page.getByLabel('Confirm new password', {exact: true}).fill(`Changed-${password}`)
   await page.getByRole('button', {name: 'Send verification code'}).click()
-  await expect(panel.getByRole('alert')).toHaveText('Could not verify your current password. Check it or use an email code.')
+  await expect(panel.getByRole('alert')).toHaveText('Could not verify your current password. Check it and try again.')
   expect((await page.request.get('/api/trades')).status()).toBe(200)
   await page.getByLabel('Current password').fill(password)
   await requestVerification()

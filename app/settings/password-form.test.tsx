@@ -5,8 +5,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import '@testing-library/jest-dom/vitest'
 import SettingsClient from './settings-client'
 
-const {refresh, navigate, signInWithOtp, signInWithPassword, verifyOtp, updateUser, signOut, listeners, owner} = vi.hoisted(() => ({
-  refresh: vi.fn(), navigate: vi.fn(), signInWithOtp: vi.fn(), signInWithPassword: vi.fn(), verifyOtp: vi.fn(), updateUser: vi.fn(), signOut: vi.fn(),
+const {refresh, navigate, signInWithOtp, signInWithPassword, verifyOtp, updateUser, signOut, dispose, accountHasPassword, listeners, owner} = vi.hoisted(() => ({
+  refresh: vi.fn(), navigate: vi.fn(), signInWithOtp: vi.fn(), signInWithPassword: vi.fn(), verifyOtp: vi.fn(), updateUser: vi.fn(), signOut: vi.fn(), dispose: vi.fn(), accountHasPassword: vi.fn(),
   listeners: new Set<(event: string, session: {user: {id: string}} | null) => void>(), owner: {id: 'one'},
 }))
 vi.mock('next/navigation', () => {const router = {refresh}; return {useRouter: () => router}})
@@ -17,7 +17,7 @@ vi.mock('../../lib/supabase/client', () => ({
     listeners.add(listener); listener('INITIAL_SESSION', {user: {id: owner.id}})
     return {data: {subscription: {unsubscribe: () => listeners.delete(listener)}}}
   }}}),
-  createPasswordVerificationClient: () => ({auth: {signInWithOtp, signInWithPassword, verifyOtp, updateUser, signOut}}),
+  createPasswordVerificationClient: () => ({auth: {signInWithOtp, signInWithPassword, verifyOtp, updateUser, signOut, dispose}, rpc: accountHasPassword}),
 }))
 const confirmed = () => ({data: {user: {id: owner.id}, session: {user: {id: owner.id}}}, error: null})
 beforeEach(() => {
@@ -28,6 +28,8 @@ beforeEach(() => {
   verifyOtp.mockResolvedValue(confirmed())
   updateUser.mockResolvedValue({data: {user: {id: 'one'}}, error: null})
   signOut.mockResolvedValue({error: null})
+  dispose.mockResolvedValue(undefined)
+  accountHasPassword.mockResolvedValue({data: false, error: null})
 })
 afterEach(() => {cleanup(); vi.unstubAllGlobals()})
 function show() {return render(<SettingsClient userId={owner.id} email={`${owner.id}@example.test`} initialDisplayName="River"/>)}
@@ -109,7 +111,7 @@ test('OTP-only password setup skips a nonexistent current password and succeeds 
   show(); await begin(); await finish()
   expect(screen.getByRole('button', {name: 'Updating password…'})).toBeDisabled()
   expect(navigate).not.toHaveBeenCalled()
-  expect(updateUser).toHaveBeenCalledWith({password: 'New-example-pass-42!'})
+  await waitFor(() => expect(updateUser).toHaveBeenCalledWith({password: 'New-example-pass-42!'}))
   expect(signInWithPassword).not.toHaveBeenCalled()
   await act(async () => complete({data: {user: {id: 'one'}}, error: null}))
   expect(navigate).toHaveBeenCalledWith('/sign-in?password=updated')
@@ -117,6 +119,24 @@ test('OTP-only password setup skips a nonexistent current password and succeeds 
   expect(screen.getByLabelText('Confirm new password')).toHaveValue('')
   expect(screen.queryByDisplayValue('123456')).not.toBeInTheDocument()
   expect(signOut).toHaveBeenCalledWith({scope: 'local'})
+})
+test.each(['configured', 'unavailable'])('email-only update fails closed when password capability is %s', async state => {
+  accountHasPassword.mockResolvedValue(state === 'configured' ? {data: true, error: null} : {data: null, error: new Error('private database diagnostic')})
+  show(); await begin(); await finish()
+  expect(await screen.findByRole('alert')).toHaveTextContent(state === 'configured' ? 'Your account requires its current password.' : 'Could not confirm password access.')
+  expect(updateUser).not.toHaveBeenCalled()
+  expect(navigate).not.toHaveBeenCalled()
+  expect(screen.getByLabelText('New password')).toHaveValue('New-example-pass-42!')
+})
+test('a replaced account cannot update after its password capability response', async () => {
+  let answer!: (value: unknown) => void
+  accountHasPassword.mockReturnValue(new Promise(resolve => {answer = resolve}))
+  show(); await begin(); await finish()
+  await waitFor(() => expect(accountHasPassword).toHaveBeenCalled())
+  act(() => {owner.id = 'two'; for (const listener of listeners) listener('SIGNED_IN', {user: {id: 'two'}})})
+  await act(async () => answer({data: false, error: null}))
+  expect(updateUser).not.toHaveBeenCalled()
+  expect(navigate).not.toHaveBeenCalled()
 })
 test('pending code requests and updates submit only once', async () => {
   let sent!: (value: unknown) => void
@@ -151,5 +171,18 @@ test('an old code response cannot enable a resumed cached page', async () => {
   await act(async () => complete({error: null}))
   expect(screen.queryByLabelText('Verification code')).not.toBeInTheDocument()
   expect(screen.getByLabelText('New password')).toHaveValue('')
+  expect(navigate).not.toHaveBeenCalled()
+})
+
+test.each(['current_password_required', 'current_password_invalid'])('provider %s restores the current-password step without losing new-password details', async code => {
+  updateUser.mockResolvedValue({data: {user: null}, error: {code, message: 'Private provider diagnostic'}})
+  show(); await begin(); await finish()
+  expect(await screen.findByRole('alert')).toHaveTextContent('Your account requires its current password. Enter it to change your password.')
+  expect(screen.getByLabelText('Current password')).toHaveValue('')
+  expect(screen.getByLabelText('New password')).toHaveValue('New-example-pass-42!')
+  expect(screen.getByLabelText('Confirm new password')).toHaveValue('New-example-pass-42!')
+  expect(screen.queryByLabelText('Verification code')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', {name: 'Use email code instead'})).not.toBeInTheDocument()
+  expect(screen.getByRole('button', {name: 'Send verification code'})).toBeEnabled()
   expect(navigate).not.toHaveBeenCalled()
 })

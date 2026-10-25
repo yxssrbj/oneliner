@@ -25,6 +25,7 @@ beforeEach(async () => {
     const url = String(input)
     if (url.endsWith('/verify')) {const body = JSON.parse(init!.body as string); return Response.json(session(body.email.split('@')[0], body.token === '123456'))}
     if (url.endsWith('/otp')) return Response.json({})
+    if (url.endsWith('/rpc/account_has_password')) return Response.json(false)
     if (url.endsWith('/user') && init?.method === 'PUT') {started(); return await new Promise<Response>(resolve => {finish = resolve})}
     if (url.includes('/logout')) return new Response(null, {status: 204})
     if (url.endsWith('/user')) return Response.json(user('one'))
@@ -90,4 +91,16 @@ test('verification clients do not share the active account storage key or each o
   await act(async () => finish(Response.json(user('one'))))
   await waitFor(() => expect(navigate).toHaveBeenCalled())
   expect(warning).not.toHaveBeenCalled()
+})
+
+test('completed isolated verification disposes both temporary visibility listeners', async () => {
+  const added = vi.spyOn(window, 'addEventListener')
+  const removed = vi.spyOn(window, 'removeEventListener')
+  await beginUpdate()
+  await act(async () => finish(Response.json(user('one'))))
+  await waitFor(() => expect(navigate).toHaveBeenCalled())
+  const callbacks = added.mock.calls.filter(([event]) => event === 'visibilitychange').map(([, listener]) => listener)
+  const disposed = removed.mock.calls.filter(([event]) => event === 'visibilitychange').map(([, listener]) => listener)
+  expect(disposed).toHaveLength(2)
+  for (const callback of disposed) expect(callbacks).toContain(callback)
 })

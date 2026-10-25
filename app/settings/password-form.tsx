@@ -9,6 +9,8 @@ async function closeVerification(client: ReturnType<typeof createPasswordVerific
     if (error) console.error('Could not close password verification session.')
   } catch {
     console.error('Could not close password verification session.')
+  } finally {
+    try {await client.auth.dispose()} catch {console.error('Could not dispose password verification client.')}
   }
 }
 
@@ -18,6 +20,7 @@ export default function PasswordForm({userId, email}: {userId: string; email: st
   const [confirmation, setConfirmation] = useState('')
   const [code, setCode] = useState('')
   const [emailMode, setEmailMode] = useState(false)
+  const [requiresCurrentPassword, setRequiresCurrentPassword] = useState(false)
   const [sent, setSent] = useState(false)
   const [ready, setReady] = useState(false)
   const [pending, setPending] = useState(false)
@@ -38,7 +41,7 @@ export default function PasswordForm({userId, email}: {userId: string; email: st
     return () => {
       active.current = null
       busy.current = false
-      setReady(false); setPending(false); setSent(false)
+      setReady(false); setPending(false); setSent(false); setRequiresCurrentPassword(false)
       setCurrentPassword(''); setPassword(''); setConfirmation(''); setCode(''); setError('')
       subscription.unsubscribe()
     }
@@ -67,7 +70,7 @@ export default function PasswordForm({userId, email}: {userId: string; email: st
       if (error) throw new Error('Unconfirmed code delivery')
       if (active.current === owner) setSent(true)
     } catch {
-      if (active.current === owner) setError(step === 'current' ? 'Could not verify your current password. Check it or use an email code.' : 'Could not send a verification code. Try again.')
+      if (active.current === owner) setError(step === 'current' ? requiresCurrentPassword ? 'Could not verify your current password. Check it and try again.' : 'Could not verify your current password. Check it or use an email code.' : 'Could not send a verification code. Try again.')
     } finally {
       await closeVerification(client)
       if (active.current === owner) {busy.current = false; setPending(false)}
@@ -91,9 +94,32 @@ export default function PasswordForm({userId, email}: {userId: string; email: st
       if (error || data.user?.id !== userId || data.session?.user.id !== userId) throw new Error('Unconfirmed email verification')
       if (active.current !== owner) return
       verified = true
+      if (emailMode) {
+        let access: {data: unknown; error: unknown}
+        try {access = await client.rpc('account_has_password')} catch {access = {data: null, error: true}}
+        if (active.current !== owner) return
+        if (access.error || access.data !== false) {
+          if (active.current === owner) {
+            if (access.data === true && !access.error) {
+              setRequiresCurrentPassword(true)
+              setEmailMode(false)
+              setCurrentPassword('')
+              setError('Your account requires its current password. Enter it to change your password.')
+            } else setError('Could not confirm password access. Try again later.')
+          }
+          return
+        }
+      }
       const result = await client.auth.updateUser({password, ...(!emailMode && {current_password: currentPassword})})
       if (result.error || result.data.user?.id !== userId) {
-        if (active.current === owner) setError(result.error?.code === 'weak_password' ? 'Choose a stronger password that meets the account password policy.' : 'Could not update password. Check the details and try again.')
+        if (active.current === owner) {
+          if (result.error?.code === 'current_password_required' || result.error?.code === 'current_password_invalid') {
+            setRequiresCurrentPassword(true)
+            setEmailMode(false)
+            setCurrentPassword('')
+            setError('Your account requires its current password. Enter it to change your password.')
+          } else setError(result.error?.code === 'weak_password' ? 'Choose a stronger password that meets the account password policy.' : 'Could not update password. Check the details and try again.')
+        }
         return
       }
       updated = true
@@ -120,7 +146,7 @@ export default function PasswordForm({userId, email}: {userId: string; email: st
     <p>Verify by email before setting or changing your password.</p>
     <form onSubmit={sent ? updatePassword : sendCode} noValidate>
       {!emailMode && <><label htmlFor="settings-current-password">Current password</label><input id="settings-current-password" type="password" autoComplete="current-password" required value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} disabled={pending || sent}/></>}
-      <button className="text-button" type="button" disabled={pending} onClick={() => {setEmailMode(!emailMode); setCurrentPassword(''); setCode(''); setSent(false); setError('')}}>{emailMode ? 'Use current password instead' : 'Use email code instead'}</button>
+      {!requiresCurrentPassword && <button className="text-button" type="button" disabled={pending} onClick={() => {setEmailMode(!emailMode); setCurrentPassword(''); setCode(''); setSent(false); setError('')}}>{emailMode ? 'Use current password instead' : 'Use email code instead'}</button>}
       <label htmlFor="settings-new-password">New password</label>
       <input id="settings-new-password" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={event => setPassword(event.target.value)} disabled={pending || sent} aria-describedby="password-hint"/>
       <p className="field-hint" id="password-hint">At least 8 characters. Your account password policy also applies.</p>
