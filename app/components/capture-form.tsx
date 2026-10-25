@@ -20,11 +20,17 @@ export default function CaptureForm({ userId }: { userId: string }) {
   const [clarifications, setClarifications] = useState<string[]>([])
   const [saved, setSaved] = useState(false)
   const [loggedOut, setLoggedOut] = useState(false)
+  const [confirmedOwner, setConfirmedOwner] = useState<string | null>(null)
+  const ownerReady = confirmedOwner === userId
   const [storageWarning, setStorageWarning] = useState(false)
   const busy = useRef(false)
   const signedOut = useRef(false)
+  const generation = useRef(0)
 
   useEffect(() => {
+    generation.current += 1
+    signedOut.current = true
+    let active = true
     let restored = emptyDraft(), key = crypto.randomUUID()
     try {
       const stored = JSON.parse(sessionStorage.getItem(storageKey) ?? 'null')
@@ -37,14 +43,25 @@ export default function CaptureForm({ userId }: { userId: string }) {
     setDraft(restored)
     setIdempotencyKey(key)
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || (session && session.user.id !== userId)) {
+      if (!active) return
+      if (event !== 'SIGNED_OUT' && session?.user.id === userId) {
+        signedOut.current = false
+        setConfirmedOwner(userId)
+      } else {
+        generation.current += 1
         signedOut.current = true
-        setLoggedOut(true)
-        try { sessionStorage.removeItem(storageKey) } catch { /* Storage may be unavailable. */ }
-        setDraft(null)
+        setConfirmedOwner(null)
+        busy.current = false
+        setPending(null)
+        if (event === 'SIGNED_OUT' || session?.user.id !== undefined) {
+          active = false
+          setLoggedOut(true)
+          try { sessionStorage.removeItem(storageKey) } catch { /* Storage may be unavailable. */ }
+          setDraft(null)
+        }
       }
     })
-    return () => subscription.unsubscribe()
+    return () => { active = false; generation.current += 1; signedOut.current = true; setConfirmedOwner(null); busy.current = false; setPending(null); subscription.unsubscribe() }
   }, [storageKey, userId])
 
   function persist(next: TradeDraft, key = idempotencyKey) {
@@ -53,44 +70,47 @@ export default function CaptureForm({ userId }: { userId: string }) {
     catch { setStorageWarning(true) }
   }
   function change(field: keyof TradeDraft, value: string) {
-    if (draft) persist({ ...draft, [field]: value })
+    if (!draft || signedOut.current || !ownerReady) return
+    persist({ ...draft, [field]: value })
     setError('')
   }
   async function suggest() {
-    if (!draft || busy.current || signedOut.current) return
+    if (!draft || busy.current || signedOut.current || !ownerReady) return
     const noteError = validateNote(draft.originalNote)
     if (noteError) { setError(noteError); return }
     busy.current = true; setPending('parse'); setError(''); setClarifications([])
+    const requestGeneration = generation.current
     try {
       const response = await fetch('/api/parse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: draft.originalNote }) })
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || 'Parsing unavailable. Enter the fields manually.')
       const suggestion = normalizeSuggestion(result.suggestion)
-      if (signedOut.current) return
+      if (signedOut.current || requestGeneration !== generation.current) return
       persist({ ...draft, symbol: suggestion.symbol ?? '', side: suggestion.side ?? '', entryPrice: suggestion.entryPrice ?? '', stopPrice: suggestion.stopPrice ?? '', setup: suggestion.setup ?? '' })
       setClarifications(suggestion.clarifications)
-    } catch (cause) { if (!signedOut.current) setError(cause instanceof Error ? cause.message : 'Parsing unavailable. Enter the fields manually.') }
-    finally { busy.current = false; setPending(null) }
+    } catch (cause) { if (!signedOut.current && requestGeneration === generation.current) setError(cause instanceof Error ? cause.message : 'Parsing unavailable. Enter the fields manually.') }
+    finally { if (requestGeneration === generation.current) { busy.current = false; setPending(null) } }
   }
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!draft || busy.current || signedOut.current) return
+    if (!draft || busy.current || signedOut.current || !ownerReady) return
     const date = new Date(draft.openedAt)
     const validated = validateDraft({ ...draft, openedAt: Number.isFinite(date.getTime()) ? date.toISOString() : '' })
     if (validated.error) { setError(validated.error); return }
     busy.current = true; setPending('save'); setError('')
+    const requestGeneration = generation.current
     try {
       const response = await fetch('/api/trades', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(validated.value) })
       const result = await response.json()
       if (!response.ok || !result.trade?.id) throw new Error(result.error || 'Could not confirm the trade was saved. Your draft is kept; retry saving.')
-      if (signedOut.current) return
+      if (signedOut.current || requestGeneration !== generation.current) return
       try { sessionStorage.removeItem(storageKey) } catch { setStorageWarning(true) }
       setDraft(emptyDraft()); setIdempotencyKey(crypto.randomUUID()); setClarifications([]); setSaved(true)
-    } catch (cause) { if (!signedOut.current) setError(cause instanceof Error ? cause.message : 'Could not confirm the trade was saved. Your draft is kept; retry saving.') }
-    finally { busy.current = false; setPending(null) }
+    } catch (cause) { if (!signedOut.current && requestGeneration === generation.current) setError(cause instanceof Error ? cause.message : 'Could not confirm the trade was saved. Your draft is kept; retry saving.') }
+    finally { if (requestGeneration === generation.current) { busy.current = false; setPending(null) } }
   }
 
-  if (!draft) return <p>{loggedOut ? 'Your session changed. Reload this page to continue.' : 'Loading your draft…'}</p>
+  if (!draft || !ownerReady) return <p>{loggedOut ? 'Your session changed. Reload this page to continue.' : 'Loading your draft…'}</p>
   return <form onSubmit={save} className="capture-form">
     <p>Write the trade as you would send it to a friend, then review the details.</p>
     {saved && <p role="status" className="capture-success">Trade saved.</p>}

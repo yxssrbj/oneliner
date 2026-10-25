@@ -1,13 +1,13 @@
-# Oneliner — specs and direction review
+# Oneliner — branch work tracker
 
-Branch: `feat/ui-redesign` · 22 October 2026
+Branch: `feat/ui-redesign` · 25 October 2026
 
 - [x] Create `specs/prd.md` from confirmed product decisions.
 - [x] Create `specs/features/` and identify the feature-spec boundaries.
 - [x] Create and validate the read-only `$direction` review skill.
 - [ ] User review of the written PRD before detailed implementation planning.
 
-The approved HTML is a visual prototype. Production UI, revised authentication, and group chat implementation have not started on this branch.
+Desktop shell, account settings, password access, and private groups have local implementations on this branch. The final privacy review found and fixed private-note visibility on cached page resume. Hosted migration, Auth configuration, and hosted browser verification remain rollout gates. The project-wide settings task ledger is `.superpowers/sdd/2026-10-23-account-settings/progress.md` in the primary checkout.
 
 Checks: skill format valid; Codex `skills/list` discovers one shared, enabled `direction` skill in all five project worktrees; a scratch agent review identifies two seeded deviations, distinguishes planned/draft/deferred work, and lists all six requirement IDs. A second empty scratch checkout reports a missing PRD without borrowing another baseline. Shared-spec regression: a linked scratch worktree with a contradictory local PRD still uses the primary checkout’s PRD and detects both seeded deviations. Document links and requirement IDs checked; application tests and typecheck not run for this documentation/skill-only change. No push authorized.
 
@@ -79,6 +79,17 @@ Branch: `feat/ui-redesign`. Risk: high; password access and verification.
 - [x] Add password sign-in while preserving OTP and validated invites.
 - [x] Correct the design to isolated OTP verification after local nonce bypass.
 - [x] Record hosted Auth settings read-only; hosted E2E remains unexercised.
-- [x] Verify 285 unit tests, 14 CI browser flows and 8 production flows.
+- [x] Verify 293 unit tests, 102 database assertions and 14 browser flows at Task 4 handoff.
 - [x] Verify typecheck, lint, build and both desktop screenshots.
 - [x] Review every changed auth line, record evidence and commit locally.
+
+## Account settings — final privacy review (25 October 2026)
+
+Branch: `feat/ui-redesign`. Risk: high; account A notes on cached resume.
+
+- [x] Reproduce cached capture and workspace notes before owner confirmation.
+- [x] Gate private content and actions; reject stale async results.
+- [x] Prove null initial session can recover on the matching sign-in.
+- [x] Exercise delayed browser hydration and real navigation.
+- [x] Verify 299 unit tests, 14 browser flows, typecheck, lint and build.
+- [x] Record final evidence and commit locally.

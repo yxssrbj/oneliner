@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 test.use({ viewport: { width: 1280, height: 800 } })
 
 test('reviews uncertain suggestions, retains a failed save, and saves one private trade', async ({ page, request }) => {
+  test.setTimeout(60_000)
   const email = `capture-${Date.now()}@example.test`
   await page.goto('/')
   await page.getByLabel('Email').fill(email)
@@ -63,4 +64,31 @@ test('reviews uncertain suggestions, retains a failed save, and saves one privat
   await page.reload()
   await expect(page.getByLabel('Trade note')).toHaveValue('')
   expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('oneliner:capture:')))).toEqual([])
+
+  await page.getByLabel('Trade note').fill('private note before signing out')
+  await page.getByRole('link', { name: 'Weekly review' }).click()
+  await expect(page).toHaveURL(/\/review$/)
+  await page.goBack()
+  await expect(page.getByLabel('Trade note')).toHaveValue('private note before signing out')
+  let releaseScripts!: () => void
+  const scripts = new Promise<void>(resolve => { releaseScripts = resolve })
+  let delayedScripts = 0
+  await page.route('**/_next/static/**/*.js', async route => { delayedScripts += 1; await scripts; await route.continue() })
+  try {
+    await page.reload({ waitUntil: 'commit' })
+    await expect.poll(() => delayedScripts).toBeGreaterThan(0)
+    await expect(page.getByLabel('Trade note')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Save trade' })).toHaveCount(0)
+  } finally { releaseScripts() }
+  await expect(page.getByLabel('Trade note')).toHaveValue('private note before signing out')
+  await page.unroute('**/_next/static/**/*.js')
+  await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' })
+  await page.getByRole('link', { name: /Trader Personal workspace/ }).click()
+  await expect(page).toHaveURL(/\/settings$/)
+  await page.getByRole('button', { name: 'Sign out' }).click()
+  await expect(page).toHaveURL(/\/sign-in$/)
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/sign-in$/)
+  await expect(page.getByLabel('Trade note')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Save trade' })).toHaveCount(0)
 })

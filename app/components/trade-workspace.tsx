@@ -29,42 +29,57 @@ export default function TradeWorkspace({ mode, userId, initialWeek, demo = false
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [message, setMessage] = useState('')
   const [sessionChanged, setSessionChanged] = useState(false)
-  const signedOut = useRef(false)
+  const [confirmedOwner, setConfirmedOwner] = useState<string | null>(null)
+  const ownerReady = confirmedOwner === userId
+  const signedOut = useRef(true)
+  const generation = useRef(0)
   const url = mode === 'inbox' ? '/api/trades?status=open' : `/api/trades?weekStart=${week}`
-  const key = `${url}:${revision}`
+  const key = `${userId}:${url}:${revision}`
   const demoTrades = demo ? demoTradesForWeek(week, initialWeek) : []
   const demoSummary = demo ? summarizeTrades(demoTrades.map(trade => ({ r_result: trade.r_result === null ? null : Number(trade.r_result) }))) : undefined
   useEffect(() => {
     if (demo) return
+    let active = true
+    signedOut.current = true
+    generation.current += 1
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || (session && session.user.id !== userId)) {
-        signedOut.current = true; setSessionChanged(true); setLoaded(null); setMessage('')
+      if (!active) return
+      if (event !== 'SIGNED_OUT' && session?.user.id === userId) {
+        if (signedOut.current) generation.current += 1
+        signedOut.current = false; setConfirmedOwner(userId)
+      } else {
+        generation.current += 1
+        if (event === 'SIGNED_OUT' || session?.user.id !== undefined) active = false
+        signedOut.current = true; setSessionChanged(!active); setLoaded(null); setMessage('')
+        setConfirmedOwner(null)
       }
     })
-    return () => subscription.unsubscribe()
+    return () => { active = false; generation.current += 1; signedOut.current = true; setConfirmedOwner(null); subscription.unsubscribe() }
   }, [userId, demo])
   useEffect(() => {
     let active = true
-    if (demo) return
+    if (demo || !ownerReady) return
+    const requestGeneration = generation.current
     async function load() {
       try {
         const response = await fetch(url, { cache: 'no-store' })
         const body = await response.json()
         if (!response.ok || !Array.isArray(body.trades)) throw new Error(body.error || 'Could not load trades.')
-        if (active && !signedOut.current) setLoaded({ key, trades: body.trades, summary: body.summary })
+        if (active && !signedOut.current && requestGeneration === generation.current) setLoaded({ key, trades: body.trades, summary: body.summary })
       } catch {
-        if (active && !signedOut.current) setLoaded({ key, trades: [], error: 'Could not load trades. Retry loading.' })
+        if (active && !signedOut.current && requestGeneration === generation.current) setLoaded({ key, trades: [], error: 'Could not load trades. Retry loading.' })
       }
     }
     void load()
     return () => { active = false }
-  }, [demo, key, url, week])
+  }, [demo, key, ownerReady, url, week])
   function saved(trade: SavedTrade) {
-    if (signedOut.current) return
+    if (signedOut.current || !ownerReady) return
     setMessage(`${trade.symbol}: ${resultLabel(trade.r_result)}. Saved.`)
     setRevision(value => value + 1)
   }
   if (sessionChanged) return <p role="alert">Your session changed. Reload this page to continue.</p>
+  if (!demo && !ownerReady) return <p role="status">Loading trades…</p>
   const current = demo ? { key, trades: demoTrades, summary: demoSummary } : loaded?.key === key ? loaded : null
   const trades = current?.trades ?? []
   const pending = trades.filter(trade => trade.exit_price === null)

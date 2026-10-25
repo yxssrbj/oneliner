@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, expect, test, vi } from 'vitest'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { Activity } from 'react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import CaptureForm from './capture-form'
@@ -8,8 +9,9 @@ const fetchMock = vi.fn()
 const unsubscribe = vi.fn()
 type AuthSession = { user: { id: string } } | null
 let authChanged: (event: string, session?: AuthSession) => void
-vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: (event: string, session?: AuthSession) => void) => { authChanged = fn; return { data: { subscription: { unsubscribe } } } } } }) }))
-beforeEach(() => { cleanup(); sessionStorage.clear(); vi.stubGlobal('fetch', fetchMock); fetchMock.mockReset() })
+let autoConfirm = true
+vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: (event: string, session?: AuthSession) => void) => { authChanged = fn; if (autoConfirm) fn('INITIAL_SESSION', { user: { id: 'owner' } }); return { data: { subscription: { unsubscribe } } } } } }) }))
+beforeEach(() => { cleanup(); autoConfirm = true; sessionStorage.clear(); vi.stubGlobal('fetch', fetchMock); fetchMock.mockReset() })
 const suggestion = { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: null, setup: 'ORB', clarifications: ['Please confirm the initial stop price.'] }
 test('ambiguous parse stays editable and failed save retains original note and retry key', async () => {
   fetchMock.mockResolvedValueOnce(Response.json({ suggestion })).mockResolvedValueOnce(Response.json({ error: 'Could not save.' }, { status: 500 })).mockResolvedValueOnce(Response.json({ trade: { id: 'saved' } }, { status: 201 }))
@@ -87,4 +89,45 @@ test.each(['parse', 'save'])('ignores pending %s results after the account chang
   expect(sessionStorage.getItem('oneliner:capture:owner')).toBeNull()
   expect(screen.queryByLabelText('Trade note')).not.toBeInTheDocument()
   expect(screen.queryByText('Trade saved.')).not.toBeInTheDocument()
+})
+
+test('resumed capture hides a stored private draft until its owner is confirmed', async () => {
+  autoConfirm = false
+  const draft = { originalNote: 'account A private note', symbol: 'ES', side: 'long', entryPrice: '10', stopPrice: '9', setup: 'ORB', openedAt: '2026-10-19T10:00' }
+  sessionStorage.setItem('oneliner:capture:owner', JSON.stringify({ draft, idempotencyKey: 'key' }))
+  const content = (mode: 'hidden' | 'visible') => <Activity mode={mode}><CaptureForm userId="owner" /></Activity>
+  const view = render(content('visible'))
+  act(() => authChanged('INITIAL_SESSION', { user: { id: 'owner' } }))
+  expect(screen.getByLabelText('Trade note')).toHaveValue(draft.originalNote)
+  view.rerender(content('hidden'))
+  view.rerender(content('visible'))
+  expect(screen.queryByDisplayValue(draft.originalNote)).not.toBeInTheDocument()
+  act(() => authChanged('INITIAL_SESSION', null))
+  expect(screen.queryByDisplayValue(draft.originalNote)).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Save trade' })).not.toBeInTheDocument()
+  act(() => authChanged('SIGNED_IN', { user: { id: 'owner' } }))
+  expect(screen.getByLabelText('Trade note')).toHaveValue(draft.originalNote)
+})
+
+test('empty initial session keeps an owner draft private until sign-in', () => {
+  autoConfirm = false
+  const draft = { originalNote: 'owner draft after refresh', symbol: 'ES', side: 'long', entryPrice: '10', stopPrice: '9', setup: 'ORB', openedAt: '2026-10-19T10:00' }
+  sessionStorage.setItem('oneliner:capture:owner', JSON.stringify({ draft, idempotencyKey: 'key' }))
+  render(<CaptureForm userId="owner" />)
+  act(() => authChanged('INITIAL_SESSION', null))
+  expect(screen.queryByDisplayValue(draft.originalNote)).not.toBeInTheDocument()
+  act(() => authChanged('SIGNED_IN', { user: { id: 'owner' } }))
+  expect(screen.getByLabelText('Trade note')).toHaveValue(draft.originalNote)
+})
+
+test('capture ignores a queued edit after browser owner confirmation is lost', () => {
+  const draft = { originalNote: 'private draft', symbol: 'ES', side: 'long', entryPrice: '10', stopPrice: '9', setup: 'ORB', openedAt: '2026-10-19T10:00' }
+  sessionStorage.setItem('oneliner:capture:owner', JSON.stringify({ draft, idempotencyKey: 'key' }))
+  render(<CaptureForm userId="owner" />)
+  const note = screen.getByLabelText('Trade note')
+  act(() => {
+    authChanged('INITIAL_SESSION', null)
+    fireEvent.change(note, { target: { value: 'stale edit' } })
+  })
+  expect(JSON.parse(sessionStorage.getItem('oneliner:capture:owner')!).draft.originalNote).toBe('private draft')
 })

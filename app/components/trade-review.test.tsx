@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, expect, test, vi } from 'vitest'
+import { Activity } from 'react'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
@@ -7,10 +8,11 @@ import ExitForm from './exit-form'
 import TradeEditForm, { type SavedTrade } from './trade-edit-form'
 import TradeWorkspace from './trade-workspace'
 const fetchMock = vi.fn()
-let authChanged: (event: string, session?: { user: { id: string } }) => void
-vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: typeof authChanged) => { authChanged = fn; return { data: { subscription: { unsubscribe() {} } } } } } }) }))
+let authChanged: (event: string, session?: { user: { id: string } } | null) => void
+let autoConfirm = true
+vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: typeof authChanged) => { authChanged = fn; if (autoConfirm) fn('INITIAL_SESSION', { user: { id: 'owner' } }); return { data: { subscription: { unsubscribe() {} } } } } } }) }))
 const trade: SavedTrade = { id: 'trade', original_note: 'my original note', symbol: 'ES', side: 'long', entry_price: '10', stop_price: '9', setup: 'ORB', opened_at: '2026-10-19T10:00:00Z', exit_price: null, r_result: null }
-beforeEach(() => { cleanup(); vi.stubGlobal('fetch', fetchMock); fetchMock.mockReset() })
+beforeEach(() => { cleanup(); autoConfirm = true; vi.stubGlobal('fetch', fetchMock); fetchMock.mockReset() })
 test('exit save keeps failed input and shows database R and label after retry', async () => {
   const saved = vi.fn()
   fetchMock.mockResolvedValueOnce(Response.json({ error: 'Retry saving.' }, { status: 500 })).mockResolvedValueOnce(Response.json({ trade: { ...trade, exit_price: '12', r_result: '2' } }))
@@ -93,4 +95,50 @@ test('correction preserves the original opening millisecond', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Save corrections' }))
   await waitFor(() => expect(fetchMock).toHaveBeenCalled())
   expect(JSON.parse(fetchMock.mock.calls[0][1].body).openedAt).toBe('2026-10-18T23:59:59.999Z')
+})
+
+test('resumed workspace hides cached private notes until its owner is confirmed', async () => {
+  autoConfirm = false
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+  const content = (mode: 'hidden' | 'visible') => <Activity mode={mode}><TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" /></Activity>
+  const view = render(content('visible'))
+  act(() => authChanged('INITIAL_SESSION', { user: { id: 'owner' } }))
+  expect(await screen.findByText('my original note')).toBeInTheDocument()
+  view.rerender(content('hidden'))
+  fetchMock.mockReturnValue(new Promise(() => {}))
+  view.rerender(content('visible'))
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+  act(() => authChanged('INITIAL_SESSION', null))
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+  expect(screen.queryByText('Add exit')).not.toBeInTheDocument()
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+  act(() => authChanged('SIGNED_IN', { user: { id: 'owner' } }))
+  expect(await screen.findByText('my original note')).toBeInTheDocument()
+})
+
+test('workspace does not show a previous owners cached notes when the route owner changes', async () => {
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+  const view = render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  expect(await screen.findByText('my original note')).toBeInTheDocument()
+  autoConfirm = false
+  view.rerender(<TradeWorkspace mode="inbox" userId="other" initialWeek="2026-10-19" />)
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+  act(() => authChanged('INITIAL_SESSION', { user: { id: 'other' } }))
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+})
+
+test('empty initial session waits for sign-in and rejects the earlier load', async () => {
+  autoConfirm = false
+  let complete!: (response: Response) => void
+  fetchMock.mockReturnValueOnce(new Promise<Response>(resolve => { complete = resolve }))
+    .mockResolvedValueOnce(Response.json({ trades: [] }))
+  render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  act(() => authChanged('INITIAL_SESSION', { user: { id: 'owner' } }))
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+  act(() => authChanged('INITIAL_SESSION', null))
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+  act(() => authChanged('SIGNED_IN', { user: { id: 'owner' } }))
+  expect(await screen.findByText('All caught up. No trades are waiting for an exit.')).toBeInTheDocument()
+  await act(async () => complete(Response.json({ trades: [trade] })))
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
 })
