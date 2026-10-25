@@ -12,5 +12,5 @@ export default async function SignIn({searchParams}:{searchParams:Promise<{invit
   const {invite,password}=await searchParams
   const token=isUuid(invite)?invite:undefined
   if (await getAuthenticatedUser()) redirect(token?`/friends/invite/${token}`:'/')
-  return <main className="sign-in-page"><div className="sign-in-card"><p className="brand">◼ Oneliner</p><h1>Sign in</h1><p>Sign in with an email code or your password.</p><SignInForm invite={token} passwordUpdated={password === 'updated'} /></div></main>
+  return <main className="sign-in-page"><div className="sign-in-card"><p className="brand">◼ Oneliner</p><h1>Sign in</h1><p>Continue to your private trading journal.</p><SignInForm invite={token} passwordUpdated={password === 'updated'} /><p><a href={token?`/register?invite=${token}`:'/register'}>Create an account</a> · <a href="/recover">Forgot password?</a></p></div></main>
 }
