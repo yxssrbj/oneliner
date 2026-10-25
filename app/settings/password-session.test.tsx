@@ -24,8 +24,8 @@ beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
     if (url.endsWith('/verify')) {const body = JSON.parse(init!.body as string); return Response.json(session(body.email.split('@')[0], body.token === '123456'))}
-    if (url.endsWith('/otp')) return Response.json({})
-    if (url.endsWith('/rpc/account_has_password')) return Response.json(false)
+    if (url.includes('/token?grant_type=password')) return Response.json(session('one'))
+    if (url.endsWith('/recover')) return Response.json({})
     if (url.endsWith('/user') && init?.method === 'PUT') {started(); return await new Promise<Response>(resolve => {finish = resolve})}
     if (url.includes('/logout')) return new Response(null, {status: 204})
     if (url.endsWith('/user')) return Response.json(user('one'))
@@ -38,8 +38,8 @@ afterEach(async () => {cleanup(); await client.auth.stopAutoRefresh(); vi.unstub
 const fill = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), {target: {value}})
 async function beginUpdate() {
   render(<PasswordForm userId="one" email="one@example.test"/>)
-  await screen.findByRole('button', {name: 'Use email code instead'})
-  fireEvent.click(screen.getByRole('button', {name: 'Use email code instead'}))
+  await screen.findByRole('button', {name: 'Send verification code'})
+  fill('Current password', 'Example-old-pass-42!')
   fill('New password', 'Example-new-pass-42!'); fill('Confirm new password', 'Example-new-pass-42!')
   fireEvent.click(screen.getByRole('button', {name: 'Send verification code'}))
   await screen.findByLabelText('Verification code')
@@ -63,8 +63,8 @@ test('isolated verification uses its own bearer without cookie, storage, or shar
   expect(document.cookie).toBe(before)
   expect(events.filter(event => event !== 'INITIAL_SESSION')).toEqual([])
   const logouts = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes('/logout'))
-  expect(logouts).toHaveLength(1)
-  expect(new Headers(logouts[0][1]!.headers).get('Authorization')).toBe('Bearer token-verified-one')
+  expect(logouts).toHaveLength(2)
+  expect(new Headers(logouts[1][1]!.headers).get('Authorization')).toBe('Bearer token-verified-one')
   subscription.unsubscribe()
 })
 test('a real replacement account keeps its session after an old isolated password response', async () => {

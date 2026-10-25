@@ -10,7 +10,7 @@ A trading journal for quick note capture, completing trades, reviewing opening w
 4. Run `npx supabase migration up --local` to apply pending migrations without resetting data.
 5. Run `npm run dev` and open [localhost:3000](http://localhost:3000).
 
-The local email inbox is at [localhost:54324](http://localhost:54324). Sign-in uses the numeric code in the email; the local template is in `supabase/templates/sign-in-code.html`.
+The local email inbox is at [localhost:54324](http://localhost:54324). Account verification and password recovery use numeric codes; sign-in uses a password.
 
 After moving this checkout, run `npx supabase stop --project-id oneliner`, then `npx supabase start` from the new folder. This preserves local data and recreates containers with the new email-template mount path. Do not use `--no-backup`, which deletes the local data volumes.
 
