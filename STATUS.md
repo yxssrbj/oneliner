@@ -2,6 +2,13 @@
 
 Updated: 25 October 2026. Project-wide status; implementation branch: `feat/ui-redesign` in `.worktrees/ui-redesign`. No PR, merge, push, or hosted rollout.
 
+## Account reset and new direction
+
+- The project owner chose email/password registration with email codes only for signup verification and password recovery. Email-code sign-in is to be removed; this is not implemented yet. The approved PRD still describes preserving existing email-code accounts and needs revision before implementation.
+- All **local** Supabase accounts were deleted on 25 October 2026. The transaction removed 781 users and cascaded their 692 trades, profiles, and 120 groups. Post-deletion checks found zero users, trades, profiles, groups, identities, and sessions.
+- The checked-in `lib/trades/demo.ts` on `feat/ui-redesign` retains 17 synthetic sample trades across three weeks for the read-only review preview. No database trade export was retained.
+- Hosted Supabase accounts were not changed. This worktree is not linked to a hosted project, and a read-only CLI connection attempt did not complete; hosted account inventory and any requested reset remain unverified.
+
 ## Working locally
 
 - Desktop shell and account settings: display name, account theme, sign-out, email code and password sign-in, and verified password setup/change.
