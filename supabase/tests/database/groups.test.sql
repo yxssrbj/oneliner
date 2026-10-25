@@ -3,13 +3,13 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 select has_table('public', 'groups', 'private groups exist');
 select has_function('public', 'group_weekly_metrics', array['uuid','date'], 'aggregate RPC exists');
-insert into auth.users(id,email) values
-('50000000-0000-0000-0000-000000000001','group-owner@example.test'),
-('50000000-0000-0000-0000-000000000002','group-member@example.test'),
-('50000000-0000-0000-0000-000000000003','group-outsider@example.test');
-insert into public.profiles values
-('50000000-0000-0000-0000-000000000001','Owner'),
-('50000000-0000-0000-0000-000000000002','Member');
+insert into auth.users(id,email,raw_user_meta_data) values
+('50000000-0000-0000-0000-000000000001','group-owner@example.test','{"username":"group_owner"}'::jsonb),
+('50000000-0000-0000-0000-000000000002','group-member@example.test','{"username":"group_member"}'::jsonb),
+('50000000-0000-0000-0000-000000000003','group-outsider@example.test','{"username":"group_outsider"}'::jsonb);
+update public.profiles set display_name = 'Owner' where id='50000000-0000-0000-0000-000000000001';
+update public.profiles set display_name = 'Member' where id='50000000-0000-0000-0000-000000000002';
+delete from public.profiles where id='50000000-0000-0000-0000-000000000003';
 create temp table fixture(group_id uuid, token uuid);
 grant all on fixture to authenticated;
 set local role authenticated;
