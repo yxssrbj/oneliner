@@ -1,6 +1,6 @@
 # Oneliner — product requirements
 
-Status: Approved by the project owner · 22 October 2026; settings and theme direction amended 23 October 2026
+Status: Approved by the project owner · 22 October 2026; settings and theme direction amended 23 October 2026; account direction amended 25 October 2026
 
 Canonical location: `specs/` in the primary Oneliner checkout. All feature worktrees use that shared PRD and feature folder; branch-local snapshots do not override them.
 
@@ -25,11 +25,11 @@ Success means a useful, reliable journal that people keep using: fast capture, e
 ### Accounts and identity
 
 - **ACC-01:** Registration asks for email, password, and desired username. Establish the user's identity during account creation, rather than asking for a name when they first create a group.
-- **ACC-02:** Users can sign in, sign out, and recover access. Moving existing email-code users to the new flow must preserve access to their journals and group memberships.
+- **ACC-02:** Users sign up with email and password, confirm their email with a code, sign in and out with a password, and recover a forgotten password with an email code. Email-code sign-in is removed from the app. The prelaunch email-code accounts were deleted by the project owner; no account migration is needed.
 - **ACC-03:** Each user's journal is private. Account changes must clear the previous user's displayed data and pending account-specific requests.
 - **ACC-04:** The sidebar profile row opens a real settings page. Users can edit their display name, see their email as read-only, change their password, sign out, and switch appearance. Failed saves and password changes show an error without claiming success or losing journal data.
 
-The password-based flow is a confirmed target, not an implemented replacement for the existing email-code flow. Username rules, later profile editing, email verification, recovery, and existing-account transition details belong in the account feature spec before implementation.
+The detailed registration, username, verification, and recovery behavior is in [the account feature spec](features/accounts.md). The hosted configuration and browser journey need separate verification before friend testing.
 
 ### Capture and correct trades
 
@@ -91,7 +91,7 @@ Absence of these features is intentional. Do not add them as prerequisites for c
 
 The release is ready for friend testing after the user accepts the implementation and these checks succeed:
 
-1. Two independent accounts can register, sign in, recover access, and return to their own persisted records. Existing accounts retain their data through the authentication transition.
+1. Two independent accounts can register, verify email, sign in, recover access, and return to their own persisted records.
 2. Capture, correction, retry, refresh, and late completion work end to end. Unclear notes and parser outages are recoverable; required fields and invalid risk are validated.
 3. Long and short wins and losses, breakeven, empty weeks, opening-week boundaries, backdated entries, and late corrections produce consistent R and aggregate results.
 4. Members can create, join, compare, chat, and share pictures in a private group. Cross-account requests cannot expose private journals or unauthorized messages/images. Revocation is exercised through both the UI and direct requests.

@@ -11,7 +11,7 @@ Specification status:
 | [settings.md](settings.md) | First settings page, theme, password access, and sign-out | UI-01–05, ACC-02–04 | Draft |
 | `trade-journal.md` | Capture, corrections, unfinished trades, and chart imports | CAP-01–05, OUT-01–03, IMP-01 | Not written |
 | `weekly-review.md` | Metric definitions, ordering, charts, and review actions | REV-01–04 | Not written |
-| `accounts.md` | Registration, usernames, recovery, and existing users | ACC-01–04 | Not written |
+| [accounts.md](accounts.md) | Registration, usernames, verification, and recovery | ACC-01–04 | Locally implemented; hosted pending |
 | `private-groups.md` | Group creation, invitations, members, and comparisons | GRP-01–04 | Not written |
 | `group-chat.md` | Continuous messages, pictures, delivery, and access | CHAT-01–03 | Not written |
 
