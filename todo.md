@@ -19,7 +19,7 @@ Last updated: 26 October 2026. This file tracks product work across branches; ch
 - [x] Review hosted migration history and apply the four pending migrations, including account registration.
 - [x] Configure hosted signup confirmation and password recovery code templates while preserving SMTP settings.
 - [ ] Verify hosted registration, confirmation, recovery, password change, password sign-in, and sign-out with a disposable account. **Current account release gate.**
-- [ ] Investigate Next.js development prerender errors on Friends routes logged during the passing browser suite.
+- [x] Fix Friends prerender errors with request-time boundaries; regression tests and a clean 14-journey browser log confirm it.
 - [ ] Specify, implement, and review the remaining [desktop screens](specs/features/desktop-preview-parity.md), one slice at a time: weekly review; capture and unfinished trades; private groups and continuous chat with pictures.
 - [ ] Compare the complete app to the approved previews at 1280 × 800 and 1440 × 900, and verify real user journeys and privacy boundaries.
 

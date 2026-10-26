@@ -15,14 +15,14 @@ Updated: 26 October 2026. Project-wide status; account implementation branch: `f
 - Desktop shell and account settings: display name, account theme, sign-out, and verified password change. A profile save now updates the signup-created row and preserves its required username.
 - Journal note capture, outcomes, weekly review, CSV import, and private groups from the earlier MVP.
 - Cached capture drafts and trade notes are hidden until the browser confirms the same account.
-- Full branch checks on 26 October 2026: 276 unit tests, 106 database assertions, 14 local browser journeys, typecheck, lint, and production build passed. The browser run also logged Next.js development prerender errors on Friends routes involving `Date.now()`; this needs investigation before calling the run clean.
-- The full browser run left 19 disposable local users, 15 local trades, and 3 local groups in the shared local Supabase stack. The hosted project is still empty.
+- Full branch checks on 26 October 2026 after the Friends request-boundary fix: 278 unit tests, 106 database assertions, 14 local browser journeys, typecheck, lint, and production build passed. The captured browser log has no `Date.now()` prerender errors.
+- Browser tests left 39 local users, 30 local trades, and 6 local groups in the shared local Supabase stack. These local records were not reset because other local worktrees use the same stack.
 
 ## Hosted account configuration
 
 - The hosted project `svohohmwwbriepmupswk` now has the four formerly pending migrations, including account registration. Migration history and schema were checked afterward; hosted users, profiles, trades, and groups remain at zero.
 - Hosted email confirmation is enabled. `supabase config push` applied the confirmation and recovery code template bodies and subjects from this branch. A subsequent config diff shows no differences for declared Auth settings; undeclared hosted SMTP settings were preserved.
-- Hosted email delivery and the account journeys have not been exercised with a disposable account. Local browser tests used local Supabase and Mailpit.
+- A disposable hosted signup was accepted, created its profile, and correctly denied password sign-in before email confirmation. Verification is awaiting the delivered email code; recovery and signed-in journeys remain untested. The old auth-shell worktree's encrypted publishable key is stale, so the current hosted test server uses the project's current key from Supabase CLI without changing tracked secrets.
 
 The current-password rule is enforced by the app's verified Settings flow. Hosted browser behavior remains unverified.
 
