@@ -1,22 +1,8 @@
 import { expect, test, type Page, type APIRequestContext } from '@playwright/test'
+import {registerAccount} from './account-helper'
 
 async function signIn(page: Page, request: APIRequestContext, prefix: string) {
-  const email = `${prefix}-${Date.now()}@example.test`
-  await page.goto('/sign-in')
-  await page.getByLabel('Email').fill(email)
-  await page.getByRole('button', { name: 'Send code' }).click()
-  await expect(page.getByLabel('Code')).toBeVisible()
-  let messageId = ''
-  await expect.poll(async () => {
-    const inbox = await (await request.get('http://127.0.0.1:54324/api/v1/messages')).json()
-    messageId = inbox.messages.find((message: { To: { Address: string }[] }) => message.To.some(recipient => recipient.Address === email))?.ID ?? ''
-    return messageId
-  }).not.toBe('')
-  const message = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${messageId}`)).json()
-  const code = /<strong>(\d{6,8})<\/strong>/.exec(message.HTML)?.[1]
-  expect(code).toBeTruthy()
-  await page.getByLabel('Code').fill(code!)
-  await page.getByRole('button', { name: 'Verify code' }).click()
+  await registerAccount(page,request,prefix)
   await expect(page.getByRole('heading', { name: 'Capture a trade', exact: true })).toBeVisible()
 }
 
@@ -77,6 +63,10 @@ test('completes exits, reviews opening weeks, corrects fields and denies another
   await expect(page.getByText('ES: Win · +1.00R. Saved.')).toBeVisible()
   await expect(page.locator('.week-metrics')).toContainText('0.00R')
   await page.reload()
+  while (await page.getByText('Week of 2026-10-19', {exact:true}).count() === 0) {
+    const heading=await page.locator('.week-picker strong').innerText()
+    await page.getByRole('button',{name:heading.slice(-10) > '2026-10-19'?'Previous week':'Next week',exact:true}).click()
+  }
   await expect(page.locator('.week-metrics')).toContainText('0.00R')
   await expect(page.getByText('ES original private note')).toBeVisible()
   const reloadedEs = page.locator('article').filter({ has: page.getByRole('heading', { name: 'ES long', exact: true }) })
@@ -88,7 +78,7 @@ test('completes exits, reviews opening weeks, corrects fields and denies another
   await page.screenshot({ path: 'test-results/task-4-review-1280.png', fullPage: true })
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.screenshot({ path: 'test-results/task-4-review-desktop.png', fullPage: true })
-  const secondContext = await browser.newContext({ baseURL: 'http://localhost:3012' })
+  const secondContext = await browser.newContext({ baseURL: test.info().project.use.baseURL! })
   const second = await secondContext.newPage()
   await signIn(second, request, 'outcomes-other')
   expect((await (await second.request.get('/api/trades')).json()).trades).toEqual([])

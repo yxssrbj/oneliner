@@ -1,21 +1,8 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
+import {registerAccount} from './account-helper'
 
 async function enterCode(page: Page, request: APIRequestContext, prefix: string) {
-  const email = `${prefix}-${crypto.randomUUID()}@example.test`
-  await page.getByLabel('Email', { exact: true }).fill(email)
-  await page.getByRole('button', { name: 'Send code', exact: true }).click()
-  await expect(page.getByLabel('Code', { exact: true })).toBeVisible()
-  let messageId = ''
-  await expect.poll(async () => {
-    const inbox = await (await request.get('http://127.0.0.1:54324/api/v1/messages')).json()
-    messageId = inbox.messages.find((message: { To: { Address: string }[] }) => message.To.some(recipient => recipient.Address === email))?.ID ?? ''
-    return messageId
-  }).not.toBe('')
-  const message = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${messageId}`)).json()
-  const code = /<strong>(\d{6,8})<\/strong>/.exec(message.HTML)?.[1]
-  expect(code).toBeTruthy()
-  await page.getByLabel('Code', { exact: true }).fill(code!)
-  await page.getByRole('button', { name: 'Verify code', exact: true }).click()
+  await registerAccount(page,request,prefix)
 }
 
 async function saveDisplayName(page: Page, name: string) {
@@ -82,12 +69,12 @@ test('private groups share only weekly summaries and revoke former members', asy
   const previous = await (await page.request.get(`/api/groups/${groupId}/metrics?weekStart=${previousWeek}`)).json()
   expect(previous.metrics[0].totalR).toBe(2)
 
-  const memberContext = await browser.newContext({ baseURL: 'http://localhost:3012' })
+  const memberContext = await browser.newContext({ baseURL: test.info().project.use.baseURL! })
   const member = await memberContext.newPage()
   member.on('pageerror', error => errors.push(error.message))
   await member.goto(originalInvite)
   await member.getByRole('link', { name: 'Sign in to join', exact: true }).click()
-  await enterCode(member, request, 'groups-member')
+  await registerAccount(member, request, 'groups-member',tokenFromLink(originalInvite))
   await expect(member).toHaveURL(new RegExp(`/friends/invite/${tokenFromLink(originalInvite)}$`))
   expect((await (await member.request.get('/api/groups')).json()).groups).toEqual([])
   await expect(member.getByText(/win rate/i)).toBeVisible()

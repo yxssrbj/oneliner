@@ -1,24 +1,10 @@
 import { expect, test } from '@playwright/test'
+import {registerAccount} from './account-helper'
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900 }]) {
   test(`desktop shell at ${viewport.width}×${viewport.height}`, async ({ page, request }, testInfo) => {
     await page.setViewportSize(viewport)
-    const email = `desktop-${viewport.width}-${Date.now()}@example.test`
-    await page.goto('/')
-    await page.getByLabel('Email').fill(email)
-    await page.getByRole('button', { name: 'Send code' }).click()
-    let messageId = ''
-    await expect.poll(async () => {
-      const inbox = await (await request.get('http://127.0.0.1:54324/api/v1/messages')).json()
-      messageId = inbox.messages.find((message: { To: { Address: string }[] }) => message.To.some(recipient => recipient.Address === email))?.ID ?? ''
-      return messageId
-    }).not.toBe('')
-    const message = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${messageId}`)).json()
-    const code = /Enter this code in Oneliner:\s*<strong>(\d{6})<\/strong>/.exec(message.HTML)?.[1]
-    expect(code).toBeTruthy()
-    await page.getByLabel('Code').fill(code!)
-    await page.getByRole('button', { name: 'Verify code' }).click()
-    await expect(page).toHaveURL('http://localhost:3012/')
+    await registerAccount(page,request,`desktop-${viewport.width}`)
     const name = 'LongTraderIdentityWithoutSpaces'.repeat(2)
     expect((await page.request.put('/api/profile', { data: { displayName: name } })).ok()).toBeTruthy()
 

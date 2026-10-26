@@ -1,25 +1,11 @@
 import { expect, test } from '@playwright/test'
+import {registerAccount} from './account-helper'
 
 test.use({ viewport: { width: 1280, height: 800 } })
 
 test('reviews uncertain suggestions, retains a failed save, and saves one private trade', async ({ page, request }) => {
   test.setTimeout(60_000)
-  const email = `capture-${Date.now()}@example.test`
-  await page.goto('/')
-  await page.getByLabel('Email').fill(email)
-  await page.getByRole('button', { name: 'Send code' }).click()
-  await expect(page.getByLabel('Code')).toBeVisible()
-  let messageId = ''
-  await expect.poll(async () => {
-    const inbox = await (await request.get('http://127.0.0.1:54324/api/v1/messages')).json()
-    messageId = inbox.messages.find((message: { To: { Address: string }[] }) => message.To.some((recipient) => recipient.Address === email))?.ID ?? ''
-    return messageId
-  }).not.toBe('')
-  const message = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${messageId}`)).json()
-  const code = /Enter this code in Oneliner:\s*<strong>(\d{6,8})<\/strong>/.exec(message.HTML)?.[1]
-  expect(code).toBeTruthy()
-  await page.getByLabel('Code').fill(code!)
-  await page.getByRole('button', { name: 'Verify code' }).click()
+  const account=await registerAccount(page,request,'capture')
   await expect(page.getByRole('heading', { name: 'Capture a trade', exact: true })).toBeVisible()
 
   await page.route('**/api/parse', (route) => route.fulfill({ json: { suggestion: { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: null, setup: 'ORB', clarifications: ['Please confirm the initial stop price.'] } } }))
@@ -83,7 +69,7 @@ test('reviews uncertain suggestions, retains a failed save, and saves one privat
   await expect(page.getByLabel('Trade note')).toHaveValue('private note before signing out')
   await page.unroute('**/_next/static/**/*.js')
   await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' })
-  await page.getByRole('link', { name: /Trader Personal workspace/ }).click()
+  await page.getByRole('link', { name: `${account.username} Personal workspace` }).click()
   await expect(page).toHaveURL(/\/settings$/)
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page).toHaveURL(/\/sign-in$/)
