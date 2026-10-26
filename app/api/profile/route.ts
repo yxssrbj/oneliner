@@ -17,7 +17,7 @@ export async function PUT(request: Request) {
   try { body = await request.json() } catch { return Response.json({ error: 'Invalid request.' }, { status: 400, headers: noStore }) }
   const name = typeof body === 'object' && body !== null && 'displayName' in body && typeof body.displayName === 'string' ? body.displayName.trim() : ''
   if (!name || name.length > 80) return Response.json({ error: 'Display name must be 1–80 characters.' }, { status: 400, headers: noStore })
-  const { data, error } = await auth.supabase.from('profiles').upsert({ id: auth.user.id, display_name: name }, { onConflict: 'id' }).select('display_name').single()
-  if (error) return Response.json({ error: 'Could not save profile.' }, { status: 500, headers: noStore })
+  const { data, error } = await auth.supabase.from('profiles').update({ display_name: name }).eq('id', auth.user.id).select('display_name').single()
+  if (error || !data) return Response.json({ error: 'Could not save profile.' }, { status: 500, headers: noStore })
   return Response.json({ displayName: data.display_name }, { headers: noStore })
 }
