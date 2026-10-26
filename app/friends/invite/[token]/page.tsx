@@ -2,8 +2,10 @@ import Link from 'next/link'
 import GroupForm, { sharingDisclosure } from '../../../components/group-form'
 import { getAuthenticatedUser } from '../../../../lib/supabase/server'
 import { isUuid } from '../../../../lib/groups/validation'
+import { io } from 'next/cache'
 export const instant = false
 export default async function Invite({params}:{params:Promise<{token:string}>}) {
+  await io()
   const {token}=await params
   const auth=await getAuthenticatedUser()
   return <main className="invite-page"><Link className="brand" href="/">◼ Oneliner</Link><h1>Join a private group</h1>
