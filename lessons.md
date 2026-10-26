@@ -10,3 +10,9 @@
 ## Account boundary · 23 October 2026
 
 - The installed Supabase Auth client can clear the local session and emit `SIGNED_OUT` even when remote sign-out returns 503. Hide the old identity immediately, keep the failure visible and retryable, and guard late responses when accounts change. Source: desktop-shell Task 2 unit and local browser regressions.
+
+## Password registration · 26 October 2026
+
+- Supabase Auth owns passwords, email codes, and sessions. A signup trigger reserves the normalized username and creates the profile in the same transaction, so a user cannot exist without the required profile. The separate display name remains editable.
+- Once signup creates every profile with a required username, profile editing must use an update. An upsert without the username fails its insert path even for an existing row; the browser test exposed this.
+- Email codes serve signup confirmation, recovery, and Settings password verification. Password sign-in is the only sign-in method in Oneliner. Local Supabase templates and hosted Auth templates are separate configuration surfaces.
