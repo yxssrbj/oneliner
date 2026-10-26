@@ -5,9 +5,9 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import RegisterForm from './register-form'
 
-const signUp=vi.fn(),verifyOtp=vi.fn(),navigate=vi.fn()
-vi.mock('../../lib/supabase/client',()=>({createSupabaseBrowserClient:()=>({auth:{signUp,verifyOtp}})}))
-beforeEach(()=>{cleanup();vi.clearAllMocks();vi.stubGlobal('location',{replace:navigate});signUp.mockResolvedValue({data:{user:{id:'one'},session:null},error:null});verifyOtp.mockResolvedValue({data:{user:{id:'one'},session:{user:{id:'one'}}},error:null})})
+const signUp=vi.fn(),verifyOtp=vi.fn(),resend=vi.fn(),navigate=vi.fn()
+vi.mock('../../lib/supabase/client',()=>({createSupabaseBrowserClient:()=>({auth:{signUp,verifyOtp,resend}})}))
+beforeEach(()=>{cleanup();vi.clearAllMocks();vi.stubGlobal('location',{replace:navigate});signUp.mockResolvedValue({data:{user:{id:'one'},session:null},error:null});verifyOtp.mockResolvedValue({data:{user:{id:'one'},session:{user:{id:'one'}}},error:null});resend.mockResolvedValue({error:null})})
 afterEach(()=>vi.unstubAllGlobals())
 
 async function register(){
@@ -38,3 +38,4 @@ test('verified signup follows only a valid invite',async()=>{
   expect(verifyOtp).toHaveBeenCalledWith({email:'trader@example.test',token:'12345678',type:'email'})
   expect(navigate).toHaveBeenCalledWith('/')
 })
+test('an expired signup code can be requested again',async()=>{render(<RegisterForm/>);await register();await userEvent.click(await screen.findByRole('button',{name:'Send a new code'}));expect(resend).toHaveBeenCalledWith({type:'signup',email:'trader@example.test'});expect(signUp).toHaveBeenCalledTimes(1)})
