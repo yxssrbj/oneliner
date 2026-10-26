@@ -34,11 +34,11 @@
 
 **Interfaces:** Auth `signUp` receives `options.data.username`; `public.profiles.username` is lowercase, unique case-insensitively, and 3–24 characters. The signup trigger inserts `display_name = username`.
 
-- [ ] Write SQL assertions for valid signup, missing/invalid username, duplicate casing, and profile privacy.
-- [ ] Run those assertions and observe the expected red failure.
-- [ ] Add the column, constraints, index, and Auth trigger with `search_path = ''` and explicit grants.
-- [ ] Run focused database assertions and `npm run typecheck`; inspect all migration lines.
-- [ ] Commit the schema and tests atomically.
+- [x] Write SQL assertions for valid signup, missing/invalid username, duplicate casing, and profile privacy.
+- [x] Run those assertions and observe the expected red failure.
+- [x] Add the column, constraints, index, and Auth trigger with `search_path = ''` and explicit grants.
+- [x] Run focused database assertions and `npm run typecheck`; inspect all migration lines.
+- [x] Commit the schema and tests atomically.
 
 ### Task 2: Registration and confirmation
 
@@ -46,9 +46,9 @@
 
 **Interfaces:** `RegisterForm({invite?: string})` calls `auth.signUp({email,password,options:{data:{username}}})`, then `auth.verifyOtp({email,token,type:'email'})`. The invitation destination uses `isUuid`.
 
-- [ ] Write failing form tests for validation, pending state, signup failure, invalid/expired code, success, and invite safety.
-- [ ] Implement the form and page with no profile write from the browser.
-- [ ] Run focused tests and `npm run typecheck`; commit.
+- [x] Write failing form tests for validation, pending state, signup failure, invalid/expired code, success, and invite safety.
+- [x] Implement the form and page with no profile write from the browser.
+- [x] Run focused tests and `npm run typecheck`; commit.
 
 ### Task 3: Password-only sign-in and recovery
 
@@ -56,9 +56,9 @@
 
 **Interfaces:** Sign-in calls `signInWithPassword`. Recovery calls `resetPasswordForEmail(email)`, `verifyOtp({email,token,type:'recovery'})`, then `updateUser({password})` and local sign-out. Local Auth requires email confirmation and sends token templates.
 
-- [ ] Rewrite sign-in tests so old OTP sign-in controls fail; add recovery tests for wrong code, mismatch, weak password, unknown email, and success.
-- [ ] Implement the minimal forms, page, and local template configuration.
-- [ ] Run focused unit tests and `npm run typecheck`; commit.
+- [x] Rewrite sign-in tests so old OTP sign-in controls fail; add recovery tests for wrong code, mismatch, weak password, unknown email, and success.
+- [x] Implement the minimal forms, page, and local template configuration.
+- [x] Run focused unit tests and `npm run typecheck`; commit.
 
 ### Task 4: Retire the old password bridge
 
@@ -66,9 +66,9 @@
 
 **Interfaces:** Existing password users must supply their current password and verify email before updating. No `account_has_password` RPC or first-password branch remains.
 
-- [ ] Write failing tests that require current password and reject the removed first-password path.
-- [ ] Remove the marker dependency and simplify Settings without changing its identity guards.
-- [ ] Run focused Settings tests and `npm run typecheck`; commit.
+- [x] Write failing tests that require current password and reject the removed first-password path.
+- [x] Remove the marker dependency and simplify Settings without changing its identity guards.
+- [x] Run focused Settings tests and `npm run typecheck`; commit.
 
 ### Task 5: Local browser journey
 
@@ -76,7 +76,7 @@
 
 **Interfaces:** Local Mailpit supplies signup/recovery tokens; browser validates redirects, persisted profile, sign-out, old/new password, and private data boundaries.
 
-- [ ] Write the browser journey and observe red on the old UI.
-- [ ] Rebuild local Supabase from migrations/config, then run the focused browser journey to green.
-- [ ] Run relevant unit/SQL checks, `npm run typecheck`, lint, and review the full auth diff. Do not run the full test suite unless the owner asks if the feature is fully complete or deploy-ready.
-- [ ] Record exact local evidence and hosted configuration gaps; commit docs.
+- [x] Write the browser journey and observe red on the old UI.
+- [x] Rebuild local Supabase from migrations/config, then run the focused browser journey to green.
+- [x] Run relevant unit/SQL checks, `npm run typecheck`, lint, and review the full auth diff. Do not run the full test suite unless the owner asks if the feature is fully complete or deploy-ready.
+- [x] Record exact local evidence and hosted configuration gaps; commit docs.

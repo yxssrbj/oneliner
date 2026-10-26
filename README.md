@@ -7,7 +7,7 @@ A trading journal for quick note capture, completing trades, reviewing opening w
 1. Use Node.js 24+ on macOS/Linux. Install SOPS 3.13.3+ and age (`brew install sops age` on macOS), then install dependencies with `npm ci`.
 2. Start a Docker-compatible runtime, then run `npx supabase start`.
 3. Obtain the authorized age identity through your secure channel. Keep it outside the repository at `~/.config/sops/age/keys.txt` with permissions `chmod 600 ~/.config/sops/age/keys.txt`. Export `SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"` (or your actual identity path) in your shell. This checkout loads encrypted configuration from `secrets/app.enc.env`; its public recipient rules are in `.sops.yaml`. Verify it targets your local Supabase before using browser tests.
-4. Run `npx supabase migration up --local` to apply pending migrations without resetting data.
+4. Run `npx supabase migration up --local` to apply pending migrations without resetting data. The account-registration migration expects no prelaunch profiles; those accounts were cleared for this project. Migrate any other nonempty database separately before applying it.
 5. Run `npm run dev` and open [localhost:3000](http://localhost:3000).
 
 The local email inbox is at [localhost:54324](http://localhost:54324). Account verification and password recovery use numeric codes; sign-in uses a password.
@@ -53,7 +53,7 @@ Browser tests use local Supabase and its email inbox, create disposable test acc
 
 Implementation and local testing are separate from deployment. Hosted Supabase needs the committed migrations applied before deploying this branch. The complete deployed two-account flow still needs verification before inviting testers.
 
-The updated direction is in [the PRD draft](specs/prd.md), with detailed specifications under [specs/features](specs/features/README.md). The [original product definition](docs/product/oneliner-mvp.md) and [MVP plan](docs/superpowers/plans/2026-10-17-oneliner-mvp.md) describe the earlier implementation baseline. The runtime instructions above still describe the existing app, not the proposed password signup and chat.
+The updated direction is in [the PRD](specs/prd.md), with detailed specifications under [specs/features](specs/features/README.md). The [original product definition](docs/product/oneliner-mvp.md) and [MVP plan](docs/superpowers/plans/2026-10-17-oneliner-mvp.md) describe the earlier implementation baseline. Account registration is locally implemented; group chat remains planned.
 
 ## Check product direction
 
