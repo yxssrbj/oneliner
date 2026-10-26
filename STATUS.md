@@ -1,6 +1,6 @@
 # Oneliner status
 
-Updated: 26 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. No PR, merge, or push.
+Updated: 26 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. `main` and the account branch are pushed; no PR or merge.
 
 ## Account reset and new direction
 
@@ -23,7 +23,7 @@ Updated: 26 October 2026. Project-wide status; account implementation branch: `f
 - The hosted project `svohohmwwbriepmupswk` now has the four formerly pending migrations, including account registration. Migration history and schema were checked afterward; hosted users, profiles, trades, and groups remain at zero.
 - Hosted email confirmation is enabled. `supabase config push` applied the confirmation and recovery code template bodies and subjects from this branch. A subsequent config diff shows no differences for declared Auth settings; undeclared hosted SMTP settings were preserved.
 - Hosted signup created a profile and denied password sign-in before email confirmation. The delivered confirmation and recovery codes worked. Hosted browser checks covered password sign-in, profile access, Friends, sign-out, and a private trade read returning 401 after sign-out. Recovery and Settings each changed the password; the prior password failed and the replacement worked. Settings also rejected an incorrect current password before sending a code. The disposable account was then deleted; hosted users, its profile, trades, and groups are zero.
-- The old auth-shell worktree's encrypted publishable key is stale. Hosted smoke checks used the project's current key from Supabase CLI without changing tracked secrets.
+- The old auth-shell worktree was retired on 26 October 2026; its local branch and commit remain as history. Hosted smoke checks used the project's current key from Supabase CLI without changing tracked secrets.
 
 The hosted Settings send-code step and backend code verification/password update were checked separately; the final Settings form submission was covered by local browser tests, not a single hosted browser session.
 
