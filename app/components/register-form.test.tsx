@@ -39,3 +39,4 @@ test('verified signup follows only a valid invite',async()=>{
   expect(navigate).toHaveBeenCalledWith('/')
 })
 test('an expired signup code can be requested again',async()=>{render(<RegisterForm/>);await register();await userEvent.click(await screen.findByRole('button',{name:'Send a new code'}));expect(resend).toHaveBeenCalledWith({type:'signup',email:'trader@example.test'});expect(signUp).toHaveBeenCalledTimes(1)})
+test('a weak signup password asks for a stronger password',async()=>{signUp.mockResolvedValue({data:{user:null,session:null},error:{code:'weak_password'}});render(<RegisterForm/>);await register();expect(await screen.findByRole('alert')).toHaveTextContent('Choose a stronger password');expect(screen.getByLabelText('Password')).toHaveValue('Example-pass-42!')})

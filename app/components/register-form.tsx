@@ -22,7 +22,7 @@ export default function RegisterForm({invite}: {invite?:string}) {
       const client=createSupabaseBrowserClient()
       if(!sent){
         const {error:failure}=await client.auth.signUp({email:email.trim(),password,options:{data:{username:chosen}}})
-        if(failure){setError('Could not create the account. Check your details or choose another username.');return}
+        if(failure){setError(failure.code==='weak_password'?'Choose a stronger password that meets the account password policy.':'Could not create the account. Check your details or choose another username.');return}
         setPassword('');setUsername(chosen);setSent(true)
       }else{
         const {data,error:failure}=await client.auth.verifyOtp({email:email.trim(),token:code,type:'email'})

@@ -29,7 +29,7 @@ export default function RecoverForm(){
         const {data,error:failure}=await recovery!.auth.verifyOtp({email:email.trim(),token:code,type:'recovery'})
         if(failure || !data.user || !data.session || data.user.id!==data.session.user.id){setError('Invalid or expired code. Check it or request a new one.');return}
         const result=await recovery!.auth.updateUser({password})
-        if(result.error || result.data.user?.id!==data.user.id){setError('Could not update password. Check your password and try again.');return}
+        if(result.error || result.data.user?.id!==data.user.id){setCode('');setError(result.error?.code==='weak_password'?'Choose a stronger password, then request a new code.':'Could not update password. Request a new code and try again.');return}
         setPassword('');setConfirmation('');setCode('')
         updated=true
       }
