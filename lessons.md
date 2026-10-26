@@ -16,3 +16,4 @@
 - Supabase Auth owns passwords, email codes, and sessions. A signup trigger reserves the normalized username and creates the profile in the same transaction, so a user cannot exist without the required profile. The separate display name remains editable.
 - Once signup creates every profile with a required username, profile editing must use an update. An upsert without the username fails its insert path even for an existing row; the browser test exposed this.
 - Email codes serve signup confirmation, recovery, and Settings password verification. Password sign-in is the only sign-in method in Oneliner. Local Supabase templates and hosted Auth templates are separate configuration surfaces.
+- `supabase config diff` previews declared hosted Auth drift; `supabase config push` uploads the referenced template bodies as well as subjects and preserves undeclared hosted SMTP settings. Recheck the diff after pushing.

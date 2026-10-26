@@ -1,6 +1,6 @@
 # Oneliner status
 
-Updated: 26 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. No PR, merge, push, or hosted rollout.
+Updated: 26 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. No PR, merge, or push.
 
 ## Account reset and new direction
 
@@ -15,14 +15,15 @@ Updated: 26 October 2026. Project-wide status; account implementation branch: `f
 - Desktop shell and account settings: display name, account theme, sign-out, and verified password change. A profile save now updates the signup-created row and preserves its required username.
 - Journal note capture, outcomes, weekly review, CSV import, and private groups from the earlier MVP.
 - Cached capture drafts and trade notes are hidden until the browser confirms the same account.
-- Latest focused account checks: 52 unit tests, 106 database assertions, 14 affected browser journeys, typecheck, and lint passed on 26 October 2026. These are focused checks, not a full suite or production build. The local database was reset after the browser checks; user, profile, trade, and group counts are all zero.
+- Full branch checks on 26 October 2026: 276 unit tests, 106 database assertions, 14 local browser journeys, typecheck, lint, and production build passed. The browser run also logged Next.js development prerender errors on Friends routes involving `Date.now()`; this needs investigation before calling the run clean.
+- The full browser run left 19 disposable local users, 15 local trades, and 3 local groups in the shared local Supabase stack. The hosted project is still empty.
 
-## Waiting before hosted account rollout
+## Hosted account configuration
 
-1. Review hosted migration history before applying `supabase/migrations/202610250002_account_registration.sql`; the old password-access migration was retired locally.
-2. Enable email confirmation and set the hosted confirmation and recovery templates to show `{{ .Token }}`. Local `supabase/config.toml` does not configure hosted Auth.
-3. Verify the hosted registration, email verification, recovery, password change, password sign-in, same-account data, and sign-out journeys with a disposable account.
+- The hosted project `svohohmwwbriepmupswk` now has the four formerly pending migrations, including account registration. Migration history and schema were checked afterward; hosted users, profiles, trades, and groups remain at zero.
+- Hosted email confirmation is enabled. `supabase config push` applied the confirmation and recovery code template bodies and subjects from this branch. A subsequent config diff shows no differences for declared Auth settings; undeclared hosted SMTP settings were preserved.
+- Hosted email delivery and the account journeys have not been exercised with a disposable account. Local browser tests used local Supabase and Mailpit.
 
-The current-password rule is enforced by the app's verified Settings flow. Hosted configuration and browser behavior have not been verified in this branch.
+The current-password rule is enforced by the app's verified Settings flow. Hosted browser behavior remains unverified.
 
 Next product work after this rollout: remaining desktop screens and group chat. See `todo.md` for the broader tracker.
