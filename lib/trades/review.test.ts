@@ -21,6 +21,8 @@ test('chart order is deterministic and empty or all unfinished weeks have no per
   const equal = buildWeeklyReview([row('b', '2026-10-19T10:00:00Z', 'ORB', '0.1'), row('a', '2026-10-19T10:00:00Z', 'ORB', '0.2')], week)
   expect(equal.points.map(point => point.tradeId)).toEqual([null, 'a', 'b'])
   expect(equal.metrics.totalR).toBeCloseTo(0.3)
+  const offsets = buildWeeklyReview([row('later', '2026-10-19T09:30:00Z', 'ORB', '1'), row('earlier', '2026-10-19T10:00:00+01:00', 'ORB', '1')], week)
+  expect(offsets.points.map(point => point.tradeId)).toEqual([null, 'earlier', 'later'])
   for (const trades of [[], [row('open', '2026-10-19T10:00:00Z', 'ORB', null)]]) {
     const model = buildWeeklyReview(trades, week)
     expect(model.metrics.totalR).toBeNull()
@@ -33,6 +35,7 @@ test('chart order is deterministic and empty or all unfinished weeks have no per
 
 test('UTC Monday boundaries place trades in the correct days', () => {
   const model = buildWeeklyReview([row('start', '2026-10-19T00:00:00.000Z', 'ORB', '1'), row('end', '2026-10-25T23:59:59.999Z', 'ORB', '-1'), row('outside', '2026-10-26T00:00:00.000Z', 'ORB', '10')], '2026-10-19')
+  expect(model.trades.map(trade => trade.id)).toEqual(['start', 'end'])
   expect(model.days[0].completedCount).toBe(1)
   expect(model.days[6].completedCount).toBe(1)
   expect(model.metrics.totalR).toBe(0)

@@ -2,7 +2,7 @@ import { nextWeekStartUtc } from './week'
 
 export type ReviewTrade = { id: string; opened_at: string; setup: string; exit_price: string | null; r_result: string | null }
 
-export function buildWeeklyReview(trades: ReviewTrade[], week: string) {
+export function buildWeeklyReview<T extends ReviewTrade>(trades: T[], week: string) {
   const end = `${nextWeekStartUtc(week)}T00:00:00Z`
   const start = `${week}T00:00:00Z`
   const selected = trades.filter(trade => Date.parse(trade.opened_at) >= Date.parse(start) && Date.parse(trade.opened_at) < Date.parse(end))
@@ -19,7 +19,7 @@ export function buildWeeklyReview(trades: ReviewTrade[], week: string) {
     completedCount: completed.length,
     unfinishedCount: selected.length - completed.length,
   }
-  const ordered = [...completed].sort((a, b) => a.opened_at.localeCompare(b.opened_at) || a.id.localeCompare(b.id))
+  const ordered = [...completed].sort((a, b) => Date.parse(a.opened_at) - Date.parse(b.opened_at) || a.id.localeCompare(b.id))
   let cumulative = 0
   const points = completed.length ? [{ tradeId: null as string | null, openedAt: start, resultR: 0, totalR: 0 }, ...ordered.map(trade => ({ tradeId: trade.id, openedAt: trade.opened_at, resultR: result(trade), totalR: cumulative += result(trade) }))] : []
   const days = Array.from({ length: 7 }, (_, index) => {
@@ -36,5 +36,5 @@ export function buildWeeklyReview(trades: ReviewTrade[], week: string) {
     const done = rows.filter(trade => trade.exit_price !== null && trade.r_result !== null)
     return { name, totalR: done.reduce((sum, trade) => sum + result(trade), 0), completedCount: done.length, unfinishedCount: rows.length - done.length, wins: done.filter(trade => result(trade) > 0).length }
   }).sort((a, b) => b.totalR - a.totalR || a.name.localeCompare(b.name))
-  return { metrics, points, days, setups }
+  return { trades: selected, metrics, points, days, setups }
 }
