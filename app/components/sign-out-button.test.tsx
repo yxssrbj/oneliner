@@ -10,7 +10,7 @@ const {signOut, onAuthStateChange, replace, refresh} = vi.hoisted(() => ({signOu
 vi.mock('@supabase/ssr', () => ({createBrowserClient: () => ({auth: {signOut, onAuthStateChange}})}))
 vi.mock('next/navigation', () => { const router = {replace, refresh}; return {useRouter: () => router} })
 beforeEach(() => {
-  cleanup(); vi.clearAllMocks()
+  cleanup(); vi.restoreAllMocks(); vi.clearAllMocks(); sessionStorage.clear()
   document.documentElement.dataset.theme = 'light'
   onAuthStateChange.mockImplementation(listener => {
     listener('INITIAL_SESSION', {user: {id: 'one'}})
@@ -130,4 +130,44 @@ test('a cached sign-out button waits for ownership and ignores an old completion
   expect(replace).not.toHaveBeenCalled()
   expect(refresh).not.toHaveBeenCalled()
   expect(screen.getByRole('button', {name: 'Sign out'})).toBeDisabled()
+})
+
+
+test('sign-out clears only its owner capture draft when capture is not mounted', async () => {
+  sessionStorage.setItem('oneliner:capture:one', 'private draft')
+  sessionStorage.setItem('oneliner:capture:two', 'other owner draft')
+  show(); fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
+  await waitFor(() => expect(replace).toHaveBeenCalledWith('/sign-in'))
+  expect(sessionStorage.getItem('oneliner:capture:one')).toBeNull()
+  expect(sessionStorage.getItem('oneliner:capture:two')).toBe('other owner draft')
+})
+
+test('failed sign-out retains its owner capture draft for retry', async () => {
+  sessionStorage.setItem('oneliner:capture:one', 'private draft')
+  signOut.mockResolvedValueOnce({error: {message: 'network'}})
+  show(); fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
+  await screen.findByRole('alert')
+  expect(sessionStorage.getItem('oneliner:capture:one')).toBe('private draft')
+})
+
+test('storage failure is reported without blocking successful sign-out', async () => {
+  vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { throw new Error('storage denied') })
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+  show(); fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
+  await waitFor(() => expect(replace).toHaveBeenCalledWith('/sign-in'))
+  expect(logged).toHaveBeenCalledWith('Could not clear capture draft during sign-out.')
+})
+
+
+test('local SIGNED_OUT clears its owner draft even when remote logout fails', async () => {
+  sessionStorage.setItem('oneliner:capture:one', 'private draft')
+  sessionStorage.setItem('oneliner:capture:two', 'other owner draft')
+  signOut.mockImplementationOnce(async () => {
+    onAuthStateChange.mock.calls[0][0]('SIGNED_OUT', null)
+    return {error: {message: 'unavailable'}}
+  })
+  show(); fireEvent.click(screen.getByRole('button', {name: 'Sign out'}))
+  await screen.findByRole('alert')
+  expect(sessionStorage.getItem('oneliner:capture:one')).toBeNull()
+  expect(sessionStorage.getItem('oneliner:capture:two')).toBe('other owner draft')
 })

@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient, isLocalSignOutPending, signOutLocally } from '../../lib/supabase/client'
 
+function clearCaptureDraft(userId: string) {
+  try { sessionStorage.removeItem(`oneliner:capture:${userId}`) }
+  catch { console.error('Could not clear capture draft during sign-out.') }
+}
+
 export default function SignOutButton({ userId }: { userId: string }) {
   const router = useRouter()
   const busy = useRef(false)
@@ -18,6 +23,7 @@ export default function SignOutButton({ userId }: { userId: string }) {
     active.current = owner
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
       if (active.current !== owner) return
+      if (event === 'SIGNED_OUT') clearCaptureDraft(userId)
       if (event !== 'SIGNED_OUT' && session?.user.id === userId) { setReady(true); return }
       document.documentElement.dataset.theme = 'dark'
       if (session?.user.id && session.user.id !== userId) accountChanged.current = true
@@ -45,6 +51,7 @@ export default function SignOutButton({ userId }: { userId: string }) {
     try {
       const { error } = await signOutLocally()
       if (error) throw error
+      clearCaptureDraft(userId)
       if (active.current !== owner || accountChanged.current) return
       document.documentElement.dataset.theme = 'dark'
       setReady(false)
