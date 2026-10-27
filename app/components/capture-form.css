@@ -13,3 +13,28 @@
 .capture-hint{font-size:.9rem;margin:0;line-height:1.5}
 .capture-clarifications{color:var(--accent);margin:.2rem 0;padding-left:1.25rem;line-height:1.5}
 .capture-success{color:var(--positive);font-weight:700}
+
+.capture-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:22px;align-items:start}
+.capture-layout .capture-form{padding:24px}
+.capture-form .capture-step{display:flex;align-items:center;gap:9px;font-size:14px;margin:0 0 16px}
+.capture-step span{display:grid;place-items:center;width:23px;height:23px;border:1px solid var(--line);border-radius:5px;color:var(--accent);font-size:11px}
+.capture-intro{color:var(--muted);font-size:12px;margin:0 0 22px}
+.capture-form label{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:7px}
+.capture-form textarea{min-height:156px;line-height:1.85;font-size:15px}
+.capture-form .manual-button{background:transparent;color:var(--muted);font-size:11px;padding:4px 0;min-height:32px;text-decoration:underline}
+.capture-review{border-top:1px solid var(--line);padding-top:23px;margin-top:10px}
+.capture-review .capture-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;margin-bottom:18px}
+.capture-review>.capture-hint{margin-bottom:18px}
+.capture-hint{color:var(--muted);font-size:11px}
+.capture-recent{padding:22px;background:var(--panel);border:1px solid var(--line);border-radius:.65rem;min-width:0}
+.capture-recent h2{font-size:14px;margin:0 0 8px}
+.capture-recent>p{font-size:12px}
+.capture-recent-item{padding:18px 0;border-bottom:1px solid var(--line)}
+.capture-recent-item:last-child{padding-bottom:0;border-bottom:0}
+.capture-recent-item>div{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.capture-recent-item h3{font-size:12px;margin:0}
+.capture-recent-item span{font-size:11px;color:var(--accent)}
+.capture-recent-item p{font-size:11px;line-height:1.6;color:var(--muted);margin:6px 0 0;overflow-wrap:anywhere}
+.capture-note-excerpt{white-space:pre-wrap}
+.capture-recent button{min-height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+@media(max-width:900px){.capture-layout{grid-template-columns:1fr}.capture-review .capture-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -6,12 +6,13 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import CaptureForm from './capture-form'
 const fetchMock = vi.fn()
+const recentMock = vi.fn()
 const unsubscribe = vi.fn()
 type AuthSession = { user: { id: string } } | null
 let authChanged: (event: string, session?: AuthSession) => void
 let autoConfirm = true
 vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: (event: string, session?: AuthSession) => void) => { authChanged = fn; if (autoConfirm) fn('INITIAL_SESSION', { user: { id: 'owner' } }); return { data: { subscription: { unsubscribe } } } } } }) }))
-beforeEach(() => { cleanup(); autoConfirm = true; sessionStorage.clear(); vi.stubGlobal('fetch', fetchMock); fetchMock.mockReset() })
+beforeEach(() => { cleanup(); autoConfirm = true; sessionStorage.clear(); vi.stubGlobal('fetch', (url: string, options?: RequestInit) => url === '/api/trades?recent=3' ? recentMock() : fetchMock(url, options)); fetchMock.mockReset(); recentMock.mockReset(); recentMock.mockImplementation(async () => Response.json({ trades: [] })) })
 const suggestion = { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: null, setup: 'ORB', clarifications: ['Please confirm the initial stop price.'] }
 test('ambiguous parse stays editable and failed save retains original note and retry key', async () => {
   fetchMock.mockResolvedValueOnce(Response.json({ suggestion })).mockResolvedValueOnce(Response.json({ error: 'Could not save.' }, { status: 500 })).mockResolvedValueOnce(Response.json({ trade: { id: 'saved' } }, { status: 201 }))
@@ -39,6 +40,7 @@ test('parser failure preserves manually corrected fields', async () => {
   fetchMock.mockResolvedValue(Response.json({ error: 'Parsing unavailable; enter fields manually.' }, { status: 503 }))
   render(<CaptureForm userId="owner" />)
   await userEvent.type(await screen.findByLabelText('Trade note'), 'my note')
+  await userEvent.click(screen.getByRole('button', { name: 'Enter details manually' }))
   await userEvent.type(screen.getByLabelText('Symbol'), 'CL')
   await userEvent.click(screen.getByRole('button', { name: 'Suggest fields' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('manually')
@@ -130,4 +132,62 @@ test('capture ignores a queued edit after browser owner confirmation is lost', (
     fireEvent.change(note, { target: { value: 'stale edit' } })
   })
   expect(JSON.parse(sessionStorage.getItem('oneliner:capture:owner')!).draft.originalNote).toBe('private draft')
+})
+
+
+test('note-first capture reveals manual details without AI and accepts optional exit', async () => {
+  fetchMock.mockResolvedValue(Response.json({ trade: { id: 'saved' } }))
+  render(<CaptureForm userId="owner" />)
+  await userEvent.type(await screen.findByLabelText('Trade note'), ' exact note ')
+  expect(screen.getByLabelText('Symbol')).not.toBeVisible()
+  await userEvent.click(screen.getByRole('button', { name: 'Enter details manually' }))
+  await userEvent.type(screen.getByLabelText('Symbol'), 'ES')
+  await userEvent.selectOptions(screen.getByLabelText('Direction'), 'long')
+  await userEvent.type(screen.getByLabelText('Entry price'), '10')
+  await userEvent.type(screen.getByLabelText('Initial stop'), '9')
+  await userEvent.type(screen.getByLabelText('Setup name'), 'ORB')
+  await userEvent.type(screen.getByLabelText('Exit price (optional)'), '12')
+  expect(fetchMock).not.toHaveBeenCalled()
+  await userEvent.click(screen.getByRole('button', { name: 'Save trade' }))
+  expect(await screen.findByText('Trade saved.')).toBeInTheDocument()
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ originalNote: ' exact note ', exitPrice: '12' })
+  await waitFor(() => expect(recentMock).toHaveBeenCalledTimes(2))
+})
+test('parser failure reveals editable details and retains the note', async () => {
+  fetchMock.mockResolvedValue(Response.json({ error: 'Parser unavailable' }, { status: 503 }))
+  render(<CaptureForm userId="owner" />)
+  await userEvent.type(await screen.findByLabelText('Trade note'), 'note kept')
+  await userEvent.click(screen.getByRole('button', { name: 'Suggest fields' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Parser unavailable')
+  expect(screen.getByLabelText('Symbol')).toBeEnabled()
+  expect(screen.getByLabelText('Trade note')).toHaveValue('note kept')
+})
+test('recent empty and retryable failure states are distinct', async () => {
+  recentMock.mockResolvedValueOnce(Response.json({ error: 'Could not load recent trades.' }, { status: 503 }))
+  render(<CaptureForm userId="owner" />)
+  expect(await screen.findByText('Could not load recent trades.')).toBeInTheDocument()
+  expect(screen.queryByText('No trades saved yet.')).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Retry recent trades' }))
+  expect(await screen.findByText('No trades saved yet.')).toBeInTheDocument()
+})
+test('recent waits for owner confirmation and ignores late results after account change', async () => {
+  autoConfirm = false
+  let complete!: (response: Response) => void
+  recentMock.mockReturnValue(new Promise<Response>(resolve => { complete = resolve }))
+  render(<CaptureForm userId="owner" />)
+  expect(recentMock).not.toHaveBeenCalled()
+  act(() => authChanged('SIGNED_IN', { user: { id: 'owner' } }))
+  await waitFor(() => expect(recentMock).toHaveBeenCalledOnce())
+  act(() => authChanged('SIGNED_IN', { user: { id: 'other' } }))
+  await act(async () => complete(Response.json({ trades: [{ id: 'secret', symbol: 'ES', side: 'long', setup: 'ORB', original_note: 'private recent note', exit_price: null, r_result: null }] })))
+  expect(screen.queryByText('private recent note')).not.toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: 'Recent trades' })).not.toBeInTheDocument()
+})
+test('recent shows real saved notes and server results then clears on sign-out', async () => {
+  recentMock.mockResolvedValue(Response.json({ trades: [{ id: 'recent', symbol: 'ES', side: 'long', setup: 'ORB', original_note: 'my saved note', exit_price: '12', r_result: '2' }] }))
+  render(<CaptureForm userId="owner" />)
+  expect(await screen.findByText('my saved note')).toBeInTheDocument()
+  expect(screen.getByText('Win · +2.00R')).toBeInTheDocument()
+  act(() => authChanged('SIGNED_OUT'))
+  expect(screen.queryByText('my saved note')).not.toBeInTheDocument()
 })
