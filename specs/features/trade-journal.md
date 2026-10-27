@@ -20,7 +20,7 @@ The selected approach is an implementation choice based on the approved preview 
 
 ## Capture screen
 
-- The main column begins with the original note and a clear Suggest fields action. A trader can reveal and enter details manually without invoking AI. Suggested symbol, direction, entry, initial stop, and setup remain editable, and parser uncertainty is explained beside the review step.
+- The main column begins with the original note and an Add action. Add parses the note, then shows the filled trade details for review before saving. Edit details opens the fields for corrections; missing or uncertain suggestions open editable fields directly. A trader can enter details manually without invoking AI. Parser uncertainty is explained beside the review step.
 - Review shows symbol, direction, setup, entry, initial stop, opening date and time, and optional exit in a compact grid. Required fields and the stop relationship use the existing validation rules. A present exit must be a positive decimal price; server-calculated R is authoritative.
 - The original note is preserved exactly. A failed parse leaves the note and manual fields available. A failed save keeps the draft and idempotency key so retry cannot create a second trade. Success resets capture and updates the recent list.
 - A secondary column shows the three most recently saved trades for this account, ordered by creation time even when a trade is backdated, with result or Needs exit and a short note excerpt. It has honest loading, empty, and retryable error states; it never shows preview samples or another user's data. Avoid decorative filler.
