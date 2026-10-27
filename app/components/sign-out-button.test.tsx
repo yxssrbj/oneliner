@@ -118,6 +118,8 @@ test('a failed old logout cannot show a retry for a replacement account', async 
 
 
 test('a cached sign-out button waits for ownership and ignores an old completion', async () => {
+  sessionStorage.setItem('oneliner:capture:one', 'old owner draft')
+  sessionStorage.setItem('oneliner:capture:two', 'replacement owner draft')
   let finish!: (value: {error: null}) => void
   signOut.mockReturnValue(new Promise(resolve => {finish = resolve}))
   const button = <SignOutButton userId="one"/>
@@ -127,6 +129,8 @@ test('a cached sign-out button waits for ownership and ignores an old completion
   onAuthStateChange.mockImplementation(() => ({data: {subscription: {unsubscribe: vi.fn()}}}))
   view.rerender(<Activity mode="visible">{button}</Activity>)
   await act(async () => finish({error: null}))
+  expect(sessionStorage.getItem('oneliner:capture:one')).toBeNull()
+  expect(sessionStorage.getItem('oneliner:capture:two')).toBe('replacement owner draft')
   expect(replace).not.toHaveBeenCalled()
   expect(refresh).not.toHaveBeenCalled()
   expect(screen.getByRole('button', {name: 'Sign out'})).toBeDisabled()
