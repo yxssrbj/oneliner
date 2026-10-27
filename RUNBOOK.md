@@ -54,10 +54,10 @@ local data.
    [local inbox](http://localhost:54324), then enter the entire code. Existing
    local accounts can use [Sign in](http://localhost:3015/sign-in).
 2. [Capture](http://localhost:3015/) — write a note such as
-   `ES long 6100, stop 6095, opening range breakout`. Use **Suggest fields**
-   to try parsing, or **Enter details manually**. Correct the fields before
-   saving. Leave exit empty for an unfinished trade, or enter `6110` to save
-   a completed +2R example. The original note stays with the trade.
+   `ES long 6100, stop 6095, opening range breakout`. Use **Add** to parse and
+   review the fields, then **Edit details** if needed; or use **Enter details
+   manually** without AI. Leave exit empty for an unfinished trade, or enter
+   `6110` to save a completed +2R example. The original note stays with the trade.
 3. [Unfinished](http://localhost:3015/inbox) — enter an exit for an open trade
    and save it. You can also open **Chart data** to import a TradingView
    chart-data CSV, or **Correct trade details**.
