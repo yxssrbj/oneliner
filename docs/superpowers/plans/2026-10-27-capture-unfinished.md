@@ -57,10 +57,10 @@
 
 **Interfaces:** Keep `TradeWorkspace({mode,userId,initialWeek,demo})` and `ExitForm({trade,onSaved})`. The inbox shows one card per open trade with visible exit entry; review mode keeps its current behavior until the weekly-review slice.
 
-- [ ] Write failing tests for compact card details, precise per-unit risk, failed exit input, confirmed removal, empty/load-error states, and account-switch hiding.
-- [ ] Run focused tests and observe expected failures.
-- [ ] Implement the smallest inbox-only markup/CSS change and preserve corrections and chart import access.
-- [ ] Run focused tests and typecheck; commit as `Inbox: show compact open trades and exits`.
+- [x] Write failing tests for compact card details, precise per-unit risk, failed exit input, confirmed removal, empty/load-error states, and account-switch hiding.
+- [x] Run focused tests and observe expected failures.
+- [x] Implement the smallest inbox-only markup/CSS change and preserve corrections and chart import access.
+- [x] Run focused tests and typecheck; commit as `Inbox: show compact open trades and exits`.
 
 ### Task 4: Real-browser review and project status
 

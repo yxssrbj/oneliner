@@ -1,6 +1,6 @@
 # Capture and unfinished trades
 
-Status: Proposed for project-owner review · 27 October 2026
+Status: Approved by project owner · 27 October 2026
 
 Product baseline: [PRD](../prd.md) CAP-01–05, OUT-01–03, ACC-03, UI-01–04, and IMP-01. Visual target: [approved desktop preview](../../docs/previews/oneliner-desktop.html), Capture and Unfinished screens.
 
