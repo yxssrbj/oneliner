@@ -34,11 +34,11 @@
 
 **Interfaces:** `TradeDraft` gains `exitPrice?: string`; `validateDraft` accepts omitted or empty exit and rejects an invalid present exit. `POST /api/trades` writes a valid exit and includes it in idempotency comparison. `GET /api/trades?recent=3` returns the owner's three latest saved trades by `created_at`; an absent `recent` keeps existing ordering and pagination.
 
-- [ ] Write tests for optional exit, invalid exit, same-key retry/conflict, valid/invalid/duplicate limit, ordering, and owner isolation.
-- [ ] Run the focused tests and observe failures caused by missing behavior.
-- [ ] Implement validation and route changes without changing existing unfiltered list behavior.
-- [ ] Run focused tests and typecheck; inspect failure and privacy paths.
-- [ ] Commit as `Trades: support capture exits and recent reads`.
+- [x] Write tests for optional exit, invalid exit, same-key retry/conflict, valid/invalid/duplicate limit, ordering, and owner isolation.
+- [x] Run the focused tests and observe failures caused by missing behavior.
+- [x] Implement validation and route changes without changing existing unfiltered list behavior.
+- [x] Run focused tests and typecheck; inspect failure and privacy paths.
+- [x] Commit as `Trades: support capture exits and recent reads`.
 
 ### Task 2: Note-first capture with real recent trades
 

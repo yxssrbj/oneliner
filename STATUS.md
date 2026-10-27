@@ -29,4 +29,6 @@ The hosted Settings send-code step and backend code verification/password update
 
 Next product work after this rollout: remaining desktop screens and group chat. See `todo.md` for the broader tracker.
 
-Capture and unfinished-trade redesign is planned in [the slice spec](specs/features/trade-journal.md) and [implementation plan](docs/superpowers/plans/2026-10-27-capture-unfinished.md). The isolated `feat/capture-unfinished` worktree is ready at `.worktrees/capture-unfinished`; baseline focused tests passed (54), and typecheck passed. Product code has not changed for this slice; the spec and plan await project-owner review.
+Capture and unfinished-trade redesign follows [the approved slice spec](specs/features/trade-journal.md) and [implementation plan](docs/superpowers/plans/2026-10-27-capture-unfinished.md) in `.worktrees/capture-unfinished`. Baseline focused tests passed (54), and typecheck passed before implementation.
+
+The project owner approved the capture plan on 27 October. Task 1 is implemented on `feat/capture-unfinished`: optional capture exits and the private three-trade recent API. Its focused tests and typecheck passed; a decimal retry issue found in review was fixed and re-reviewed. Capture UI, unfinished cards, and browser verification remain in progress. No push for this slice.
