@@ -32,7 +32,7 @@ test('chart order is deterministic and empty or all unfinished weeks have no per
 })
 
 test('UTC Monday boundaries place trades in the correct days', () => {
-  const model = buildWeeklyReview([row('start', '2026-10-19T00:00:00Z', 'ORB', '1'), row('end', '2026-10-25T23:59:59Z', 'ORB', '-1')], '2026-10-19')
+  const model = buildWeeklyReview([row('start', '2026-10-19T00:00:00.000Z', 'ORB', '1'), row('end', '2026-10-25T23:59:59.999Z', 'ORB', '-1'), row('outside', '2026-10-26T00:00:00.000Z', 'ORB', '10')], '2026-10-19')
   expect(model.days[0].completedCount).toBe(1)
   expect(model.days[6].completedCount).toBe(1)
   expect(model.metrics.totalR).toBe(0)

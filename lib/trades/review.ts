@@ -5,7 +5,7 @@ export type ReviewTrade = { id: string; opened_at: string; setup: string; exit_p
 export function buildWeeklyReview(trades: ReviewTrade[], week: string) {
   const end = `${nextWeekStartUtc(week)}T00:00:00Z`
   const start = `${week}T00:00:00Z`
-  const selected = trades.filter(trade => trade.opened_at >= start && trade.opened_at < end)
+  const selected = trades.filter(trade => Date.parse(trade.opened_at) >= Date.parse(start) && Date.parse(trade.opened_at) < Date.parse(end))
   const completed = selected.filter(trade => trade.exit_price !== null && trade.r_result !== null)
   const result = (trade: ReviewTrade) => Number(trade.r_result)
   const total = completed.reduce((sum, trade) => sum + result(trade), 0)
