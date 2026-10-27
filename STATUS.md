@@ -1,6 +1,6 @@
 # Oneliner status
 
-Updated: 26 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. `main` and the account branch are pushed; no PR or merge.
+Updated: 27 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. `main` and the account branch were pushed on 26 October; no PR or merge.
 
 ## Account reset and new direction
 
@@ -28,3 +28,5 @@ Updated: 26 October 2026. Project-wide status; account implementation branch: `f
 The hosted Settings send-code step and backend code verification/password update were checked separately; the final Settings form submission was covered by local browser tests, not a single hosted browser session.
 
 Next product work after this rollout: remaining desktop screens and group chat. See `todo.md` for the broader tracker.
+
+Capture and unfinished-trade redesign is planned in [the slice spec](specs/features/trade-journal.md) and [implementation plan](docs/superpowers/plans/2026-10-27-capture-unfinished.md). The existing product code has not changed for this slice; the spec is awaiting project-owner review.

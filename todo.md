@@ -1,6 +1,6 @@
 # Oneliner work tracker
 
-Last updated: 26 October 2026. This file tracks product work across branches; check the linked specs for acceptance details.
+Last updated: 27 October 2026. This file tracks product work across branches; check the linked specs for acceptance details.
 
 ## Current status
 
@@ -20,7 +20,10 @@ Last updated: 26 October 2026. This file tracks product work across branches; ch
 - [x] Configure hosted signup confirmation and password recovery code templates while preserving SMTP settings.
 - [x] Verify hosted registration, confirmation, recovery, password change, password sign-in, and sign-out with a disposable account; remove it afterward.
 - [x] Fix Friends prerender errors with request-time boundaries; regression tests and a clean 14-journey browser log confirm it.
-- [ ] Specify, implement, and review the remaining [desktop screens](specs/features/desktop-preview-parity.md), one slice at a time: weekly review; capture and unfinished trades; private groups and continuous chat with pictures.
+- [ ] Specify, implement, and review the remaining [desktop screens](specs/features/desktop-preview-parity.md), one slice at a time:
+  - [ ] Capture and unfinished trades: review the [slice spec](specs/features/trade-journal.md), implement it, and review the real browser flow.
+  - [ ] Weekly review: specify richer statistics, chart, setup results, daily cards, and trade table.
+  - [ ] Private groups and continuous chat: specify the member list, messages, and pictures, then implement them.
 - [ ] Compare the complete app to the approved previews at 1280 × 800 and 1440 × 900, and verify real user journeys and privacy boundaries.
 
 ## Branch and delivery
