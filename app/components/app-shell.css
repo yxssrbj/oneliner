@@ -151,3 +151,20 @@ input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:wait}
 .settings-heading h1{margin:0 0 .4rem;font-size:1.9rem;letter-spacing:-.04em}
 .workspace-breadcrumb{font-size:.85rem;color:var(--muted)}
 .workspace-breadcrumb strong{color:var(--text);font-weight:500}
+
+.unfinished-workspace .trade-list{grid-template-columns:minmax(0,1fr);gap:.9rem}
+.unfinished-card{padding:1.25rem 1.4rem;border-radius:.65rem}
+.unfinished-card .trade-card-heading{justify-content:flex-start;align-items:center}
+.trade-setup{padding:.2rem .5rem;border-radius:.25rem;background:var(--raised);color:var(--muted);font-size:.75rem;overflow-wrap:anywhere}
+.trade-opened{margin:.4rem 0;font-size:.75rem;color:var(--muted)}
+.unfinished-card .trade-note{margin:.6rem 0 1rem;font-size:.85rem}
+.unfinished-entry{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(240px,1fr);gap:1.5rem;align-items:start;border-top:1px solid var(--line);padding-top:1rem}
+.unfinished-entry .trade-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:0}
+.unfinished-entry .trade-details dd{font-variant-numeric:tabular-nums;font-size:1rem}
+.unfinished-entry .trade-form fieldset{grid-template-columns:minmax(0,1fr) auto;gap:.4rem .6rem;padding:0;align-items:end}
+.unfinished-entry .trade-form label{grid-column:1/-1;color:var(--muted);font-size:.8rem}
+.unfinished-entry .trade-form .error{grid-column:1/-1;grid-row:3;font-size:.8rem}
+.unfinished-entry .trade-form button{grid-column:2;grid-row:2;white-space:nowrap;min-height:44px}
+.unfinished-entry .trade-form input{min-height:44px;padding:.65rem}
+.unfinished-card .chart-data-import,.unfinished-card details{margin-top:.65rem;padding-top:.65rem}
+@media(max-width:1000px){.unfinished-entry{grid-template-columns:minmax(0,1fr)}}

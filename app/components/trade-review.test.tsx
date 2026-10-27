@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, expect, test, vi } from 'vitest'
 import { Activity } from 'react'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import ExitForm from './exit-form'
@@ -141,4 +141,111 @@ test('empty initial session waits for sign-in and rejects the earlier load', asy
   expect(await screen.findByText('All caught up. No trades are waiting for an exit.')).toBeInTheDocument()
   await act(async () => complete(Response.json({ trades: [trade] })))
   expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+})
+
+test('inbox cards show saved details, exact risk and visible exits newest first', async () => {
+  const newer = { ...trade, id: 'newer', symbol: 'NQ', side: 'short' as const, original_note: '  precise note\nkept', setup: 'Retest', entry_price: '100.000000000000001', stop_price: '100.000000000000002', opened_at: '2026-10-20T10:00:00Z' }
+  fetchMock.mockResolvedValue(Response.json({ trades: [newer, trade] }))
+  render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  expect(await screen.findByRole('heading', { name: 'Waiting for an exit (2)' })).toBeInTheDocument()
+  const cards = screen.getAllByRole('article')
+  expect(within(cards[0]).getByRole('heading', { name: 'NQ short' })).toBeInTheDocument()
+  expect(cards[0].querySelector('.trade-note')?.textContent).toBe(newer.original_note)
+  expect(within(cards[0]).getByText('Retest')).toBeVisible()
+  expect(within(cards[0]).getByText('2026-10-20 10:00:00')).toBeVisible()
+  expect(within(cards[0]).getByText('0.000000000000001')).toBeVisible()
+  expect(within(cards[0]).getByText('Risk per unit')).toBeVisible()
+  expect(within(cards[0]).getByLabelText('Exit price')).toBeVisible()
+  expect(within(cards[0]).getByRole('button', { name: 'Save exit' })).toBeVisible()
+  expect(within(cards[0]).getByRole('button', { name: 'Chart data' })).toBeVisible()
+  expect(within(cards[0]).getByText('Correct trade details')).toBeVisible()
+})
+
+test('inline exit keeps failed input and waits for authorized refresh before removing its card', async () => {
+  let refresh!: (response: Response) => void
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+    .mockResolvedValueOnce(Response.json({ error: 'Retry saving.' }, { status: 503 }))
+    .mockResolvedValueOnce(Response.json({ trade: { ...trade, exit_price: '12', r_result: '2' } }))
+    .mockReturnValueOnce(new Promise<Response>(resolve => { refresh = resolve }))
+  render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  await screen.findByText('my original note')
+  await userEvent.type(screen.getByLabelText('Exit price'), '12')
+  await userEvent.click(screen.getByRole('button', { name: 'Save exit' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Retry saving.')
+  expect(screen.getByLabelText('Exit price')).toHaveValue('12')
+  await userEvent.click(screen.getByRole('button', { name: 'Save exit' }))
+  expect(await screen.findByText('ES: Win · +2.00R. Saved.')).toBeInTheDocument()
+  expect(screen.getByText('my original note')).toBeInTheDocument()
+  await act(async () => refresh(Response.json({ trades: [] })))
+  expect(await screen.findByText('All caught up. No trades are waiting for an exit.')).toBeInTheDocument()
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+})
+
+test('failed confirmation reload keeps the inbox card and offers retry', async () => {
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+    .mockResolvedValueOnce(Response.json({ trade: { ...trade, exit_price: '12', r_result: '2' } }))
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockResolvedValueOnce(Response.json({ trades: [] }))
+  render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  await screen.findByText('my original note')
+  await userEvent.type(screen.getByLabelText('Exit price'), '12')
+  await userEvent.click(screen.getByRole('button', { name: 'Save exit' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not load trades')
+  expect(screen.getByText('my original note')).toBeInTheDocument()
+  expect(screen.getByLabelText('Exit price')).toHaveValue('12')
+  expect(screen.queryByText('All caught up. No trades are waiting for an exit.')).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Retry loading' }))
+  expect(await screen.findByText('All caught up. No trades are waiting for an exit.')).toBeInTheDocument()
+})
+
+test('account replacement hides loaded notes and ignores a pending inline exit', async () => {
+  let complete!: (response: Response) => void
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+    .mockReturnValueOnce(new Promise<Response>(resolve => { complete = resolve }))
+  render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  await screen.findByText('my original note')
+  await userEvent.type(screen.getByLabelText('Exit price'), '12')
+  await userEvent.click(screen.getByRole('button', { name: 'Save exit' }))
+  act(() => authChanged('SIGNED_IN', { user: { id: 'other' } }))
+  expect(screen.queryByText('my original note')).not.toBeInTheDocument()
+  expect(screen.queryByLabelText('Exit price')).not.toBeInTheDocument()
+  await act(async () => complete(Response.json({ trade: { ...trade, exit_price: '12', r_result: '2' } })))
+  expect(screen.getByRole('alert')).toHaveTextContent('Your session changed')
+  expect(screen.queryByText(/Saved\./)).not.toBeInTheDocument()
+  expect(fetchMock).toHaveBeenCalledTimes(2)
+})
+
+test('route owner replacement rejects a previous owners pending exit result', async () => {
+  let complete!: (response: Response) => void
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+    .mockReturnValueOnce(new Promise<Response>(resolve => { complete = resolve }))
+    .mockResolvedValueOnce(Response.json({ trades: [] }))
+  const view = render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  await screen.findByText('my original note')
+  await userEvent.type(screen.getByLabelText('Exit price'), '12')
+  await userEvent.click(screen.getByRole('button', { name: 'Save exit' }))
+  autoConfirm = false
+  view.rerender(<TradeWorkspace mode="inbox" userId="other" initialWeek="2026-10-19" />)
+  act(() => authChanged('INITIAL_SESSION', { user: { id: 'other' } }))
+  await screen.findByText('All caught up. No trades are waiting for an exit.')
+  await act(async () => complete(Response.json({ trade: { ...trade, exit_price: '12', r_result: '2' } })))
+  expect(screen.queryByText(/ES:.*Saved\./)).not.toBeInTheDocument()
+  expect(fetchMock).toHaveBeenCalledTimes(3)
+})
+
+test('route owner replacement clears previous trade feedback', async () => {
+  fetchMock.mockResolvedValueOnce(Response.json({ trades: [trade] }))
+    .mockResolvedValueOnce(Response.json({ trade: { ...trade, exit_price: '12', r_result: '2' } }))
+    .mockResolvedValueOnce(Response.json({ trades: [] }))
+    .mockResolvedValueOnce(Response.json({ trades: [] }))
+  const view = render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  await screen.findByText('my original note')
+  await userEvent.type(screen.getByLabelText('Exit price'), '12')
+  await userEvent.click(screen.getByRole('button', { name: 'Save exit' }))
+  expect(await screen.findByText('ES: Win · +2.00R. Saved.')).toBeInTheDocument()
+  autoConfirm = false
+  view.rerender(<TradeWorkspace mode="inbox" userId="other" initialWeek="2026-10-19" />)
+  act(() => authChanged('INITIAL_SESSION', { user: { id: 'other' } }))
+  await screen.findByText('All caught up. No trades are waiting for an exit.')
+  expect(screen.queryByText(/ES:.*Saved\./)).not.toBeInTheDocument()
 })

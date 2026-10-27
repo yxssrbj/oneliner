@@ -8,12 +8,25 @@ export function isPrice(value: unknown): value is string {
   return typeof value === 'string' && value.length <= 40 && /^(?:\d+(?:\.\d+)?|\.\d+)$/.test(value) && Number.isFinite(Number(value)) && Number(value) > 0
 }
 
-export function comparePrices(left: string, right: string): number {
+function subtractPrices(left: string, right: string) {
   const [leftWhole, leftFraction = ''] = left.split('.')
   const [rightWhole, rightFraction = ''] = right.split('.')
   const precision = Math.max(leftFraction.length, rightFraction.length)
   const difference = BigInt((leftWhole || '0') + leftFraction.padEnd(precision, '0')) - BigInt((rightWhole || '0') + rightFraction.padEnd(precision, '0'))
+  return { difference, precision }
+}
+
+export function comparePrices(left: string, right: string): number {
+  const { difference } = subtractPrices(left, right)
   return difference < BigInt(0) ? -1 : difference > BigInt(0) ? 1 : 0
+}
+
+export function priceRisk(entry: string, stop: string): string {
+  const { difference, precision } = subtractPrices(entry, stop)
+  const digits = (difference < BigInt(0) ? -difference : difference).toString().padStart(precision + 1, '0')
+  if (!precision) return digits
+  const fraction = digits.slice(-precision).replace(/0+$/, '')
+  return digits.slice(0, -precision) + (fraction ? `.${fraction}` : '')
 }
 
 export function validateDraft(input: unknown): { value: TradeDraft; error?: never } | { error: string; value?: never } {

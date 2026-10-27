@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { validateDraft, validateNote } from './validation'
+import { validateDraft, validateNote, priceRisk } from './validation'
 const draft = { originalNote: '  CL short 87.64\n', symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: '87.90', setup: 'ORB', openedAt: '2026-10-19T10:00:00.000Z' }
 test('validates confirmed fields without changing the note', () => {
   expect(validateDraft(draft)).toEqual({ value: draft })
@@ -34,4 +34,12 @@ test('preserves a valid optional exit', () => {
 })
 test.each(['0', '-1', 'NaN', 'Infinity', '0x10', ' 86 ', 86, null, '1'.repeat(41)])('rejects invalid optional exit %s', exitPrice => {
   expect(validateDraft({ ...draft, exitPrice })).toHaveProperty('error')
+})
+
+test.each([
+  ['10', '9', '1'], ['87.64', '87.90', '0.26'], ['.3', '.1', '0.2'],
+  ['100.000000000000001', '100.000000000000002', '0.000000000000001'],
+  ['00010.00', '9.000', '1'], ['1.01', '.99', '0.02'], ['1', '1.000', '0'],
+])('formats exact risk from %s and %s', (entry, stop, expected) => {
+  expect(priceRisk(entry, stop)).toBe(expected)
 })
