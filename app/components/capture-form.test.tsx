@@ -191,3 +191,14 @@ test('recent shows real saved notes and server results then clears on sign-out',
   act(() => authChanged('SIGNED_OUT'))
   expect(screen.queryByText('my saved note')).not.toBeInTheDocument()
 })
+
+for (const field of ['stopPrice', 'exitPrice'] as const) {
+  test(`restores visible review fields when only ${field} was entered`, async () => {
+    const draft = { originalNote: '', symbol: '', side: '', entryPrice: '', stopPrice: '', setup: '', openedAt: '2026-10-19T10:00', [field]: '9' }
+    sessionStorage.setItem('oneliner:capture:owner', JSON.stringify({ draft, idempotencyKey: 'key' }))
+    render(<CaptureForm userId="owner" />)
+    const input = await screen.findByLabelText(field === 'stopPrice' ? 'Initial stop' : 'Exit price (optional)')
+    expect(input).toBeVisible()
+    expect(input).toHaveValue('9')
+  })
+}

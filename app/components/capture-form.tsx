@@ -45,7 +45,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
     // Restore browser-only storage after hydration, before enabling the form.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraft(restored)
-    setDetailsVisible(Boolean(restored.symbol || restored.side || restored.entryPrice || restored.setup))
+    setDetailsVisible(Boolean(restored.symbol || restored.side || restored.entryPrice || restored.stopPrice || restored.exitPrice || restored.setup))
     setRecent(null)
     setIdempotencyKey(key)
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
