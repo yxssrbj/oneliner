@@ -11,7 +11,7 @@ test('reviews uncertain suggestions, retains a failed save, and saves one privat
   await page.route('**/api/parse', (route) => route.fulfill({ json: { suggestion: { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: null, setup: 'ORB', clarifications: ['Please confirm the initial stop price.'] } } }))
   const note = '  CL short 87.64, ORB\n'
   await page.getByLabel('Trade note').fill(note)
-  await page.getByRole('button', { name: 'Suggest fields' }).click()
+  await page.getByRole('button', { name: 'Add' }).click()
   await expect(page.getByLabel('Initial stop')).toHaveValue('')
   await expect(page.getByText('Please confirm the initial stop price.')).toBeVisible()
   await page.getByLabel('Initial stop').fill('87.50')
@@ -111,10 +111,30 @@ test('manual capture saves an exit without AI and refreshes recent trades', asyn
   await expect(page.getByLabel('Trade note')).toHaveValue('')
 })
 
+test('Add previews parsed fields and saves the edited trade only after review', async ({ page, request }, testInfo) => {
+  await registerAccount(page, request, 'addpreview')
+  await page.route('**/api/parse', route => route.fulfill({ json: { suggestion: { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: '87.90', setup: 'ORB', clarifications: [] } } }))
+  const note = 'CL short 87.64 stop 87.90 ORB'
+  await page.getByLabel('Trade note').fill(note)
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Edit details' })).toBeVisible()
+  await expect(page.locator('.capture-summary')).toContainText('87.64')
+  await expect(page.locator('.capture-summary')).toContainText('87.90')
+  await page.screenshot({ path: testInfo.outputPath('parsed-review.png'), fullPage: true })
+  expect((await (await page.request.get('/api/trades?recent=3')).json()).trades).toHaveLength(0)
+  await page.getByRole('button', { name: 'Edit details' }).click()
+  await page.getByLabel('Setup name').fill('Opening range breakout')
+  await page.getByRole('button', { name: 'Save trade' }).click()
+  await expect(page.getByText('Trade saved.', { exact: true })).toBeVisible()
+  const saved = (await (await page.request.get('/api/trades?recent=3')).json()).trades
+  expect(saved).toHaveLength(1)
+  expect(saved[0]).toMatchObject({ original_note: note, setup: 'Opening range breakout', symbol: 'CL', side: 'short' })
+})
+
 test('restores review visibility for a draft containing only a stop or exit', async ({ page, request }) => {
   await registerAccount(page, request, 'draftrestore')
+  await page.getByRole('button', { name: 'Enter details manually' }).click()
   for (const label of ['Initial stop', 'Exit price (optional)']) {
-    await page.getByRole('button', { name: 'Enter details manually' }).click()
     await page.getByLabel(label).fill('9')
     await page.reload()
     await expect(page.getByLabel(label)).toBeVisible()
@@ -148,7 +168,7 @@ for (const theme of ['dark', 'light'] as const) {
       await expect(page.getByLabel('Trade note')).toHaveCSS('outline-style', 'solid')
       await screenshot('capture-empty-focus')
       await page.keyboard.press('Tab')
-      await expect(page.getByRole('button', { name: 'Suggest fields' })).toBeFocused()
+      await expect(page.getByRole('button', { name: 'Add' })).toBeFocused()
       await page.keyboard.press('Tab')
       await expect(page.getByRole('button', { name: 'Enter details manually' })).toBeFocused()
       await page.keyboard.press('Enter')
@@ -168,7 +188,7 @@ for (const theme of ['dark', 'light'] as const) {
       await page.route('**/api/parse', route => route.fulfill({ status: 503, json: { error: 'Parser unavailable. Enter details manually.' } }))
       const note = '  ES long original private note\nsecond line  '
       await page.getByLabel('Trade note').fill(note)
-      await page.getByRole('button', { name: 'Suggest fields' }).click()
+      await page.getByRole('button', { name: 'Add' }).click()
       await expect(page.locator('.capture-form [role=alert]')).toHaveText('Parser unavailable. Enter details manually.')
       await expect(page.getByLabel('Trade note')).toHaveValue(note)
       await page.getByLabel('Symbol').fill('ES')

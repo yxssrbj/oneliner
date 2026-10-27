@@ -15,6 +15,7 @@ function emptyDraft(): TradeDraft {
 export default function CaptureForm({ userId }: { userId: string }) {
   const storageKey = `oneliner:capture:${userId}`
   const [detailsVisible, setDetailsVisible] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [recent, setRecent] = useState<{ owner: string; trades: SavedTrade[]; error?: string } | null>(null)
   const [recentRevision, setRecentRevision] = useState(0)
   const [draft, setDraft] = useState<TradeDraft | null>(null)
@@ -46,6 +47,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraft(restored)
     setDetailsVisible(Boolean(restored.symbol || restored.side || restored.entryPrice || restored.stopPrice || restored.exitPrice || restored.setup))
+    setEditing(true)
     setRecent(null)
     setIdempotencyKey(key)
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((event, session) => {
@@ -104,7 +106,6 @@ export default function CaptureForm({ userId }: { userId: string }) {
     if (!draft || busy.current || signedOut.current || !ownerReady) return
     const noteError = validateNote(draft.originalNote)
     if (noteError) { setError(noteError); return }
-    setDetailsVisible(true)
     busy.current = true; setPending('parse'); setError(''); setClarifications([])
     const requestGeneration = generation.current
     try {
@@ -115,7 +116,9 @@ export default function CaptureForm({ userId }: { userId: string }) {
       if (signedOut.current || requestGeneration !== generation.current) return
       persist({ ...draft, symbol: suggestion.symbol ?? '', side: suggestion.side ?? '', entryPrice: suggestion.entryPrice ?? '', stopPrice: suggestion.stopPrice ?? '', setup: suggestion.setup ?? '' })
       setClarifications(suggestion.clarifications)
-    } catch (cause) { if (!signedOut.current && requestGeneration === generation.current) setError(cause instanceof Error ? cause.message : 'Parsing unavailable. Enter the fields manually.') }
+      setEditing(Boolean(suggestion.clarifications.length || !suggestion.symbol || !suggestion.side || !suggestion.entryPrice || !suggestion.stopPrice || !suggestion.setup))
+      setDetailsVisible(true)
+    } catch (cause) { if (!signedOut.current && requestGeneration === generation.current) { setEditing(true); setDetailsVisible(true); setError(cause instanceof Error ? cause.message : 'Parsing unavailable. Enter the fields manually.') } }
     finally { if (requestGeneration === generation.current) { busy.current = false; setPending(null) } }
   }
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -132,7 +135,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
       if (!response.ok || !result.trade?.id) throw new Error(result.error || 'Could not confirm the trade was saved. Your draft is kept; retry saving.')
       if (signedOut.current || requestGeneration !== generation.current) return
       try { sessionStorage.removeItem(storageKey) } catch { setStorageWarning(true) }
-      setDraft(emptyDraft()); setIdempotencyKey(crypto.randomUUID()); setClarifications([]); setSaved(true); setDetailsVisible(false); setRecentRevision(value => value + 1)
+      setDraft(emptyDraft()); setIdempotencyKey(crypto.randomUUID()); setClarifications([]); setSaved(true); setDetailsVisible(false); setEditing(false); setRecentRevision(value => value + 1)
     } catch (cause) { if (!signedOut.current && requestGeneration === generation.current) setError(cause instanceof Error ? cause.message : 'Could not confirm the trade was saved. Your draft is kept; retry saving.') }
     finally { if (requestGeneration === generation.current) { busy.current = false; setPending(null) } }
   }
@@ -146,12 +149,13 @@ export default function CaptureForm({ userId }: { userId: string }) {
     <fieldset disabled={pending !== null}>
       <label htmlFor="trade-note">Trade note</label>
       <textarea id="trade-note" value={draft.originalNote} onChange={(event) => change('originalNote', event.target.value)} maxLength={1000} required rows={6} placeholder="CL short 87.64, stop 87.90, opening range breakout" aria-describedby="parse-disclosure" />
-      <p id="parse-disclosure" className="capture-hint">Suggest fields sends this note to OpenAI. Suggestions can be wrong; review every field. You can also enter the details yourself.</p>
-      <button type="button" className="secondary-button" onClick={suggest}>{pending === 'parse' ? 'Reading note…' : 'Suggest fields'}</button>
-      <button type="button" className="manual-button" onClick={() => setDetailsVisible(true)} aria-expanded={detailsVisible} aria-controls="capture-details">Enter details manually</button>
+      <p id="parse-disclosure" className="capture-hint">Add sends this note to OpenAI to fill in trade details. Review them before saving. You can also enter the details yourself.</p>
+      <button type="button" onClick={suggest}>{pending === 'parse' ? 'Reading note…' : 'Add'}</button>
+      {!detailsVisible && <button type="button" className="manual-button" onClick={() => { setEditing(true); setDetailsVisible(true) }} aria-expanded={false} aria-controls="capture-details">Enter details manually</button>}
       <div id="capture-details" hidden={!detailsVisible} className="capture-review">
       <h2 className="capture-step"><span>2</span> Review trade details</h2>
       {clarifications.length > 0 && <ul className="capture-clarifications" aria-label="Needs clarification">{Array.from(new Set(clarifications)).map((item) => <li key={item}>{item}</li>)}</ul>}
+      {editing ? <>
       <div className="capture-grid">
         <div><label htmlFor="trade-symbol">Symbol</label><input id="trade-symbol" value={draft.symbol} onChange={(event) => change('symbol', event.target.value)} maxLength={40} required autoCapitalize="characters" /></div>
         <div><label htmlFor="trade-side">Direction</label><select id="trade-side" value={draft.side} onChange={(event) => change('side', event.target.value)} required><option value="">Choose direction</option><option value="long">Long</option><option value="short">Short</option></select></div>
@@ -161,6 +165,18 @@ export default function CaptureForm({ userId }: { userId: string }) {
       <div><label htmlFor="trade-setup">Setup name</label><input id="trade-setup" value={draft.setup} onChange={(event) => change('setup', event.target.value)} maxLength={120} required /></div>
       <div><label htmlFor="trade-opened">Opened at (your local time)</label><input id="trade-opened" type="datetime-local" value={draft.openedAt} onChange={(event) => change('openedAt', event.target.value)} required /></div>
       </div>
+      </> : <>
+        <dl className="capture-summary">
+          <div><dt>Symbol</dt><dd>{draft.symbol}</dd></div>
+          <div><dt>Direction</dt><dd>{draft.side}</dd></div>
+          <div><dt>Entry price</dt><dd>{draft.entryPrice}</dd></div>
+          <div><dt>Initial stop</dt><dd>{draft.stopPrice}</dd></div>
+          <div><dt>Setup name</dt><dd>{draft.setup}</dd></div>
+          <div><dt>Opened at (your local time)</dt><dd>{draft.openedAt.replace('T', ' ')}</dd></div>
+          {draft.exitPrice && <div><dt>Exit price</dt><dd>{draft.exitPrice}</dd></div>}
+        </dl>
+        <button type="button" className="manual-button" onClick={() => setEditing(true)}>Edit details</button>
+      </>}
       <p className="capture-hint">Save now; add the exit later. The initial stop is used to calculate R.</p>
       <button type="submit">{pending === 'save' ? 'Saving…' : 'Save trade'}</button>
       </div>

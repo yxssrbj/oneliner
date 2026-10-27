@@ -22,8 +22,12 @@
 .capture-form label{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:7px}
 .capture-form textarea{min-height:156px;line-height:1.85;font-size:15px}
 .capture-form .manual-button{background:transparent;color:var(--muted);font-size:11px;padding:4px 0;min-height:32px;text-decoration:underline}
+.capture-review .manual-button{background:var(--raised);color:var(--text);border:1px solid var(--line);padding:8px 12px;min-height:40px;font-size:12px;text-decoration:none}
 .capture-review{border-top:1px solid var(--line);padding-top:23px;margin-top:10px}
 .capture-review .capture-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;margin-bottom:18px}
+.capture-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;margin:0 0 14px}
+.capture-summary dt{font-size:11px;color:var(--muted)}
+.capture-summary dd{margin:7px 0 0;overflow-wrap:anywhere;font-size:14px;font-variant-numeric:tabular-nums}
 .capture-review>.capture-hint{margin-bottom:18px}
 .capture-hint{color:var(--muted);font-size:11px}
 .capture-recent{padding:22px;background:var(--panel);border:1px solid var(--line);border-radius:.65rem;min-width:0}
@@ -37,4 +41,4 @@
 .capture-recent-item p{font-size:11px;line-height:1.6;color:var(--muted);margin:6px 0 0;overflow-wrap:anywhere}
 .capture-note-excerpt{white-space:pre-wrap}
 .capture-recent button{min-height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
-@media(max-width:900px){.capture-layout{grid-template-columns:1fr}.capture-review .capture-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.capture-layout{grid-template-columns:1fr}.capture-review .capture-grid,.capture-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}

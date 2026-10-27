@@ -19,7 +19,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900
       await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' })
       await account.click({ trial: true })
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-      expect(Math.abs((await page.getByRole('complementary').boundingBox())!.y)).toBeLessThan(1)
+      expect(Math.abs((await page.locator('.desktop-nav:visible').boundingBox())!.y)).toBeLessThan(1)
       await account.click({ trial: true })
       await page.evaluate(() => window.scrollTo(0, 0))
     }
@@ -58,7 +58,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900
       await parsing
       await route.fulfill({ status: 503, json: { error: 'Parsing unavailable. ' + 'X'.repeat(500) } })
     })
-    await page.getByRole('button', { name: 'Suggest fields' }).click()
+    await page.getByRole('button', { name: 'Add' }).click()
     await expect(page.getByRole('button', { name: 'Reading note…' })).toBeDisabled()
     await fits()
     finishParse()
