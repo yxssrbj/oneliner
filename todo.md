@@ -93,3 +93,9 @@ Branch: `feat/ui-redesign`. Risk: high; account A notes on cached resume.
 - [x] Exercise delayed browser hydration and real navigation.
 - [x] Verify 299 unit tests, 14 browser flows, typecheck, lint and build.
 - [x] Record final evidence and commit locally.
+
+## Weekly review · 28 October 2026
+
+- [x] Implement REV-01–04 on `feat/weekly-review` with one derived model and the approved desktop layout.
+- [x] Run 67 focused tests, typecheck, lint, build, and the local browser journey in both themes and sizes.
+- [ ] Merge and push only when the project owner requests it. The primary checkout's `todo.md` is the shared tracker.
