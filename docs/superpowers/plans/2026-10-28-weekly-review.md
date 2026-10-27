@@ -31,28 +31,28 @@
 
 **Files:** `lib/trades/review.ts`, `lib/trades/review.test.ts`
 
-**Interfaces:** `buildWeeklyReview(trades: ReviewTrade[], week: string)` returns metrics, ascending cumulative points, seven day rows, and setup rows. `ReviewTrade` contains the saved ID, opening time, setup, exit, and R.
+**Interfaces:** `buildWeeklyReview<T extends ReviewTrade>(trades: T[], week: string)` returns selected trades, metrics, ascending cumulative points, seven day rows, and setup rows. `ReviewTrade` contains the saved ID, opening time, setup, exit, and R.
 
-- [ ] Write tests for wins/losses/breakeven/unfinished, equal-time ordering, week boundaries, empty weeks, and reconciliation.
-- [ ] Run `npm test -- lib/trades/review.test.ts`; confirm the new tests fail for missing behavior.
-- [ ] Implement the smallest pure function using saved R without intermediate rounding.
-- [ ] Rerun the focused test and typecheck; commit the model.
+- [x] Write tests for wins/losses/breakeven/unfinished, equal-time ordering, week boundaries, empty weeks, and reconciliation.
+- [x] Run `npm test -- lib/trades/review.test.ts`; confirm the new tests fail for missing behavior.
+- [x] Implement the smallest pure function using saved R without intermediate rounding.
+- [x] Rerun the focused test and typecheck; commit the model.
 
 ### Task 2: Real review screen
 
 **Files:** `app/components/trade-workspace.tsx`, `app/components/weekly-review.tsx`, `app/components/app-shell.css`, `app/components/trade-review.test.tsx`
 
-**Interfaces:** `WeeklyReview` receives the selected week, authorized trades, and saved callback; it renders all review sections and reuses `ExitForm` and `TradeEditForm` through the existing trade card.
+**Interfaces:** `WeeklyReview` receives the selected week, authorized trades, and trade-selection callback; it renders all review sections. The parent renders the existing trade card for the selected trade, reusing `ExitForm` and `TradeEditForm`.
 
-- [ ] Add failing component tests for metric/chart/table agreement, empty states, week switching, correction refresh, and visible actions.
-- [ ] Run focused component tests and confirm the intended failures.
-- [ ] Render the metric strip, cumulative chart, setups, daily cards, trade table, and unfinished banner; style to the preview.
-- [ ] Rerun focused tests, typecheck, and lint; commit the screen.
+- [x] Add failing component tests for metric/chart/table agreement, empty states, week switching, correction refresh, and visible actions.
+- [x] Run focused component tests and confirm the intended failures.
+- [x] Render the metric strip, cumulative chart, setups, daily cards, trade table, and unfinished banner; style to the preview.
+- [x] Rerun focused tests, typecheck, and lint; commit the screen.
 
 ### Task 3: Browser and privacy verification
 
-**Files:** `e2e/review.spec.ts`, `STATUS.md`, `todo.md`
+**Files:** `e2e/outcomes.spec.ts`, `STATUS.md`, `todo.md`
 
-- [ ] Add a browser journey for a real week with an unfinished trade, exit, and correction, plus empty and error states.
-- [ ] Run the focused browser journey at 1280 × 800 and 1440 × 900; inspect screenshots in both themes.
-- [ ] Run relevant unit tests, typecheck, lint, and focused API privacy checks; record limits in status and commit.
+- [x] Extend the browser journey for a real week with an unfinished trade, exit, correction, empty week, and account isolation; component test covers load error and retry.
+- [x] Run the focused browser journey at 1280 × 800 and 1440 × 900; inspect screenshots in both themes.
+- [x] Run relevant unit tests, typecheck, lint, production build, and focused API privacy checks; record limits in status and commit.

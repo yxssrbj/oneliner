@@ -26,3 +26,8 @@
 - Remove an unfinished card only after an authorized refresh confirms the saved exit. Keep its input and card visible when saving or refreshing fails.
 - Bind saved feedback to the current account; a late exit response or previously shown message must not expose another account's trade symbol.
 - A capture page can unmount before Settings sign-out. Clear that account's persisted draft in the shared sign-out path, including an SDK `SIGNED_OUT` event followed by a remote error; preserve another account's key.
+
+## Weekly review · 28 October 2026
+
+- Derive personal chart, setup, day, table, and headline data from one authorized, opening-week-filtered trade set. Sum saved unrounded R and round only when displaying values; a late exit or corrected opening time then updates every view together.
+- Compare opening timestamps as instants, not strings. PostgreSQL timestamps may contain milliseconds or offsets, and string comparison can exclude the exact Monday boundary or misorder chart points.

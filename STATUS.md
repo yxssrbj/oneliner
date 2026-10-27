@@ -1,6 +1,6 @@
 # Oneliner status
 
-Updated: 27 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. `main` and the account branch were pushed on 26 October; no PR or merge.
+Updated: 28 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. `main` and the account branch were pushed on 26 October; no PR or merge since then.
 
 ## Account reset and new direction
 
@@ -40,3 +40,9 @@ The local launch and feature-testing commands are in [RUNBOOK.md](RUNBOOK.md), p
 Capture interaction refinement on `feat/capture-unfinished`: **Add** parses a note into a review summary; **Edit details** opens corrections before **Save trade**. Missing or uncertain suggestions and parser failures open editable fields directly. Focused component tests (18), typecheck, lint, and 11 targeted local browser journeys passed on 27 October 2026. The branch remains local and unmerged.
 
 The **Add** button now sits at the note form's right edge. A targeted browser test failed before the placement change and passed afterward; the screenshot was inspected, and typecheck and focused lint passed. The full suite was not rerun for this layout edit.
+
+## Weekly review · 28 October 2026
+
+`feat/weekly-review` in `.worktrees/weekly-review` builds on `feat/capture-unfinished`. REV-01–04 now have a compact six-metric strip, cumulative R chart, setup and daily results, a trade table with original notes, correction/exit access, and an unfinished banner. A single week-filtered model drives every section; saved R remains authoritative, and figures are rounded only for display. The branch is local, unmerged, and unpushed.
+
+Focused checks on this branch: 67 unit/component/API tests, typecheck, focused ESLint, production build, and two Playwright journeys passed. The review journey exercised opening-week boundaries, exit and correction refresh, moving a trade to a prior week, keyboard chart detail, chart import, account isolation, and 1280 × 800 and 1440 × 900 in both themes; screenshots were inspected. The group journey checked weekly aggregate sharing and access revocation. The full suite, hosted flow, and production-server browser run were not performed. The branch's dev server is running on port 3016; see [RUNBOOK.md](RUNBOOK.md).
