@@ -91,3 +91,59 @@ test('a failed later page never returns partial weekly metrics', async () => {
 test('equivalent canonical and legacy aliases remain compatible', async () => {
   expect((await GET(new Request('http://localhost/api/trades?status=open&inbox=true&weekStart=2026-10-19&week=2026-10-19'))).status).toBe(200)
 })
+
+const saved = { id: 'existing', original_note: draft.originalNote, symbol: draft.symbol, side: draft.side, entry_price: draft.entryPrice, stop_price: draft.stopPrice, setup: draft.setup, opened_at: draft.openedAt }
+test('capture stores a validated exit under the signed-in owner', async () => {
+  expect((await POST(request({ ...draft, exitPrice: '86.50', owner_id: 'victim' }))).status).toBe(201)
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({ owner_id: 'owner', exit_price: '86.50' }))
+  expect((await POST(request({ ...draft, exitPrice: '-1' }))).status).toBe(400)
+  expect(insert).toHaveBeenCalledTimes(1)
+})
+test.each([
+  ['86.500', '86.5', 200],
+  [null, '', 200],
+  ['86.5', undefined, 409],
+  [null, '86.5', 409],
+  ['86.5', '86.6', 409],
+])('retry compares stored exit %s with submitted %s', async (savedExit, exitPrice, status) => {
+  single.mockResolvedValueOnce({ data: null, error: { code: '23505' } }).mockResolvedValueOnce({ data: { ...saved, exit_price: savedExit }, error: null })
+  expect((await POST(request({ ...draft, exitPrice }))).status).toBe(status)
+  expect(eq).toHaveBeenCalledWith('owner_id', 'owner')
+  expect(eq).toHaveBeenCalledWith('idempotency_key', key)
+})
+test('recent reads are private, creation ordered and bounded to three rows', async () => {
+  const trades = [{ id: 'new' }, { id: 'middle' }, { id: 'old' }]
+  range.mockResolvedValueOnce({ data: trades, error: null })
+  const response = await GET(new Request('http://localhost/api/trades?recent=3&owner_id=victim'))
+  expect(response.status).toBe(200)
+  expect(await response.json()).toEqual({ trades })
+  expect(eq).toHaveBeenCalledWith('owner_id', 'owner')
+  expect(eq).not.toHaveBeenCalledWith('owner_id', 'victim')
+  expect(order.mock.calls).toEqual([['created_at', { ascending: false }], ['id', { ascending: false }]])
+  expect(range.mock.calls).toEqual([[0, 2]])
+  expect(response.headers.get('Cache-Control')).toBe('private, no-store')
+})
+test.each(['', '0', '1', '4', '-3', '3.0', '03', '3&recent=3'])('rejects invalid or duplicated recent limit %s', async recent => {
+  expect((await GET(new Request(`http://localhost/api/trades?recent=${recent}`))).status).toBe(400)
+  expect(select).not.toHaveBeenCalled()
+})
+test('unfiltered reads keep opening order and pagination', async () => {
+  await GET(new Request('http://localhost/api/trades'))
+  expect(order.mock.calls).toEqual([['opened_at', { ascending: false }], ['id', { ascending: false }]])
+  expect(range.mock.calls).toEqual([[0, 999]])
+})
+test('recent reads reject missing auth and database failures', async () => {
+  auth.mockResolvedValueOnce(null)
+  expect((await GET(new Request('http://localhost/api/trades?recent=3'))).status).toBe(401)
+  expect(select).not.toHaveBeenCalled()
+  range.mockRejectedValueOnce(new Error('private database detail'))
+  const response = await GET(new Request('http://localhost/api/trades?recent=3'))
+  expect(response.status).toBe(500)
+  expect(await response.json()).toEqual({ error: 'Could not load trades.' })
+})
+test.each(['week=2026-10-19', 'weekStart=2026-10-19', 'status=open', 'inbox=true', 'inbox=false'])('recent reads reject other filters %s', async filter => {
+  const response = await GET(new Request(`http://localhost/api/trades?recent=3&${filter}`))
+  expect(response.status).toBe(400)
+  expect(await response.json()).toEqual({ error: 'Recent cannot be combined with other trade filters.' })
+  expect(select).not.toHaveBeenCalled()
+})

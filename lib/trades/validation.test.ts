@@ -25,3 +25,13 @@ test('compares decimal stops without floating point rounding', () => {
 test('rejects impossible opening dates', () => {
   expect(validateDraft({ ...draft, openedAt: '2026-02-30T10:00:00Z' })).toHaveProperty('error')
 })
+
+test.each([undefined, ''])('accepts an absent exit %s', exitPrice => {
+  expect(validateDraft({ ...draft, exitPrice })).toEqual({ value: draft })
+})
+test('preserves a valid optional exit', () => {
+  expect(validateDraft({ ...draft, exitPrice: '86.50' })).toEqual({ value: { ...draft, exitPrice: '86.50' } })
+})
+test.each(['0', '-1', 'NaN', 'Infinity', '0x10', ' 86 ', 86, null, '1'.repeat(41)])('rejects invalid optional exit %s', exitPrice => {
+  expect(validateDraft({ ...draft, exitPrice })).toHaveProperty('error')
+})
