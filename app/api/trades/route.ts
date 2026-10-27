@@ -1,7 +1,7 @@
 import { nextWeekStartUtc } from '../../../lib/trades/week'
 import { summarizeTrades } from '../../../lib/trades/summary'
 import { getAuthenticatedUser } from '../../../lib/supabase/server'
-import { comparePrices, isPrice, validateDraft } from '../../../lib/trades/validation'
+import { comparePrices, validateDraft } from '../../../lib/trades/validation'
 
 const columns = 'id,original_note,symbol,side,entry_price::text,stop_price::text,setup,opened_at,exit_price::text,r_result::text,created_at,updated_at'
 const headers = { 'Cache-Control': 'private, no-store' }
@@ -24,8 +24,8 @@ export async function POST(request: Request) {
       const existing = await auth.supabase.from('trades').select(columns).eq('owner_id', auth.user.id).eq('idempotency_key', key).single()
       if (!existing.error && existing.data?.id) {
         const saved = existing.data
-        const sameExit = draft.exitPrice ? isPrice(saved.exit_price) && comparePrices(saved.exit_price, draft.exitPrice) === 0 : saved.exit_price == null
-        const same = sameExit && saved.original_note === row.original_note && saved.symbol === row.symbol && saved.side === row.side && saved.setup === row.setup && Date.parse(saved.opened_at) === Date.parse(row.opened_at) && isPrice(saved.entry_price) && isPrice(saved.stop_price) && comparePrices(saved.entry_price, row.entry_price) === 0 && comparePrices(saved.stop_price, row.stop_price) === 0
+        const sameExit = draft.exitPrice ? typeof saved.exit_price === 'string' && comparePrices(saved.exit_price, draft.exitPrice) === 0 : saved.exit_price == null
+        const same = sameExit && saved.original_note === row.original_note && saved.symbol === row.symbol && saved.side === row.side && saved.setup === row.setup && Date.parse(saved.opened_at) === Date.parse(row.opened_at) && typeof saved.entry_price === 'string' && typeof saved.stop_price === 'string' && comparePrices(saved.entry_price, row.entry_price) === 0 && comparePrices(saved.stop_price, row.stop_price) === 0
         if (!same) return failure('This trade was already saved with different details. Your corrections are kept; check the saved trade before retrying.', 409)
         return Response.json({ trade: saved }, { headers })
       }

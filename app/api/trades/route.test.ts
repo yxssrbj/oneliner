@@ -147,3 +147,11 @@ test.each(['week=2026-10-19', 'weekStart=2026-10-19', 'status=open', 'inbox=true
   expect(await response.json()).toEqual({ error: 'Recent cannot be combined with other trade filters.' })
   expect(select).not.toHaveBeenCalled()
 })
+test.each(['exitPrice', 'entryPrice', 'stopPrice'])('retry accepts PostgreSQL leading-zero normalization for %s', async field => {
+  const fractionalPrice = `.${'1'.repeat(39)}`
+  const submitted = { ...draft, [field]: fractionalPrice }
+  if (field === 'stopPrice') submitted.entryPrice = '.01'
+  const existing = { ...saved, entry_price: submitted.entryPrice, stop_price: submitted.stopPrice, exit_price: null, [field === 'exitPrice' ? 'exit_price' : field === 'entryPrice' ? 'entry_price' : 'stop_price']: `0${fractionalPrice}` }
+  single.mockResolvedValueOnce({ data: null, error: { code: '23505' } }).mockResolvedValueOnce({ data: existing, error: null })
+  expect((await POST(request(submitted))).status).toBe(200)
+})
