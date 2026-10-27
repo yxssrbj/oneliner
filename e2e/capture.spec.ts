@@ -116,6 +116,11 @@ test('Add previews parsed fields and saves the edited trade only after review', 
   await page.route('**/api/parse', route => route.fulfill({ json: { suggestion: { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: '87.90', setup: 'ORB', clarifications: [] } } }))
   const note = 'CL short 87.64 stop 87.90 ORB'
   await page.getByLabel('Trade note').fill(note)
+  const noteBox = await page.getByLabel('Trade note').boundingBox()
+  const addBox = await page.getByRole('button', { name: 'Add', exact: true }).boundingBox()
+  expect(noteBox).not.toBeNull()
+  expect(addBox).not.toBeNull()
+  expect(Math.abs(addBox!.x + addBox!.width - noteBox!.x - noteBox!.width)).toBeLessThan(3)
   await page.getByRole('button', { name: 'Add', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Edit details' })).toBeVisible()
   await expect(page.locator('.capture-summary')).toContainText('87.64')

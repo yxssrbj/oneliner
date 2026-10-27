@@ -150,7 +150,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
       <label htmlFor="trade-note">Trade note</label>
       <textarea id="trade-note" value={draft.originalNote} onChange={(event) => change('originalNote', event.target.value)} maxLength={1000} required rows={6} placeholder="CL short 87.64, stop 87.90, opening range breakout" aria-describedby="parse-disclosure" />
       <p id="parse-disclosure" className="capture-hint">Add sends this note to OpenAI to fill in trade details. Review them before saving. You can also enter the details yourself.</p>
-      <button type="button" onClick={suggest}>{pending === 'parse' ? 'Reading note…' : 'Add'}</button>
+      <button type="button" className="add-button" onClick={suggest}>{pending === 'parse' ? 'Reading note…' : 'Add'}</button>
       {!detailsVisible && <button type="button" className="manual-button" onClick={() => { setEditing(true); setDetailsVisible(true) }} aria-expanded={false} aria-controls="capture-details">Enter details manually</button>}
       <div id="capture-details" hidden={!detailsVisible} className="capture-review">
       <h2 className="capture-step"><span>2</span> Review trade details</h2>
