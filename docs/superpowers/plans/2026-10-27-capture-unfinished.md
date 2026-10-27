@@ -46,10 +46,10 @@
 
 **Interfaces:** Keep `CaptureForm({userId})`. Manual details and AI suggestions share the same editable draft. The recent panel reads `GET /api/trades?recent=3` only after browser owner confirmation and refreshes after a confirmed save.
 
-- [ ] Write failing component tests for manual reveal, parse failure, optional exit, success/retry, recent empty/error, and account-switch privacy.
-- [ ] Run focused tests and confirm the expected red behavior.
-- [ ] Reshape the component and CSS to the preview's two-column layout, preserving labels, note storage, idempotency, and owner gating.
-- [ ] Run focused tests and typecheck; commit as `Capture: build note-first desktop workspace`.
+- [x] Write failing component tests for manual reveal, parse failure, optional exit, success/retry, recent empty/error, and account-switch privacy.
+- [x] Run focused tests and confirm the expected red behavior.
+- [x] Reshape the component and CSS to the preview's two-column layout, preserving labels, note storage, idempotency, and owner gating.
+- [x] Run focused tests and typecheck; commit as `Capture: build note-first desktop workspace`.
 
 ### Task 3: Compact unfinished cards and inline exits
 
