@@ -38,3 +38,5 @@ Final focused checks: 123 trade/capture tests and 71 auth/settings tests passed 
 The local launch and feature-testing commands are in [RUNBOOK.md](RUNBOOK.md), present in both the primary checkout and `feat/capture-unfinished`. The feature worktree's dev server was opened on port 3015 on 27 October; the runbook explains how to restart it.
 
 Capture interaction refinement on `feat/capture-unfinished`: **Add** parses a note into a review summary; **Edit details** opens corrections before **Save trade**. Missing or uncertain suggestions and parser failures open editable fields directly. Focused component tests (18), typecheck, lint, and 11 targeted local browser journeys passed on 27 October 2026. The branch remains local and unmerged.
+
+The **Add** button now sits at the note form's right edge. A targeted browser test failed before the placement change and passed afterward; the screenshot was inspected, and typecheck and focused lint passed. The full suite was not rerun for this layout edit.
