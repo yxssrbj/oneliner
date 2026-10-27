@@ -25,3 +25,4 @@
 - Keep capture retries tied to the original idempotency key. Compare decimal prices numerically after storage normalization, so a valid leading-dot value does not become a false conflict.
 - Remove an unfinished card only after an authorized refresh confirms the saved exit. Keep its input and card visible when saving or refreshing fails.
 - Bind saved feedback to the current account; a late exit response or previously shown message must not expose another account's trade symbol.
+- A capture page can unmount before Settings sign-out. Clear that account's persisted draft in the shared sign-out path, including an SDK `SIGNED_OUT` event followed by a remote error; preserve another account's key.

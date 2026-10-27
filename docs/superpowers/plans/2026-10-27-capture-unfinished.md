@@ -68,7 +68,7 @@
 
 **Interfaces:** Existing local Supabase and SOPS startup; browser tests use local data only.
 
-- [ ] Exercise populated, empty, loading/error, parser failure, manual save, optional exit, retry, and sign-out/account-change flows at 1280 × 800 and 1440 × 900 in dark and light themes.
-- [ ] Compare screenshots with the approved preview and inspect focus, labels, horizontal overflow, and console errors. Record intentional differences.
-- [ ] Run the relevant Vitest files, typecheck, lint, production build, targeted Playwright tests, and focused database assertions for R/privacy; inspect each result.
-- [ ] Review every changed line and surrounding auth/privacy paths. Update status/tracker, commit documentation, and report any skipped check. Do not push without a new request.
+- [x] Exercise populated, empty, loading/error, parser failure, manual save, optional exit, retry, and sign-out/account-change flows at 1280 × 800 and 1440 × 900 in dark and light themes.
+- [x] Compare screenshots with the approved preview and inspect focus, labels, horizontal overflow, and console errors. Record intentional differences.
+- [x] Run the relevant Vitest files, typecheck, lint, production build, targeted Playwright tests, and focused database assertions for R/privacy; inspect each result.
+- [x] Review every changed line and surrounding auth/privacy paths. Update status/tracker, commit documentation, and report any skipped check. Do not push without a new request.
