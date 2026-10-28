@@ -28,7 +28,9 @@ Last updated: 28 October 2026. This file tracks product work across branches; ch
 - [x] Rework `feat/group-chat` into Chat and Weekly comparison tabs, a compact chat composer, and a group actions menu; verify owner-only rename and browser journeys.
 - [x] Match the capture page composition to the approved desktop preview on `feat/group-chat`; focused browser checks and visual inspection passed.
 - [ ] Review the updated capture page at `http://localhost:3018/`.
-- [ ] Match the unfinished trades and weekly review pages to the approved desktop preview.
+- [x] Match the weekly review page to the approved desktop preview on `feat/group-chat`; focused browser checks and visual inspection passed.
+- [ ] Review the updated weekly review at `http://localhost:3018/review`.
+- [ ] Match the unfinished trades page to the approved desktop preview.
 - [ ] Compare the complete app to the approved previews at 1280 × 800 and 1440 × 900, and verify real user journeys and privacy boundaries.
 
 ## Branch and delivery

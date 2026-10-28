@@ -70,3 +70,7 @@ The project owner clarified that `docs/previews/oneliner-desktop.html` is the ex
 ## Capture desktop preview · 28 October 2026
 
 `feat/group-chat` commit `5d2b581` aligns capture's heading, note card, recent-trades panel, and supporting text with the approved desktop preview while keeping live account data and existing capture behavior. The local app is available at `http://localhost:3018/` for visual review. Focused verification passed: 19 component tests, typecheck, focused ESLint, and browser capture journeys at 1280 × 800 and 1440 × 900 in dark mode and 1280 × 800 in light mode. Screenshots were inspected. The full suite, production build, and hosted flow were not run for this visual change. The branch is local and unpushed.
+
+## Weekly review desktop preview · 28 October 2026
+
+`feat/group-chat` commit `fb345b2` aligns the weekly review heading, week controls, metric strip, chart and setup panels, daily cards, trade table, and unfinished banner with the approved desktop preview. The existing week aggregation and account boundaries are unchanged. The review remains available at `http://localhost:3018/review` with a signed-in account. Focused verification passed: 21 component tests, typecheck, focused ESLint, and the local Playwright exit, correction, privacy, and review journey at 1280 × 800 and 1440 × 900 in both themes. Screenshots were inspected. The full suite, production build, and hosted flow were not run for this visual change. The branch is local and unpushed.
