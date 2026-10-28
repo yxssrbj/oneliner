@@ -101,7 +101,6 @@ export default function GroupChat({ groupId, viewerId, draft, onDraftChange, onA
   }
 
   return <div className="group-chat">
-    <div className="group-chat-title"><strong>Conversation</strong><span>Only members can read or send here</span></div>
     <div className="group-chat-log" role="log" aria-label="Group conversation" ref={listRef}>
       {hasOlder && <button type="button" disabled={olderPending} onClick={() => void loadOlder()}>{olderPending ? 'Loading…' : 'Load older messages'}</button>}
       {loading && <p role="status">Loading conversation…</p>}
@@ -117,9 +116,12 @@ export default function GroupChat({ groupId, viewerId, draft, onDraftChange, onA
     <div className="group-chat-composer">
       {error && <p role="alert" className="error">{error}</p>}
       {preview && <div className="group-chat-attachment"><img src={preview} alt="Picture ready to send" /><span>{draft.image?.name}</span><button type="button" onClick={() => onDraftChange({...draft,image:null})}>Remove picture</button></div>}
-      <label htmlFor="group-message">Message</label>
-      <textarea id="group-message" maxLength={2000} value={draft.text} onChange={event => onDraftChange({...draft,text:event.target.value})} placeholder="Share an idea, a lesson, or a chart…" onKeyDown={event => { if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); void send() } }} />
-      <div className="group-chat-actions"><label className="group-chat-file">Add picture<input aria-label="Add picture" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { const file=event.target.files?.[0]; if (file) onDraftChange({...draft,image:file}); event.target.value='' }} /></label><span>JPEG, PNG or WebP · 1 MB max</span><button type="button" disabled={pending || (!draft.text.trim() && !draft.image)} onClick={() => void send()}>{pending ? 'Sending…' : 'Send message'}</button></div>
+      <div className="group-chat-compose-row">
+        <label className="sr-only" htmlFor="group-message">Message</label>
+        <textarea id="group-message" rows={1} maxLength={2000} value={draft.text} onChange={event => onDraftChange({...draft,text:event.target.value})} placeholder="Message this group…" onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send() } }} />
+        <label className="group-chat-file" title="Attach picture"><span aria-hidden="true">+</span><input aria-label="Attach picture" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { const file=event.target.files?.[0]; if (file) onDraftChange({...draft,image:file}); event.target.value='' }} /></label>
+        <button type="button" disabled={pending || (!draft.text.trim() && !draft.image)} onClick={() => void send()}>{pending ? 'Sending…' : 'Send'}</button>
+      </div>
     </div>
   </div>
 }

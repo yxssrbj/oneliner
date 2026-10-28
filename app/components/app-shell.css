@@ -133,6 +133,9 @@ summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outli
 .groups-workspace button:disabled,.group-form button:disabled{opacity:.6;cursor:wait}
 .groups-rail,.groups-members{padding:1.4rem 1rem;min-width:0;background:var(--sidebar)}
 .groups-rail{display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.groups-rail-heading{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:1rem}
+.groups-rail-heading .groups-eyebrow{margin:0}
+.groups-workspace .groups-rail-heading button{width:30px;height:30px;min-height:30px;padding:0;border:0;background:transparent;font-size:1.4rem;line-height:1}
 .groups-members{border-left:1px solid var(--line)}
 .groups-eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.7rem;color:var(--muted);font-weight:700;margin-bottom:1.2rem}
 .group-list{display:grid;gap:.35rem}
@@ -140,18 +143,24 @@ summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outli
 .groups-workspace .group-list button[aria-pressed=true]{color:var(--accent);background:var(--raised)}
 .groups-rail-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:1.1rem}
 .groups-rail-bottom p{font-size:.78rem;margin:0 0 1rem}
-.groups-workspace .groups-rail-bottom button,.group-form button{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.group-form button{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
 .groups-main{min-width:0;display:flex;flex-direction:column}
 .groups-head{padding:1.3rem 1.6rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .groups-head h2{font-size:1.3rem;margin:0 0 .2rem}
 .groups-head p{font-size:.78rem;margin:0}
 .groups-head-actions{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.groups-head-actions{position:relative}
+.groups-workspace .groups-head-actions>button{font-size:1.25rem;line-height:1;min-width:40px}
+.group-options{position:absolute;right:0;top:calc(100% + .4rem);z-index:5;display:grid;gap:.2rem;padding:.35rem;min-width:155px;background:var(--panel);border:1px solid var(--line);border-radius:.55rem;box-shadow:0 12px 28px #0004}
+.groups-workspace .group-options button{text-align:left;border:0;background:transparent;white-space:nowrap}
+.groups-workspace .group-options button:hover{background:var(--raised)}
+.group-tabs{display:flex;gap:.15rem;padding:.65rem 1.6rem 0;border-bottom:1px solid var(--line);background:var(--sidebar)}
+.groups-workspace .group-tabs button{background:transparent;border:1px solid transparent;border-bottom:0;border-radius:.5rem .5rem 0 0;color:var(--muted);padding:.55rem 1rem;margin-bottom:-1px}
+.groups-workspace .group-tabs button[aria-selected=true]{background:var(--panel);border-color:var(--line);color:var(--text)}
+.group-tab-panel{flex:1;min-height:0;display:flex;flex-direction:column}
 .groups-comparison-label{padding:1.3rem 1.6rem 0;border-top:1px solid var(--line)}
-.groups-comparison-label h3{font-size:1rem;margin:0 0 .25rem}
 .groups-comparison-label p{font-size:.78rem;margin:0;color:var(--muted)}
-.group-chat{display:flex;flex-direction:column;height:min(560px,calc(100dvh - 220px));min-height:380px;min-width:0}
-.group-chat-title{padding:.7rem 1.6rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.8rem;font-size:.82rem}
-.group-chat-title span{color:var(--muted);font-size:.75rem}
+.group-chat{display:flex;flex-direction:column;flex:1;height:calc(100dvh - 250px);min-height:380px;min-width:0}
 .group-chat-log{flex:1;overflow-y:auto;min-height:0;padding:1rem 1.6rem;display:flex;flex-direction:column;gap:1rem}
 .group-chat-log>button{align-self:center}
 .group-chat-empty{margin:auto;color:var(--muted);font-size:.84rem;text-align:center}
@@ -161,14 +170,14 @@ summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outli
 .group-chat-meta time{color:var(--muted);font-size:.7rem}
 .group-chat-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:.25rem 0 .4rem;font-size:.84rem;line-height:1.5}
 .group-chat-message img{display:block;max-width:min(100%,360px);max-height:240px;object-fit:contain;border:1px solid var(--line);border-radius:.55rem}
-.group-chat-composer{border-top:1px solid var(--line);padding:.85rem 1.6rem 1rem;background:var(--raised)}
-.group-chat-composer>label{display:block;font-size:.75rem;font-weight:650;margin-bottom:.35rem}
-.group-chat-composer textarea{display:block;width:100%;min-height:64px;max-height:140px;resize:vertical;border:1px solid var(--line);background:var(--field);color:var(--text);border-radius:.5rem;padding:.65rem;font:inherit;font-size:.82rem}
-.group-chat-actions{display:flex;align-items:center;gap:.65rem;margin-top:.55rem;flex-wrap:wrap}
-.group-chat-actions span{font-size:.7rem;color:var(--muted);margin-right:auto}
-.group-chat-file{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);padding:.55rem .75rem;font-size:.78rem;font-weight:600;cursor:pointer}
+.group-chat-composer{border-top:1px solid var(--line);padding:.9rem 1.6rem 1.1rem;background:var(--panel)}
+.group-chat-compose-row{display:flex;align-items:end;gap:.35rem;padding:.35rem;background:var(--field);border:1px solid var(--line);border-radius:.65rem}
+.group-chat-compose-row:focus-within{border-color:var(--accent)}
+.group-chat-compose-row textarea{display:block;flex:1;min-width:0;min-height:40px;max-height:140px;resize:vertical;border:0;background:transparent;color:var(--text);padding:.55rem .7rem;font:inherit;font-size:.86rem;outline:0}
+.group-chat-file{position:relative;overflow:hidden;display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:.45rem;color:var(--muted);font-size:1.4rem;cursor:pointer}
+.group-chat-file:hover{background:var(--raised);color:var(--text)}
 .group-chat-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
-.groups-workspace .group-chat-actions>button{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.groups-workspace .group-chat-compose-row>button{background:var(--accent);color:var(--accent-text);border-color:var(--accent);height:40px;min-height:40px}
 .group-chat-attachment{display:flex;align-items:center;gap:.7rem;margin-bottom:.65rem;font-size:.75rem;min-width:0}
 .group-chat-attachment img{width:48px;height:42px;object-fit:cover;border-radius:.3rem}
 .group-chat-attachment span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
@@ -204,6 +213,7 @@ summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outli
 .groups-member-note{font-size:.72rem;border-top:1px solid var(--line);padding-top:1rem;margin-top:1.5rem}
 .group-create-dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:.75rem;padding:1.5rem;width:min(420px,calc(100vw - 2rem));box-shadow:0 25px 80px #0008}
 .group-create-dialog::backdrop{background:#000b}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .group-dialog-head{display:flex;align-items:center;justify-content:space-between}
 .group-dialog-head h2{margin:0;font-size:1.3rem}
 .group-create-dialog>p{font-size:.85rem;margin:.5rem 0 1.3rem}
