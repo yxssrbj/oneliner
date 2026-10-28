@@ -194,7 +194,10 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
         <div><h2>{details.group.name}</h2><p>Private group · Self-reported results</p></div>
         <div className="groups-head-actions"><button onClick={() => comparisonRef.current?.scrollIntoView?.({behavior:'smooth'})}>Weekly comparison</button>{owner ? <button disabled={pending} onClick={() => act('close')}>Close group</button> : <button disabled={pending} onClick={() => act('leave')}>Leave group</button>}</div>
       </header>}
-      {details && <GroupChat key={selected} groupId={selected} viewerId={details.viewerId} draft={drafts[selected] || {text:'',image:null}} onDraftChange={draft => setDrafts(current => ({...current,[selected]:draft}))} onAccessLost={refresh} />}
+      {details && <GroupChat key={selected} groupId={selected} viewerId={details.viewerId} draft={drafts[selected] || {text:'',image:null}} onDraftChange={change => setDrafts(current => {
+        const draft = current[selected] || {text:'',image:null}
+        return {...current,[selected]:typeof change === 'function' ? change(draft) : change}
+      })} onAccessLost={refresh} />}
       {details && <div ref={comparisonRef} className="groups-comparison-label"><h3>Weekly comparison</h3><p>Self-reported results for the same opening week</p></div>}
       {groups.some(group => group.id === selected) && <div className="groups-week-picker week-picker">
         <button onClick={() => changeWeek(-1)}>Previous week</button>

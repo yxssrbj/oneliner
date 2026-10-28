@@ -1,15 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 
 export type ChatDraft = { text: string; image: File | null }
-type Message = { id: string; senderId: string; displayName: string; body: string | null; imageType: string | null; createdAt: string }
-type Props = { groupId: string; viewerId: string; draft: ChatDraft; onDraftChange: (draft: ChatDraft) => void; onAccessLost: () => void }
+type Message = { id: string; senderId: string | null; displayName: string; body: string | null; imageType: string | null; createdAt: string }
+type Props = { groupId: string; viewerId: string; draft: ChatDraft; onDraftChange: Dispatch<SetStateAction<ChatDraft>>; onAccessLost: () => void }
 
 export default function GroupChat({ groupId, viewerId, draft, onDraftChange, onAccessLost }: Props) {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [history, setHistory] = useState<{messages:Message[];hasOlder:boolean;olderExhausted:boolean}>({messages:[],hasOlder:false,olderExhausted:false})
+  const { messages, hasOlder } = history
   const [loading, setLoading] = useState(true)
-  const [hasOlder, setHasOlder] = useState(false)
   const [error, setError] = useState('')
   const [pending, setPending] = useState(false)
   const [olderPending, setOlderPending] = useState(false)
@@ -32,12 +32,15 @@ export default function GroupChat({ groupId, viewerId, draft, onDraftChange, onA
     try {
       const page = await read(`/api/groups/${groupId}/messages`, signal)
       if (signal?.aborted) return
-      setMessages(current => {
-        if (current.length && page.length === 50 && !page.some(item => current.some(old => old.id === item.id))) return page
+      setHistory(current => {
+        const gap = current.messages.length > 0 && page.length === 50 && !page.some(item => current.messages.some(old => old.id === item.id))
+        if (gap) return {messages:page,hasOlder:true,olderExhausted:false}
         const known = new Set(page.map(item => item.id))
-        return [...page, ...current.filter(item => !known.has(item.id))]
+        return { ...current,
+          messages:[...page, ...current.messages.filter(item => !known.has(item.id))],
+          hasOlder:current.olderExhausted ? false : page.length === 50,
+        }
       })
-      setHasOlder(value => value || page.length === 50)
       setError('')
     } catch (caught) {
       if (!signal?.aborted) setError(caught instanceof Error ? caught.message : 'Could not load messages. Try again.')
@@ -71,16 +74,16 @@ export default function GroupChat({ groupId, viewerId, draft, onDraftChange, onA
     setError('')
     try {
       const page = await read(`/api/groups/${groupId}/messages?before=${encodeURIComponent(oldest.createdAt)}&beforeId=${oldest.id}`)
-      setMessages(current => {
-        const known = new Set(current.map(item => item.id))
-        return [...current, ...page.filter(item => !known.has(item.id))]
+      setHistory(current => {
+        const known = new Set(current.messages.map(item => item.id))
+        return {...current,messages:[...current.messages, ...page.filter(item => !known.has(item.id))],hasOlder:page.length===50,olderExhausted:page.length<50}
       })
-      setHasOlder(page.length === 50)
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not load older messages.') }
     finally { setOlderPending(false) }
   }
   async function send() {
     if (pending || (!draft.text.trim() && !draft.image)) return
+    const submitted = draft
     setPending(true)
     setError('')
     const form = new FormData()
@@ -91,7 +94,7 @@ export default function GroupChat({ groupId, viewerId, draft, onDraftChange, onA
       const data = await response.json()
       if ([401,403,404].includes(response.status)) accessLostRef.current()
       if (!response.ok) throw new Error(data.error || 'Could not send message. Try again.')
-      onDraftChange({ text: '', image: null })
+      onDraftChange(current => current.text === submitted.text && current.image === submitted.image ? { text: '', image: null } : current)
       await latest()
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not send message. Try again.') }
     finally { setPending(false) }

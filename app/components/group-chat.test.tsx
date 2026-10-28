@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import GroupChat from './group-chat'
@@ -45,5 +45,37 @@ test('successful send clears draft only after the server confirms it', async () 
   await userEvent.click(screen.getByRole('button',{name:'Send message'}))
   expect(onDraftChange).not.toHaveBeenCalledWith({text:'',image:null})
   release(Response.json({message:{id:'3',senderId:viewerId,body:'Hello',createdAt:new Date().toISOString(),imageType:null}},{status:201}))
-  await waitFor(() => expect(onDraftChange).toHaveBeenCalledWith({text:'',image:null}))
+  await waitFor(() => expect(onDraftChange).toHaveBeenCalled())
+  const update = onDraftChange.mock.lastCall?.[0]
+  expect(update({text:'Hello',image:null})).toEqual({text:'',image:null})
+})
+test('a send cannot erase a newer draft typed while it was pending', async () => {
+  let release:(response:Response)=>void = () => {}
+  fetchMock.mockImplementation((_url:string,options?:RequestInit) => options?.method === 'POST'
+    ? new Promise<Response>(resolve => { release=resolve })
+    : Promise.resolve(Response.json({messages:[]})))
+  const changed = vi.fn()
+  const props = {groupId,viewerId,onDraftChange:changed,onAccessLost:vi.fn()}
+  const {rerender} = render(<GroupChat {...props} draft={{text:'First',image:null}} />)
+  await userEvent.click(screen.getByRole('button',{name:'Send message'}))
+  rerender(<GroupChat {...props} draft={{text:'First plus more',image:null}} />)
+  release(Response.json({message:{id:'3'}},{status:201}))
+  await waitFor(() => expect(changed).toHaveBeenCalled())
+  expect(changed).not.toHaveBeenCalledWith({text:'',image:null})
+  expect(changed.mock.lastCall?.[0]({text:'First plus more',image:null})).toEqual({text:'First plus more',image:null})
+})
+test('polling does not offer older history again after the last page', async () => {
+  let poll:()=>void = () => {}
+  vi.spyOn(window,'setInterval').mockImplementation((callback,delay) => { if (delay === 5000) poll=callback as ()=>void; return 1 as unknown as NodeJS.Timeout })
+  const newest = Array.from({length:50},(_,index)=>({id:String(100-index),senderId:viewerId,displayName:'Me',body:String(index),imageType:null,createdAt:new Date(Date.UTC(2026,9,28,0,0,50-index)).toISOString()}))
+  const older = [{id:'1',senderId:viewerId,displayName:'Me',body:'Oldest',imageType:null,createdAt:'2026-10-27T00:00:00Z'}]
+  fetchMock.mockImplementation((url:string)=>Promise.resolve(Response.json({messages:url.includes('?before=')?older:newest})))
+  render(<GroupChat groupId={groupId} viewerId={viewerId} draft={draft} onDraftChange={onDraftChange} onAccessLost={vi.fn()} />)
+  await userEvent.click(await screen.findByRole('button',{name:'Load older messages'}))
+  expect(await screen.findByText('Oldest')).toBeVisible()
+  expect(screen.queryByRole('button',{name:'Load older messages'})).not.toBeInTheDocument()
+  await act(async()=>{poll()})
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3))
+  expect(screen.queryByRole('button',{name:'Load older messages'})).not.toBeInTheDocument()
+  vi.restoreAllMocks()
 })
