@@ -8,6 +8,8 @@ The selected group shows a continuous, chronological conversation in the center 
 
 The left rail has a plus button beside Your circles to create a group. The group header has a three-dot menu. Owners can rename, share an invite link, or delete the group; members can leave. Sharing opens the existing invite-link controls. Comparison weeks use previous and next chevron buttons. Group rename is owner-only and changes no membership or journal data. Deleting a group keeps personal trades but permanently removes its messages and pictures.
 
+On desktop, Groups fills the page area beside the main navigation. Its top page heading is compact, and the chat composer has no manual resize handle. Clicking outside an open group menu closes it.
+
 Messages are persistent and show the sender's current display name and send time. The newest 50 load first; members can load older messages. The open conversation refreshes every five seconds while the tab is visible and immediately after a successful send. This is a small-group delivery choice, not a presence or instant-delivery promise.
 
 The composer allows 1–2000 trimmed text characters and one JPEG, PNG, or WebP picture up to 1 MiB. A picture-only message is valid. The UI shows a local picture preview and lets the member remove it before sending. On a failed send, text and picture remain in the composer with a visible error. The server, not the browser, assigns sender and time. No edit, delete, reactions, typing indicator, online state, or threading in this slice.
