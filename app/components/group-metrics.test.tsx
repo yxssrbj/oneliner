@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import {beforeEach,expect,test,vi} from 'vitest'
-import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
+import {act,cleanup,fireEvent,render,screen,waitFor,within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import GroupMetrics from './group-metrics'
@@ -13,21 +13,47 @@ const id='50000000-0000-0000-0000-000000000001'
 const fetchMock=vi.fn()
 const response=(data:unknown,status=200)=>Promise.resolve(Response.json(data,{status}))
 beforeEach(()=>{cleanup();vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id}},error:null});authChanged=undefined;onAuthStateChange.mockImplementation(callback=>{authChanged=callback;return {data:{subscription:{unsubscribe:vi.fn()}}}});vi.stubGlobal('fetch',fetchMock);vi.spyOn(window,'confirm').mockReturnValue(true)
+Object.defineProperty(HTMLDialogElement.prototype,'showModal',{configurable:true,value:function(this:HTMLDialogElement){this.open=true}})
+Object.defineProperty(HTMLDialogElement.prototype,'close',{configurable:true,value:function(this:HTMLDialogElement){this.open=false;this.dispatchEvent(new Event('close'))}})
 fetchMock.mockImplementation((url:string)=>url==='/api/profile'?response({displayName:'Owner'}):url==='/api/groups'?response({groups:[{id,name:'Friends',ownerId:id}]}):url.includes('/metrics')?response({metrics:[{displayName:'Owner',totalR:1,winRate:1/3,completedCount:3}]}):response({group:{id,name:'Friends',ownerId:id},members:[{userId:id,displayName:'Owner'},{userId:'other',displayName:'Member'}],inviteToken:id,viewerId:id}))})
 test('shows only aggregate columns and owner controls',async()=>{
 render(<GroupMetrics initialGroup={id}/>);
 expect(await screen.findByRole('table',{name:'Weekly group comparison'})).toHaveTextContent('Owner')
-expect((screen.getByLabelText('Invite link') as HTMLInputElement).value).toContain(`/friends/invite/${id}`)
+expect((screen.getByLabelText('Invite friends') as HTMLInputElement).value).toContain(`/friends/invite/${id}`)
 expect(screen.getByRole('button',{name:'Remove Member'})).toBeVisible()
 expect(screen.getByText(/Self-reported/)).toBeVisible()
 expect(screen.queryByText(/unfinished/i)).not.toBeInTheDocument()
+})
+test('places the comparison between the group list and member list',async()=>{
+render(<GroupMetrics initialGroup={id}/>);
+expect(await screen.findByRole('table',{name:'Weekly group comparison'})).toBeVisible()
+expect(screen.getByRole('navigation',{name:'Your groups'})).toContainElement(screen.getByRole('button',{name:'Friends'}))
+const members=screen.getByRole('complementary',{name:'Group members'})
+expect(members).toHaveTextContent('Owner')
+expect(members).toHaveTextContent('Member')
+expect(members).toHaveTextContent('You')
+expect(members).toHaveTextContent('Group owner')
+})
+test('opens group creation from the left rail instead of showing the form all the time',async()=>{
+render(<GroupMetrics initialGroup={id}/>);
+await screen.findByRole('table')
+expect(screen.queryByLabelText('Group name')).not.toBeInTheDocument()
+await userEvent.click(screen.getByRole('button',{name:'Create group'}))
+expect(screen.getByRole('dialog',{name:'Create group'})).toContainElement(screen.getByLabelText('Group name'))
+})
+test('shows unavailable win rate for a week with no completed trades',async()=>{
+fetchMock.mockImplementation((url:string)=>url==='/api/profile'?response({displayName:'Owner'}):url==='/api/groups'?response({groups:[{id,name:'Friends',ownerId:id}]}):url.includes('/metrics')?response({metrics:[{displayName:'Owner',totalR:0,winRate:null,completedCount:0}]}):response({group:{id,name:'Friends',ownerId:id},members:[{userId:id,displayName:'Owner'}],inviteToken:id,viewerId:id}))
+render(<GroupMetrics initialGroup={id}/>);
+const table=await screen.findByRole('table',{name:'Weekly group comparison'})
+expect(table).toHaveTextContent('—')
+expect(table).not.toHaveTextContent('0.0%')
 })
 test('focus clears inaccessible group content',async()=>{
 render(<GroupMetrics initialGroup={id}/>);await screen.findByRole('table')
 fetchMock.mockImplementation((url:string)=>url==='/api/groups'?response({groups:[]}):response({error:'Group unavailable.'},404))
 fireEvent.focus(window)
 await waitFor(()=>expect(screen.queryByRole('table')).not.toBeInTheDocument())
-expect(screen.queryByLabelText('Invite link')).not.toBeInTheDocument()
+expect(screen.queryByLabelText('Invite friends')).not.toBeInTheDocument()
 })
 test('failed create preserves input and allows retry',async()=>{
 render(<GroupForm onCreated={vi.fn()}/>);await waitFor(()=>expect(screen.getByRole('button',{name:'Create group'})).toBeEnabled())
@@ -117,7 +143,7 @@ test('removal with no remaining groups clears selection and stale requests',asyn
 render(<GroupMetrics initialGroup={id}/>);await screen.findByRole('table')
 fetchMock.mockImplementation((url:string)=>url==='/api/profile'?response({displayName:'Owner'}):url==='/api/groups'?response({groups:[]}):response({error:'Group unavailable.'},404))
 fetchMock.mockClear();fireEvent.focus(window)
-expect(await screen.findByText('No groups yet. Create one or open an invite link.')).toBeVisible()
+expect(await screen.findByText('Create a group or open an invite link to compare weekly results.')).toBeVisible()
 expect(screen.queryByRole('table')).not.toBeInTheDocument()
 expect(screen.queryByRole('button',{name:'Previous week'})).not.toBeInTheDocument()
 expect(fetchMock.mock.calls.some(([url])=>url.includes(`/api/groups/${id}`))).toBe(false)
@@ -135,12 +161,14 @@ expect(screen.queryByRole('button',{name:'Previous week'})).not.toBeInTheDocumen
 test.each(['friends','invite'])('%s form revalidates identity before allowing writes',async(surface)=>{
 render(surface==='friends'?<GroupMetrics initialGroup={id}/>:<GroupForm inviteToken={id}/>)
 const action=surface==='friends'?'Create group':'Join group'
-await waitFor(()=>expect(screen.getByRole('button',{name:action})).toBeEnabled())
+if(surface==='friends')await userEvent.click(screen.getByRole('button',{name:'Create group'}))
+const actionButton=()=>surface==='friends'?within(screen.getByRole('dialog',{name:'Create group'})).getByRole('button',{name:action}):screen.getByRole('button',{name:action})
+await waitFor(()=>expect(actionButton()).toBeEnabled())
 getUser.mockResolvedValue({data:{user:{id:otherId}},error:null})
 fetchMock.mockImplementation((url:string)=>url==='/api/profile'?response({displayName:null}):url==='/api/groups'?response({groups:[]}):response({error:'Group unavailable.'},404))
 if(surface==='friends')fireEvent.focus(window)
 else fireEvent(document,new Event('visibilitychange'))
-await waitFor(()=>expect(screen.getByRole('button',{name:action})).toBeDisabled())
+await waitFor(()=>expect(actionButton()).toBeDisabled())
 expect(await screen.findByRole('link',{name:/Settings/})).toHaveAttribute('href','/settings')
 })
 test('a previous-session profile response cannot restore identity after auth changes',async()=>{
@@ -187,5 +215,5 @@ fetchMock.mockImplementation((url:string)=>url==='/api/profile'?response({displa
 act(()=>authChanged?.('SIGNED_IN',{user:{id:otherId}}))
 await waitFor(()=>expect(screen.queryByRole('table')).not.toBeInTheDocument())
 expect(screen.queryByRole('button',{name:'Friends'})).not.toBeInTheDocument()
-expect(screen.getByRole('button',{name:'Create group'})).toBeDisabled()
+expect(screen.queryByRole('table')).not.toBeInTheDocument()
 })

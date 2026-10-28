@@ -127,29 +127,68 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .trade-form>p{font-size:.85rem}
 summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(min-width:1000px){main:has(.trade-workspace){max-width:1280px}.week-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.trade-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.groups-workspace{display:grid;gap:1.2rem;min-width:0}
-.groups-workspace>p{margin:0}
-.group-forms{display:grid;gap:1.2rem;min-width:0}
-.group-form{display:grid;gap:.7rem;padding:1rem;border:1px solid var(--line);border-radius:.8rem;min-width:0;background:var(--panel)}
-.group-form p{margin:0;font-size:.9rem}
-.groups-workspace button,.group-form button,.invite-sign-in{border:0;border-radius:.6rem;background:var(--accent);color:var(--accent-text);padding:.7rem 1rem;font-weight:700;cursor:pointer}
+.groups-workspace{display:grid;grid-template-columns:minmax(158px,195px) minmax(0,1fr) minmax(170px,215px);min-height:calc(100dvh - 138px);border:1px solid var(--line);border-radius:.75rem;overflow:hidden;background:var(--panel);min-width:0}
+.groups-workspace button,.group-form button,.invite-sign-in{border:1px solid var(--line);border-radius:.5rem;background:var(--raised);color:var(--text);padding:.55rem .75rem;font-weight:600;cursor:pointer}
+.groups-workspace button:hover:not(:disabled),.group-form button:hover:not(:disabled){border-color:var(--accent)}
 .groups-workspace button:disabled,.group-form button:disabled{opacity:.6;cursor:wait}
-.group-form input,.group-controls input{width:100%;min-width:0;background:var(--bg);color:var(--text);border:1px solid #667060;border-radius:.5rem;padding:.75rem}
-.group-list{display:flex;gap:.6rem;flex-wrap:wrap}
-.groups-workspace .group-list button{background:var(--raised);color:var(--text);overflow-wrap:anywhere;max-width:100%}
-.groups-workspace .group-list button[aria-pressed=true]{color:var(--accent);outline:1px solid var(--accent)}
-.group-table{border:1px solid var(--line);border-radius:.8rem;overflow-x:auto}
-.group-table table{width:100%;border-collapse:collapse;font-size:.8rem}
-.group-table th,.group-table td{padding:.7rem .4rem;text-align:right;border-bottom:1px solid var(--line)}
-.group-table th:first-child{text-align:left;overflow-wrap:anywhere;max-width:8rem}
-.group-table thead{background:var(--panel);color:var(--muted)}
-.group-controls{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1rem;min-width:0}
-.group-controls label{width:100%}
-.group-controls button{max-width:100%;overflow-wrap:anywhere}
+.groups-rail,.groups-members{padding:1.4rem 1rem;min-width:0;background:var(--sidebar)}
+.groups-rail{display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.groups-members{border-left:1px solid var(--line)}
+.groups-eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.7rem;color:var(--muted);font-weight:700;margin-bottom:1.2rem}
+.group-list{display:grid;gap:.35rem}
+.groups-workspace .group-list button{border:0;background:transparent;color:var(--muted);text-align:left;overflow-wrap:anywhere;width:100%}
+.groups-workspace .group-list button[aria-pressed=true]{color:var(--accent);background:var(--raised)}
+.groups-rail-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:1.1rem}
+.groups-rail-bottom p{font-size:.78rem;margin:0 0 1rem}
+.groups-workspace .groups-rail-bottom button,.group-form button{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.groups-main{min-width:0;display:flex;flex-direction:column}
+.groups-head{padding:1.3rem 1.6rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.groups-head h2{font-size:1.3rem;margin:0 0 .2rem}
+.groups-head p{font-size:.78rem;margin:0}
+.groups-week-picker{padding:1rem 1.6rem;border-bottom:1px solid var(--line);font-size:.8rem}
+.groups-message,.groups-empty{padding:2rem 1.6rem}
+.groups-empty{margin:auto;text-align:center}
+.groups-empty h2{margin:0 0 .5rem}
+.groups-results{padding:1.5rem 1.6rem;min-width:0}
+.groups-section-title{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.85rem}
+.groups-section-title h3{font-size:1rem;margin:0}
+.groups-section-title span,.groups-disclosure{font-size:.76rem;color:var(--muted)}
+.group-table{border:1px solid var(--line);border-radius:.5rem;overflow-x:auto}
+.group-table table{width:100%;border-collapse:collapse;font-size:.82rem}
+.group-table th,.group-table td{padding:.85rem .7rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.group-table th:first-child{text-align:left;overflow-wrap:anywhere;white-space:normal;min-width:110px}
+.group-table thead{background:var(--raised);color:var(--muted)}
+.group-table tbody tr:last-child>*{border-bottom:0}
+.group-positive{color:var(--positive)}.group-negative{color:var(--negative)}
+.groups-disclosure{margin:1rem 0 0}
+.group-controls{display:grid;gap:.65rem;margin-top:2rem;padding-top:1.25rem;border-top:1px solid var(--line)}
+.group-controls label{font-size:.8rem;font-weight:650}
+.group-invite-row{display:flex;gap:.5rem;min-width:0}
+.group-form input,.group-controls input{width:100%;min-width:0;background:var(--field);color:var(--text);border:1px solid var(--line);border-radius:.5rem;padding:.65rem}
+.group-controls>button{justify-self:start}
+.group-controls p{font-size:.78rem;margin:0}
+.group-member{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;min-width:0}
+.group-member-avatar{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--raised);font-size:.68rem;color:var(--accent)}
+.group-member-info{min-width:0;flex:1;display:grid;line-height:1.3}
+.group-member-info strong{font-size:.78rem;overflow-wrap:anywhere}
+.group-member-info small{font-size:.69rem;color:var(--muted)}
+.groups-workspace .group-member button{font-size:.66rem;padding:.28rem .4rem}
+.groups-member-note{font-size:.72rem;border-top:1px solid var(--line);padding-top:1rem;margin-top:1.5rem}
+.group-create-dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:.75rem;padding:1.5rem;width:min(420px,calc(100vw - 2rem));box-shadow:0 25px 80px #0008}
+.group-create-dialog::backdrop{background:#000b}
+.group-dialog-head{display:flex;align-items:center;justify-content:space-between}
+.group-dialog-head h2{margin:0;font-size:1.3rem}
+.group-create-dialog>p{font-size:.85rem;margin:.5rem 0 1.3rem}
+.group-forms{min-width:0}
+.group-form{display:grid;gap:.7rem;min-width:0}
+.group-form p{margin:0;font-size:.85rem}
+.group-form a{color:var(--accent);text-decoration:underline}
+.group-form button{justify-self:start}
 .invite-page{padding-top:3rem;max-width:600px}
 .invite-page h1{margin-top:2rem}
 .invite-sign-in{display:inline-block;margin-top:1rem}
-@media(min-width:760px){.group-forms:has(form:nth-child(2)){grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1050px){.groups-workspace{grid-template-columns:160px minmax(0,1fr)}.groups-members{grid-column:2;border-left:0;border-top:1px solid var(--line)}}
+@media(max-width:720px){.groups-workspace{grid-template-columns:1fr}.groups-rail{border-right:0;border-bottom:1px solid var(--line)}.groups-members{grid-column:1}.groups-rail-bottom{margin-top:1rem}.groups-head,.groups-week-picker,.groups-results{padding-left:1rem;padding-right:1rem}}
 
 .account-controls{margin-top:auto;padding-top:1.5rem;display:grid;gap:.7rem;min-width:0}
 .account-name{overflow-wrap:anywhere;font-size:.9rem}
