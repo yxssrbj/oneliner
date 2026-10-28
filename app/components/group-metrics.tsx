@@ -146,7 +146,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
   const owner = details?.viewerId === details?.group.ownerId
   return <div className="groups-workspace">
     <p>Compare weekly summaries with a private group of friends.</p>
-    <GroupForm onCreated={select} onProfileSaved={() => setRevision(value => value + 1)} onIdentityChange={refresh} />
+    <GroupForm onCreated={select} onIdentityChange={refresh} />
     <nav className="group-list" aria-label="Your groups">
       {groups.map(group => <button key={group.id} onClick={() => select(group.id)} aria-pressed={selected === group.id}>{group.name}</button>)}
     </nav>
