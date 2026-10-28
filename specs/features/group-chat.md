@@ -4,7 +4,9 @@ Status: implementation scope · 28 October 2026
 
 ## What members can do
 
-The selected group shows a continuous, chronological conversation in the center of the existing three-column desktop workspace. Members can send text, one picture, or both. The member list remains visible. A compact weekly comparison dialog preserves the existing comparison and invitation controls. No trade or journal content is posted automatically.
+The selected group shows a continuous, chronological conversation in the center of the existing three-column desktop workspace. Browser-style tabs switch the center panel between Chat and Weekly comparison; only one is visible at a time. The member list remains visible. Members can send text, one picture, or both. The composer sits at the bottom of chat with an inline Send button and a plus attachment control. No trade or journal content is posted automatically.
+
+The left rail has a plus button beside Your circles to create a group. The group header has a three-dot menu. Owners can rename, share an invite link, or delete the group; members can leave. Sharing opens the existing invite-link controls. Comparison weeks use previous and next chevron buttons. Group rename is owner-only and changes no membership or journal data. Deleting a group keeps personal trades but permanently removes its messages and pictures.
 
 Messages are persistent and show the sender's current display name and send time. The newest 50 load first; members can load older messages. The open conversation refreshes every five seconds while the tab is visible and immediately after a successful send. This is a small-group delivery choice, not a presence or instant-delivery promise.
 

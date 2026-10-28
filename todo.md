@@ -24,7 +24,8 @@ Last updated: 28 October 2026. This file tracks product work across branches; ch
   - [x] Capture and unfinished trades: [spec approved](specs/features/trade-journal.md), implemented and reviewed on `feat/capture-unfinished`; targeted browser and local privacy checks passed. Not merged or pushed.
   - [x] Weekly review: [feature spec](specs/features/weekly-review.md), richer statistics, cumulative chart, setup results, daily cards, and trade table implemented and locally checked on `feat/weekly-review`; not merged or pushed.
   - [x] Private groups and weekly comparisons: group creation, invitation, member list, owner controls, and real weekly figures implemented and locally checked on `feat/private-groups`; not merged or pushed.
-  - [x] Continuous group chat: text and picture messages with member-only access implemented and locally checked on `feat/group-chat`; not merged or pushed.
+- [x] Continuous group chat: text and picture messages with member-only access implemented and locally checked on `feat/group-chat`; not merged or pushed.
+- [x] Rework `feat/group-chat` into Chat and Weekly comparison tabs, a compact chat composer, and a group actions menu; verify owner-only rename and browser journeys.
 - [ ] Compare the complete app to the approved previews at 1280 × 800 and 1440 × 900, and verify real user journeys and privacy boundaries.
 
 ## Branch and delivery

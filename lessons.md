@@ -42,4 +42,5 @@
 
 - Reuse the membership-checked Supabase group functions for the desktop screen. The UI can rearrange group, member, and weekly aggregate views without changing the privacy boundary or returning individual trades.
 - Registration owns username creation and Settings owns display-name editing. Group creation asks only for a group name; missing profile identity links to Settings.
-- Until chat has authorized storage and sending, the center of the three-column Groups screen shows the real weekly comparison. Do not display a sample conversation or inactive composer in production.
+- Keep chat and weekly comparison in separate center-panel tabs. Retain the draft in the parent workspace while the chat tab is unmounted, and close group action dialogs when the signed-in account changes.
+- Rename private groups through an owner-checked database function, like other group mutations. Hiding the rename menu for members is a usability choice, not the authorization boundary.
