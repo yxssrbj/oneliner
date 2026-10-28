@@ -36,6 +36,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
   const mutationRef = useRef<AbortController | null>(null)
   const createDialog = useRef<HTMLDialogElement | null>(null)
   const actionDialog = useRef<HTMLDialogElement | null>(null)
+  const optionsRef = useRef<HTMLDivElement | null>(null)
   const lastUserRef = useRef<string | null | undefined>(undefined)
 
   const refresh = useCallback(() => {
@@ -49,6 +50,14 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
     setRevision(value => value + 1)
   }, [])
   useEffect(() => () => mutationRef.current?.abort(), [])
+  useEffect(() => {
+    if (!optionsOpen) return
+    const closeOutside = (event: PointerEvent) => {
+      if (!optionsRef.current?.contains(event.target as Node)) setOptionsOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOutside)
+    return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [optionsOpen])
   useEffect(() => {
     const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((_event, session) => {
       const nextUser = session?.user?.id ?? null
@@ -251,7 +260,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
     <section className="groups-main" aria-label="Group conversation">
       {details && <header className="groups-head">
         <div><h2>{details.group.name}</h2><p>Private group · Self-reported results</p></div>
-        <div className="groups-head-actions"><button type="button" aria-label="Group options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen(value => !value)}>⋯</button>{optionsOpen && <div className="group-options">{owner ? <><button onClick={() => openDialog('rename')}>Rename group</button><button onClick={() => openDialog('share')}>Share group</button><button disabled={pending} onClick={() => { setOptionsOpen(false); void act('close') }}>Delete group</button></> : <button disabled={pending} onClick={() => { setOptionsOpen(false); void act('leave') }}>Leave group</button>}</div>}</div>
+        <div className="groups-head-actions" ref={optionsRef}><button type="button" aria-label="Group options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen(value => !value)}>⋯</button>{optionsOpen && <div className="group-options">{owner ? <><button onClick={() => openDialog('rename')}>Rename group</button><button onClick={() => openDialog('share')}>Share group</button><button disabled={pending} onClick={() => { setOptionsOpen(false); void act('close') }}>Delete group</button></> : <button disabled={pending} onClick={() => { setOptionsOpen(false); void act('leave') }}>Leave group</button>}</div>}</div>
       </header>}
       {selected && <div className="group-tabs" role="tablist" aria-label="Group views"><button type="button" role="tab" id="group-chat-tab" aria-controls="group-chat-panel" aria-selected={activeTab === 'chat'} tabIndex={activeTab === 'chat' ? 0 : -1} onKeyDown={tabKey} onClick={() => setActiveTab('chat')}>Chat</button><button type="button" role="tab" id="group-comparison-tab" aria-controls="group-comparison-panel" aria-selected={activeTab === 'comparison'} tabIndex={activeTab === 'comparison' ? 0 : -1} onKeyDown={tabKey} onClick={() => setActiveTab('comparison')}>Weekly comparison</button></div>}
       {details && activeTab === 'chat' && <div id="group-chat-panel" role="tabpanel" aria-labelledby="group-chat-tab" className="group-tab-panel"><GroupChat key={selected} groupId={selected} viewerId={details.viewerId} draft={drafts[selected] || {text:'',image:null}} onDraftChange={change => setDrafts(current => {

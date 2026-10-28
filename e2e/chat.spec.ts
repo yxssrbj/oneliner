@@ -15,6 +15,25 @@ test('two members exchange text and pictures; removal revokes history and bytes'
   await page.getByRole('dialog',{name:'Create group'}).getByRole('button',{name:'Create group',exact:true}).click()
   const {groupId} = await (await created).json()
   await expect(page.getByRole('log',{name:'Group conversation'})).toBeVisible()
+  const layout = await page.evaluate(() => {
+    const nav = document.querySelector('.desktop-nav')!.getBoundingClientRect()
+    const header = document.querySelector('.workspace-header')!.getBoundingClientRect()
+    const group = document.querySelector('.groups-workspace')!.getBoundingClientRect()
+    const textarea = document.querySelector('.group-chat-compose-row textarea')!
+    return { navRight:nav.right, headerBottom:header.bottom, headerHeight:header.height,
+      groupLeft:group.left, groupTop:group.top, groupRight:group.right, groupBottom:group.bottom,
+      resize:getComputedStyle(textarea).resize }
+  })
+  expect(layout.headerHeight).toBeLessThan(60)
+  expect(layout.groupLeft).toBe(layout.navRight)
+  expect(layout.groupTop).toBe(layout.headerBottom)
+  expect(layout.groupRight).toBe(1280)
+  expect(layout.groupBottom).toBe(800)
+  expect(layout.resize).toBe('none')
+  await page.getByRole('button',{name:'Group options'}).click()
+  await expect(page.getByRole('button',{name:'Rename group'})).toBeVisible()
+  await page.getByRole('log',{name:'Group conversation'}).click()
+  await expect(page.getByRole('button',{name:'Rename group'})).toHaveCount(0)
   await page.getByRole('button',{name:'Group options'}).click()
   await page.getByRole('button',{name:'Share group'}).click()
   const invite = await page.getByLabel('Invite friends').inputValue()
