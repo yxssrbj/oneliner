@@ -162,6 +162,7 @@ for (const theme of ['dark', 'light'] as const) {
         await page.getByRole('button', { name: 'Switch to light mode' }).click()
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
         await page.goto('/')
+        await expect(page.locator('.capture-quote')).toHaveCSS('background-color', 'rgb(234, 240, 232)')
       }
       const screenshot = async (state: string) => {
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

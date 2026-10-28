@@ -14,6 +14,14 @@ let autoConfirm = true
 vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: (event: string, session?: AuthSession) => void) => { authChanged = fn; if (autoConfirm) fn('INITIAL_SESSION', { user: { id: 'owner' } }); return { data: { subscription: { unsubscribe } } } } } }) }))
 beforeEach(() => { cleanup(); autoConfirm = true; sessionStorage.clear(); vi.stubGlobal('fetch', (url: string, options?: RequestInit) => url === '/api/trades?recent=3' ? recentMock() : fetchMock(url, options)); fetchMock.mockReset(); recentMock.mockReset(); recentMock.mockImplementation(async () => Response.json({ trades: [] })) })
 const suggestion = { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: null, setup: 'ORB', clarifications: ['Please confirm the initial stop price.'] }
+test('capture follows the desktop preview composition with live data', async () => {
+  render(<CaptureForm userId="owner" />)
+  expect(await screen.findByRole('heading', { name: 'One line. A clearer picture.' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: '01 Capture the moment' })).toBeVisible()
+  expect(screen.getByText('Your original note stays with the trade.')).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Recently captured' })).toBeVisible()
+  expect(await screen.findByText('No trades saved yet.')).toBeVisible()
+})
 test('Add shows parsed details before saving and offers explicit editing', async () => {
   fetchMock.mockResolvedValueOnce(Response.json({ suggestion: { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: '87.90', setup: 'ORB', clarifications: [] } }))
     .mockResolvedValueOnce(Response.json({ trade: { id: 'saved' } }, { status: 201 }))

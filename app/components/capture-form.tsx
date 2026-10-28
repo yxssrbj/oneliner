@@ -141,19 +141,19 @@ export default function CaptureForm({ userId }: { userId: string }) {
   }
 
   if (!draft || !ownerReady) return <p>{loggedOut ? 'Your session changed. Reload this page to continue.' : 'Loading your draft…'}</p>
-  return <div className="capture-layout"><form onSubmit={save} className="capture-form">
-    <h2 className="capture-step"><span>1</span> Write it as it happened.</h2>
-    <p className="capture-intro">A few words now. A clearer picture later.</p>
+  return <div className="capture-page"><header className="capture-heading"><div><span className="capture-eyebrow">Get it out of your head</span><h1>One line. A clearer picture.</h1><p>Write the trade the way you remember it. Review the details before saving.</p></div><span>Your journal is personal.</span></header>
+    <div className="capture-layout"><div><form onSubmit={save} className="capture-form">
+    <h2 className="capture-step"><span>01</span> Capture the moment</h2>
     {saved && <p role="status" className="capture-success">Trade saved.</p>}
     {storageWarning && <p role="status">This browser could not store your draft. Keep this tab open until the trade is saved.</p>}
     <fieldset disabled={pending !== null}>
       <label htmlFor="trade-note">Trade note</label>
       <textarea id="trade-note" value={draft.originalNote} onChange={(event) => change('originalNote', event.target.value)} maxLength={1000} required rows={6} placeholder="CL short 87.64, stop 87.90, opening range breakout" aria-describedby="parse-disclosure" />
-      <p id="parse-disclosure" className="capture-hint">Add sends this note to OpenAI to fill in trade details. Review them before saving. You can also enter the details yourself.</p>
-      <button type="button" className="add-button" onClick={suggest}>{pending === 'parse' ? 'Reading note…' : 'Add'}</button>
+      <div className="capture-actions"><p id="parse-disclosure" className="capture-hint">Add sends this note to OpenAI to fill in trade details. Review them before saving. You can also enter the details yourself.</p>
+      <button type="button" className="add-button" onClick={suggest}>{pending === 'parse' ? 'Reading note…' : 'Add'}</button></div>
       {!detailsVisible && <button type="button" className="manual-button" onClick={() => { setEditing(true); setDetailsVisible(true) }} aria-expanded={false} aria-controls="capture-details">Enter details manually</button>}
       <div id="capture-details" hidden={!detailsVisible} className="capture-review">
-      <h2 className="capture-step"><span>2</span> Review trade details</h2>
+      <h2 className="capture-step"><span>02</span> Review trade details</h2>
       {clarifications.length > 0 && <ul className="capture-clarifications" aria-label="Needs clarification">{Array.from(new Set(clarifications)).map((item) => <li key={item}>{item}</li>)}</ul>}
       {editing ? <>
       <div className="capture-grid">
@@ -182,11 +182,11 @@ export default function CaptureForm({ userId }: { userId: string }) {
       </div>
       {error && <p role="alert" className="error">{error}</p>}
     </fieldset>
-  </form>
-    <aside className="capture-recent" aria-labelledby="recent-heading">
-      <h2 id="recent-heading">Recent trades</h2>
+  </form><p className="capture-foot">Your original note stays with the trade.</p></div>
+    <div className="capture-sidebar"><aside className="capture-recent" aria-label="Recent trades">
+      <h2 id="recent-heading">Recently captured</h2>
       <p className="capture-hint">Your three most recently saved trades.</p>
       {!recent || recent.owner !== userId ? <p>Loading recent trades…</p> : recent.error ? <div><p role="alert">{recent.error}</p><button type="button" onClick={() => setRecentRevision(value => value + 1)}>Retry recent trades</button></div> : recent.trades.length === 0 ? <p>No trades saved yet.</p> : recent.trades.map(trade => <article key={trade.id} className="capture-recent-item"><div><h3>{trade.symbol} · {trade.side}</h3><span>{trade.exit_price === null ? 'Needs exit' : resultLabel(trade.r_result)}</span></div><p>{trade.setup}</p><p className="capture-note-excerpt">{trade.original_note.slice(0, 160)}</p></article>)}
-    </aside>
-  </div>
+    </aside><div className="capture-quote"><span className="capture-eyebrow">A small habit</span><p>The best journal is the one you actually keep.</p><span>Start with the trade. The patterns come later.</span></div></div>
+  </div></div>
 }
