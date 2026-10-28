@@ -19,12 +19,13 @@ test('completes exits, reviews opening weeks, corrects fields and denies another
     trades.push((await response.json()).trade)
   }
   await page.goto('/inbox')
-  await expect(page.getByRole('heading', { name: 'Waiting for an exit (5)' })).toBeVisible()
+  await expect(page.getByText('5 awaiting exits')).toBeVisible()
   const es = page.locator('article').filter({ has: page.getByRole('heading', { name: 'ES long', exact: true }) })
   await expect(es.getByText('ES original private note')).toBeVisible()
   await es.getByRole('button', { name: 'Chart data' }).click()
   await es.getByLabel('TradingView chart-data CSV').setInputFiles({ name: 'es-chart.csv', mimeType: 'text/csv', buffer: Buffer.from('time,open,high,low,close,Volume\n2026-10-19T09:30:00Z,101,104,100,103,25\n2026-10-19T09:31:00Z,103,105,102,104,30') })
   await expect(es.getByText('Preview: 2 bars')).toBeVisible()
+  expect((await es.locator('.chart-data-import').boundingBox())!.width).toBeGreaterThan((await es.boundingBox())!.width * 0.8)
   await es.getByRole('button', { name: 'Save chart data' }).click()
   await expect(es.getByText('Chart data saved.')).toBeVisible()
   await expect(es.getByText('Risk per unit', { exact: true })).toBeVisible()
@@ -37,7 +38,7 @@ test('completes exits, reviews opening weeks, corrects fields and denies another
   await page.screenshot({ path: 'test-results/task-4-inbox-desktop.png', fullPage: true })
   await es.getByRole('button', { name: 'Save exit' }).click()
   await expect(page.getByText('ES: Win · +2.00R. Saved.')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Waiting for an exit (4)' })).toBeVisible()
+  await expect(page.getByText('4 awaiting exits')).toBeVisible()
   for (const [index, exitPrice] of [[1, '9'], [2, '10'], [4, '12']] as const) {
     const response = await page.request.patch(`/api/trades/${trades[index].id}`, { data: { exitPrice } })
     expect(response.status()).toBe(200)

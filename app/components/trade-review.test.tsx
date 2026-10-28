@@ -198,7 +198,7 @@ test('inbox cards show saved details, exact risk and visible exits newest first'
   const newer = { ...trade, id: 'newer', symbol: 'NQ', side: 'short' as const, original_note: '  precise note\nkept', setup: 'Retest', entry_price: '100.000000000000001', stop_price: '100.000000000000002', opened_at: '2026-10-20T10:00:00Z' }
   fetchMock.mockResolvedValue(Response.json({ trades: [newer, trade] }))
   render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
-  expect(await screen.findByRole('heading', { name: 'Waiting for an exit (2)' })).toBeInTheDocument()
+  expect(await screen.findByText('2 awaiting exits')).toBeInTheDocument()
   const cards = screen.getAllByRole('article')
   expect(within(cards[0]).getByRole('heading', { name: 'NQ short' })).toBeInTheDocument()
   expect(cards[0].querySelector('.trade-note')?.textContent).toBe(newer.original_note)
@@ -210,6 +210,15 @@ test('inbox cards show saved details, exact risk and visible exits newest first'
   expect(within(cards[0]).getByRole('button', { name: 'Save exit' })).toBeVisible()
   expect(within(cards[0]).getByRole('button', { name: 'Chart data' })).toBeVisible()
   expect(within(cards[0]).getByText('Correct trade details')).toBeVisible()
+})
+
+test('unfinished page follows the approved desktop preview composition', async () => {
+  fetchMock.mockResolvedValue(Response.json({ trades: [trade] }))
+  render(<TradeWorkspace mode="inbox" userId="owner" initialWeek="2026-10-19" />)
+  expect(await screen.findByRole('heading', { name: 'A few details left.' })).toBeVisible()
+  expect(screen.getByText('1 awaiting exit')).toBeVisible()
+  expect(screen.getByText('A complete trade tells a better story.')).toBeVisible()
+  expect(screen.getByLabelText('Exit price')).toBeVisible()
 })
 
 test('inline exit keeps failed input and waits for authorized refresh before removing its card', async () => {
