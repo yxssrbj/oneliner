@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { weekStartUtc } from '../../lib/trades/week'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import GroupForm from './group-form'
+import GroupChat, { type ChatDraft } from './group-chat'
 
 type Group = { id: string; name: string; ownerId: string }
 type Details = {
@@ -26,9 +27,12 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
   const [createOpen, setCreateOpen] = useState(false)
   const [copyStatus, setCopyStatus] = useState('')
   const [revision, setRevision] = useState(0)
+  const [drafts, setDrafts] = useState<Record<string, ChatDraft>>({})
   const controllerRef = useRef<AbortController | null>(null)
   const mutationRef = useRef<AbortController | null>(null)
   const createDialog = useRef<HTMLDialogElement | null>(null)
+  const comparisonRef = useRef<HTMLDivElement | null>(null)
+  const lastUserRef = useRef<string | null | undefined>(undefined)
 
   const refresh = useCallback(() => {
     controllerRef.current?.abort()
@@ -42,7 +46,12 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
   }, [])
   useEffect(() => () => mutationRef.current?.abort(), [])
   useEffect(() => {
-    const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange(() => refresh())
+    const { data: { subscription } } = createSupabaseBrowserClient().auth.onAuthStateChange((_event, session) => {
+      const nextUser = session?.user?.id ?? null
+      if (lastUserRef.current !== undefined && lastUserRef.current !== nextUser) setDrafts({})
+      lastUserRef.current = nextUser
+      refresh()
+    })
     return () => subscription.unsubscribe()
   }, [refresh])
   useEffect(() => {
@@ -89,6 +98,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
           read(`/api/groups/${groupId}/metrics?weekStart=${week}`),
         ])
         if (controller.signal.aborted) return
+        lastUserRef.current = detail.viewerId
         setDetails(detail)
         setMetrics(result.metrics)
       } catch (error) {
@@ -179,11 +189,13 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
         <button type="button" onClick={() => { setCreateOpen(true); createDialog.current?.showModal() }}>Create group</button>
       </div>
     </aside>
-    <section className="groups-main" aria-label="Group comparison">
+    <section className="groups-main" aria-label="Group conversation">
       {details && <header className="groups-head">
         <div><h2>{details.group.name}</h2><p>Private group · Self-reported results</p></div>
-        {owner ? <button disabled={pending} onClick={() => act('close')}>Close group</button> : <button disabled={pending} onClick={() => act('leave')}>Leave group</button>}
+        <div className="groups-head-actions"><button onClick={() => comparisonRef.current?.scrollIntoView?.({behavior:'smooth'})}>Weekly comparison</button>{owner ? <button disabled={pending} onClick={() => act('close')}>Close group</button> : <button disabled={pending} onClick={() => act('leave')}>Leave group</button>}</div>
       </header>}
+      {details && <GroupChat key={selected} groupId={selected} viewerId={details.viewerId} draft={drafts[selected] || {text:'',image:null}} onDraftChange={draft => setDrafts(current => ({...current,[selected]:draft}))} onAccessLost={refresh} />}
+      {details && <div ref={comparisonRef} className="groups-comparison-label"><h3>Weekly comparison</h3><p>Self-reported results for the same opening week</p></div>}
       {groups.some(group => group.id === selected) && <div className="groups-week-picker week-picker">
         <button onClick={() => changeWeek(-1)}>Previous week</button>
         <span>Week of {week} · UTC opening week</span>

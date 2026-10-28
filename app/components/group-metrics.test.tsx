@@ -18,14 +18,18 @@ Object.defineProperty(HTMLDialogElement.prototype,'close',{configurable:true,val
 fetchMock.mockImplementation((url:string)=>url==='/api/profile'?response({displayName:'Owner'}):url==='/api/groups'?response({groups:[{id,name:'Friends',ownerId:id}]}):url.includes('/metrics')?response({metrics:[{displayName:'Owner',totalR:1,winRate:1/3,completedCount:3}]}):response({group:{id,name:'Friends',ownerId:id},members:[{userId:id,displayName:'Owner'},{userId:'other',displayName:'Member'}],inviteToken:id,viewerId:id}))})
 test('shows only aggregate columns and owner controls',async()=>{
 render(<GroupMetrics initialGroup={id}/>);
+await screen.findByRole('button',{name:'Weekly comparison'})
+await userEvent.click(screen.getByRole('button',{name:'Weekly comparison'}))
 expect(await screen.findByRole('table',{name:'Weekly group comparison'})).toHaveTextContent('Owner')
 expect((screen.getByLabelText('Invite friends') as HTMLInputElement).value).toContain(`/friends/invite/${id}`)
 expect(screen.getByRole('button',{name:'Remove Member'})).toBeVisible()
-expect(screen.getByText(/Self-reported/)).toBeVisible()
+expect(screen.getAllByText(/Self-reported/).length).toBeGreaterThan(0)
 expect(screen.queryByText(/unfinished/i)).not.toBeInTheDocument()
 })
 test('places the comparison between the group list and member list',async()=>{
 render(<GroupMetrics initialGroup={id}/>);
+expect(await screen.findByRole('log',{name:'Group conversation'})).toBeVisible()
+await userEvent.click(screen.getByRole('button',{name:'Weekly comparison'}))
 expect(await screen.findByRole('table',{name:'Weekly group comparison'})).toBeVisible()
 expect(screen.getByRole('navigation',{name:'Your groups'})).toContainElement(screen.getByRole('button',{name:'Friends'}))
 const members=screen.getByRole('complementary',{name:'Group members'})
@@ -33,6 +37,13 @@ expect(members).toHaveTextContent('Owner')
 expect(members).toHaveTextContent('Member')
 expect(members).toHaveTextContent('You')
 expect(members).toHaveTextContent('Group owner')
+})
+test('token refresh keeps an unsent group draft',async()=>{
+render(<GroupMetrics initialGroup={id}/>);
+await screen.findByRole('log',{name:'Group conversation'})
+await userEvent.type(screen.getByLabelText('Message'),'Keep this draft')
+act(()=>authChanged?.('TOKEN_REFRESHED',{user:{id}}))
+expect(await screen.findByLabelText('Message')).toHaveValue('Keep this draft')
 })
 test('opens group creation from the left rail instead of showing the form all the time',async()=>{
 render(<GroupMetrics initialGroup={id}/>);
