@@ -43,6 +43,13 @@ test('rejects invalid content before the RPC', async () => {
   for (const request of [post(''),post('x'.repeat(2001)),post('',fake),post('',large)]) expect((await POST(request,context)).status).toBe(400)
   expect(rpc).not.toHaveBeenCalled()
 })
+test('stops an oversized multipart request before parsing it', async () => {
+  const request = new Request('http://localhost/api/groups/'+id+'/messages', {
+    method:'POST',headers:{'Content-Type':'multipart/form-data; boundary=limit'},body:'x'.repeat(1100001),
+  })
+  expect((await POST(request,context)).status).toBe(413)
+  expect(rpc).not.toHaveBeenCalled()
+})
 test('only image RPC bytes become a private image response', async () => {
   rpc.mockResolvedValueOnce({ data: [{ content_type:'image/png', data_base64: Buffer.from('picture').toString('base64') }], error: null })
   const response = await image(new Request('http://localhost'),imageContext)

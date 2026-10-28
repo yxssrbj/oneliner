@@ -3,6 +3,7 @@ import { authenticated, failure, invalid, json } from '../../shared'
 
 type Context = { params: Promise<{ groupId: string }> }
 const maxImage = 1048576
+const maxRequest = 1100000
 const signatures: Record<string, (bytes: Uint8Array) => boolean> = {
   'image/png': bytes => [137,80,78,71,13,10,26,10].every((value,index) => bytes[index] === value),
   'image/jpeg': bytes => bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255,
@@ -31,7 +32,25 @@ export async function POST(request: Request, context: Context) {
     const { groupId } = await context.params
     if (!isUuid(groupId)) return invalid()
     let form: FormData
-    try { form = await request.formData() } catch { return invalid() }
+    try {
+      const reader = request.body?.getReader()
+      if (!reader) return invalid()
+      const chunks: Uint8Array[] = []
+      let size = 0
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        size += value.byteLength
+        if (size > maxRequest) {
+          await reader.cancel()
+          return json({ error: 'Message or picture is too large.' }, 413)
+        }
+        chunks.push(value)
+      }
+      form = await new Request(request.url, {
+        method: 'POST', headers: { 'Content-Type': request.headers.get('Content-Type') || '' }, body: Buffer.concat(chunks),
+      }).formData()
+    } catch { return invalid() }
     const entries = [...form.keys()]
     if (entries.length < 1 || entries.length > 2 || entries.some(key => !['text','image'].includes(key)) || entries.filter(key => key === 'text').length !== 1) return invalid()
     const raw = form.get('text')
