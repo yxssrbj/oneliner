@@ -95,11 +95,11 @@ export default function TradeWorkspace({ mode, userId, initialWeek, demo = false
     date.setUTCDate(date.getUTCDate() + days)
     setWeek(date.toISOString().slice(0, 10)); setMessage(null); setSelectedTradeId(null)
   }
-  return <div className={mode === 'inbox' ? 'trade-workspace unfinished-workspace' : 'trade-workspace'}>
+  return <div className={mode === 'inbox' ? 'trade-workspace unfinished-workspace' : 'trade-workspace review-workspace'}>
     {demo && <p role="note">Demo preview — sample data only. Nothing is saved.</p>}
     {mode === 'review' ? <>
-      <p>Your opening week, Monday to Sunday in UTC. Late exits update the week the trade opened.</p>
-      <div className="week-picker"><button onClick={() => moveWeek(-7)} aria-label="Previous week">← Previous</button><strong>Week of {week}</strong><button onClick={() => moveWeek(7)} aria-label="Next week">Next →</button></div>
+      <div className="review-page-heading"><div><span className="review-eyebrow">The bigger picture</span><h1>Your week, in perspective.</h1><p>Make sense of the trades. Take something into next week.</p></div>
+      <div className="week-picker"><button onClick={() => moveWeek(-7)} aria-label="Previous week">‹</button><strong>Week of {week}</strong><button onClick={() => moveWeek(7)} aria-label="Next week">›</button></div></div>
       <p className="week-range">{week} 00:00 UTC – {nextWeekStartUtc(week)} 00:00 UTC (exclusive)</p>
     </> : <p>Finish the trades waiting for an exit. Your original notes and initial stops stay close at hand.</p>}
     {message?.owner === userId && <p role="status" className="save-message">{message.text}</p>}

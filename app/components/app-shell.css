@@ -86,8 +86,62 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .review-table-wrap td:nth-child(4),.review-table-wrap td:nth-child(5){white-space:nowrap;font-variant-numeric:tabular-nums}
 .weekly-review .review-table-wrap button{padding:.35rem .6rem;background:var(--raised);color:var(--text);border:1px solid var(--line)}
 .review-selected{max-width:760px}
+.review-workspace{gap:20px}
+.review-page-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.review-eyebrow{display:block;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:6px}
+.review-page-heading h1{font-size:27px;line-height:1.2;letter-spacing:-1px;font-weight:570;margin:0 0 7px}
+.review-page-heading p{font-size:12px;margin:0}
+.review-workspace .week-picker{flex-wrap:nowrap;gap:13px}
+.review-workspace .week-picker button{display:grid;place-items:center;width:32px;height:32px;min-width:32px;padding:0;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--text);font-size:22px;line-height:1}
+.review-workspace .week-picker strong{min-width:126px;text-align:center;font-size:12px;font-weight:500;white-space:nowrap}
+.review-workspace .week-range{font-size:10px;margin-top:-16px}
+.review-metrics{grid-template-columns:repeat(6,minmax(0,1fr));border-radius:10px}
+.review-metrics>div{padding:17px 19px;min-height:110px}
+.review-metrics dt{font-size:11px}
+.review-metrics dd{font-size:26px;font-weight:550;letter-spacing:-.9px;line-height:1.3;margin:7px 0 4px}
+.review-metrics small{display:block;color:var(--muted);font-size:10px}
+.review-metrics>div:first-child dd,.review-metrics>div:nth-child(3) dd,.review-metrics>div:nth-child(4) dd{color:var(--positive)}
+.review-metrics>div dd.outcome-loss{color:var(--negative)}
+.review-panels{grid-template-columns:minmax(0,1.85fr) minmax(280px,1fr);gap:20px}
+.review-panel{padding:0;border-radius:10px}
+.review-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 21px 0}
+.review-panel-head h2{font-size:14px;margin:0}
+.review-panel-head p{font-size:11px;margin:3px 0 0}
+.review-chart-legend{color:var(--muted);font-size:10px;white-space:nowrap}
+.review-chart-legend::before{content:'';display:inline-block;width:16px;height:2px;background:var(--accent);vertical-align:middle;margin-right:6px}
+.review-chart svg{display:block;width:calc(100% - 30px);margin:18px 15px 0;min-height:190px}
+.review-area{fill:var(--accent);opacity:.1}
+.review-chart-axis{display:flex;justify-content:space-between;margin:0 50px 0 49px;color:var(--muted);font-size:10px}
+.review-chart-footer{display:flex;justify-content:space-between;gap:12px;padding:6px 21px 17px;color:var(--muted);font-size:10px}
+.review-chart-footer span{white-space:nowrap}
+.review-chart .review-chart-detail{min-height:0;margin:0;color:var(--muted);font-size:10px}
+.review-setup-panel .review-setups{padding:20px 21px 17px}
+.review-setup{padding:0 0 16px;margin-bottom:16px}
+.review-setup:last-child{padding:0;margin:0}
+.review-setup strong,.review-setup b{font-size:12px}
+.review-setup-track{height:5px;margin:9px 0}
+.review-setup p{font-size:10px}
+.review-section-head{align-items:baseline}
+.review-section-head h2{font-size:14px!important;margin:0!important}
+.review-section-head h2 small{font-size:10px;color:var(--muted);font-weight:400;margin-left:7px}
+.review-section-head span{font-size:10px}
+.review-days{grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+.review-day{padding:14px;border-radius:7px}
+.review-day time{font-size:11px}
+.review-day strong{font-size:17px;margin:5px 0 0}
+.review-day p{font-size:10px}
+.review-table-wrap{border-radius:10px}
+.review-table-wrap table{font-size:11px}
+.review-table-wrap th,.review-table-wrap td{padding:12px 17px}
+.review-table-wrap td:nth-child(3) p{font-size:10px;color:var(--muted)}
+.weekly-review .review-table-wrap button{min-height:32px;padding:4px 0;border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:500}
+.weekly-review .review-table-wrap button:hover{color:var(--accent)}
+.review-unfinished{margin-top:-6px;padding:12px 15px;border-radius:7px;background:var(--raised);font-size:11px}
+.review-unfinished strong{font-weight:550}
+.review-unfinished span{margin-left:6px;color:var(--muted)}
+.review-footer{color:var(--muted);font-size:10px}
 @media(max-width:1100px){.review-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.review-days{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:800px){.review-panels{grid-template-columns:1fr}.review-days{grid-template-columns:repeat(2,minmax(0,1fr))}.review-unfinished{align-items:start;flex-direction:column}}
+@media(max-width:800px){.review-page-heading{align-items:start;flex-direction:column}.review-panels{grid-template-columns:1fr}.review-days{grid-template-columns:repeat(2,minmax(0,1fr))}.review-unfinished{align-items:start;flex-direction:column}}
 .week-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:0}
 .week-metrics>div{background:var(--panel);border:1px solid var(--line);border-radius:.8rem;padding:1rem}
 .week-metrics dt,.trade-details dt{font-size:.8rem;color:var(--muted)}
