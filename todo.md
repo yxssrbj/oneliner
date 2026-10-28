@@ -26,6 +26,9 @@ Last updated: 28 October 2026. This file tracks product work across branches; ch
   - [x] Private groups and weekly comparisons: group creation, invitation, member list, owner controls, and real weekly figures implemented and locally checked on `feat/private-groups`; not merged or pushed.
 - [x] Continuous group chat: text and picture messages with member-only access implemented and locally checked on `feat/group-chat`; not merged or pushed.
 - [x] Rework `feat/group-chat` into Chat and Weekly comparison tabs, a compact chat composer, and a group actions menu; verify owner-only rename and browser journeys.
+- [x] Match the capture page composition to the approved desktop preview on `feat/group-chat`; focused browser checks and visual inspection passed.
+- [ ] Review the updated capture page at `http://localhost:3018/`.
+- [ ] Match the unfinished trades and weekly review pages to the approved desktop preview.
 - [ ] Compare the complete app to the approved previews at 1280 × 800 and 1440 × 900, and verify real user journeys and privacy boundaries.
 
 ## Branch and delivery

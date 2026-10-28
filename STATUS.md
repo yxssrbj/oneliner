@@ -66,3 +66,7 @@ The follow-up desktop adjustment removes the inset card framing and gives Groups
 The Settings card alignment fix on `feat/group-chat` makes Profile and Password equal in width and height, with actions aligned at the bottom. Focused verification passed: 34 Settings component tests, typecheck, and both 1280 × 800 and 1440 × 900 Settings browser journeys. The dark desktop screenshot was inspected. The change is local and unpushed.
 
 The project owner clarified that `docs/previews/oneliner-desktop.html` is the exact visual acceptance target for the desktop UI. The PRD and desktop parity criteria now require matching its layout, typography, spacing, colors, and component styling. This is direction for upcoming UI review; it does not assert current screens already match.
+
+## Capture desktop preview · 28 October 2026
+
+`feat/group-chat` commit `5d2b581` aligns capture's heading, note card, recent-trades panel, and supporting text with the approved desktop preview while keeping live account data and existing capture behavior. The local app is available at `http://localhost:3018/` for visual review. Focused verification passed: 19 component tests, typecheck, focused ESLint, and browser capture journeys at 1280 × 800 and 1440 × 900 in dark mode and 1280 × 800 in light mode. Screenshots were inspected. The full suite, production build, and hosted flow were not run for this visual change. The branch is local and unpushed.
