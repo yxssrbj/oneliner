@@ -49,6 +49,14 @@ test('all actions call narrow RPCs and reject extra or invalid fields', async ()
   }
   for (const body of [{action:'unknown'},{action:'remove'},{action:'leave',memberId:id},{action:'close',extra:1}]) expect((await action(request(body),ctx)).status).toBe(400)
 })
+test('rename accepts a trimmed valid name and rejects invalid payloads',async()=>{
+  rpc.mockResolvedValueOnce({data:null,error:null})
+  const renamed=await action(request({action:'rename',name:' New name '}),ctx)
+  expect(renamed.status).toBe(200)
+  expect(rpc).toHaveBeenLastCalledWith('rename_group',{group_id:id,new_name:'New name'})
+  for (const name of ['', ' '.repeat(4), 'a'.repeat(81), 3]) expect((await action(request({action:'rename',name}),ctx)).status).toBe(400)
+  expect((await action(request({action:'rename',name:'Okay',extra:true}),ctx)).status).toBe(400)
+})
 test('authorization and validation errors are safe on direct database refusal', async () => {
   for (const [code,status] of [['P0002',404],['42501',404],['22023',400],['XX000',500]]) {
     rpc.mockResolvedValueOnce({data:null,error:{code,message:'sensitive database information'}})
