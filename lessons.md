@@ -1,5 +1,11 @@
 # Oneliner — project lessons
 
+## Group chat · 28 October 2026
+
+- Small private-group pictures are capped at 1 MiB and stored with messages in Postgres. Current-member checks protect each history and image read; group closure cascades the rows. This avoids signed URLs surviving member removal. If media volume grows, move bytes to private object storage with per-request membership checks.
+- Preserve the message and picture when a sender deletes their account: save the sender's display name at send time and set the sender reference to null.
+- Bound the incoming multipart stream before `formData()` parses it. Checking the parsed `File.size` alone does not cap parser memory.
+
 ## Encrypted startup · 23 October 2026
 
 - Startup commands use SOPS `exec-env` with the checkout's `secrets/app.enc.env`. Keep the age identity outside Git and export `SOPS_AGE_KEY_FILE` explicitly; the chosen `~/.config` location was not automatically discovered on this Mac.

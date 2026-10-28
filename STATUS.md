@@ -27,7 +27,7 @@ Updated: 28 October 2026. Project-wide status; account implementation branch: `f
 
 The hosted Settings send-code step and backend code verification/password update were checked separately; the final Settings form submission was covered by local browser tests, not a single hosted browser session.
 
-Next product work after this rollout: remaining desktop screens and group chat. See `todo.md` for the broader tracker.
+Next product work after this rollout: review the combined desktop experience and prepare the local branches for integration. See `todo.md` for the broader tracker.
 
 Capture and unfinished-trade redesign follows [the approved slice spec](specs/features/trade-journal.md) and [implementation plan](docs/superpowers/plans/2026-10-27-capture-unfinished.md) in `.worktrees/capture-unfinished`. Baseline focused tests passed (54), and typecheck passed before implementation.
 
@@ -52,3 +52,9 @@ Focused checks on this branch: 67 unit/component/API tests, typecheck, focused E
 `feat/private-groups` in `.worktrees/private-groups` builds on `feat/weekly-review`. The approved desktop preview now guides the Groups screen: group list on the left, real weekly comparison in the center, and a member list on the right. Creating a group asks only for a name; account display names come from registration or Settings. Owners can copy or replace invitations, remove members, and close a group; members can leave. Text and picture chat remains the next slice. The branch is local, unmerged, and unpushed.
 
 Focused checks: 34 group component/API tests, typecheck, focused ESLint, production build, and the local two-account Playwright group journey passed. The browser journey covered creation, invitation copy and consent, weekly metrics, private trade denial, removal, invite rotation, leaving, closing, and account isolation. The empty layout was inspected at 1280 × 800 in dark mode; populated layouts were inspected at 1280 × 800 and 1440 × 900 in both themes with no page-level horizontal overflow. An independent source review found profile-load recovery and premature empty-state bugs; both were fixed with failing-then-passing tests. The full suite, hosted flow, and production-server browser run were not performed. See [RUNBOOK.md](RUNBOOK.md) to run this branch on port 3017.
+
+## Group chat · 28 October 2026
+
+`feat/group-chat` in `.worktrees/group-chat` builds on `feat/private-groups`. The selected group's center panel has a chronological conversation, a text and picture composer, and a jump to the existing weekly comparison. Messages and pictures are private Postgres rows behind current-membership checks; group closure removes them. A sender's account deletion preserves the conversation with a saved display name. The browser retains failed or newly edited drafts, refreshes visible conversations every five seconds, and loads older messages in pages. This branch is local, unmerged, and unpushed. Both chat migrations were applied to the shared **local** Supabase stack only; hosted Supabase was not changed.
+
+Focused checks: 47 group/chat unit and API tests, 28 chat database assertions, typecheck, focused ESLint with two image-element warnings, production build, and two local two-account Playwright journeys passed. Browser coverage included text and picture exchange, private image loading, direct history/image denial after removal, and 1280 × 800 and 1440 × 900 dark screenshots with no page-level horizontal overflow. The full suite, light-theme chat screenshots, hosted flow, and production-server browser run were not performed. See [RUNBOOK.md](RUNBOOK.md) for this branch's launch command.

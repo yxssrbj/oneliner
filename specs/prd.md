@@ -72,7 +72,7 @@ The review feature spec will define chart ordering, precision, rounding, and fil
 - **CHAT-02:** Sent messages persist and become available to the group's other authorized members. Sending and upload failures are visible and retain recoverable drafts; the interface must not claim an unsuccessful send succeeded.
 - **CHAT-03:** Messages and pictures are restricted to authorized group members. Nonmembers and removed members cannot obtain new access through direct data or image requests. Previously downloaded content cannot be recalled.
 
-Chat is confirmed scope but not built by the HTML preview. Delivery behavior, attachment limits and storage, history, and message management need a feature spec before implementation. Online dots and sample biographies in the preview do not approve a presence or biography feature.
+The chat slice is specified in [group-chat.md](features/group-chat.md) and implemented locally on `feat/group-chat`. The HTML preview's online dots and sample biographies do not approve a presence or biography feature.
 
 ### Existing chart imports
 

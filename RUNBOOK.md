@@ -107,3 +107,20 @@ preserves its data backup.
 Shared project status and next work are in `STATUS.md` and `todo.md` at
 `/Users/yasser/Documents/Projects/oneliner`. No Git push is implied by any
 command here.
+
+## Group chat worktree
+
+```sh
+cd /Users/yasser/Documents/Projects/oneliner/.worktrees/group-chat
+npm run dev -- --port 3018
+# Open http://localhost:3018/friends
+```
+
+The two chat migrations have been applied to the shared local Supabase stack.
+Run focused checks from this worktree with:
+
+```sh
+npx vitest run app/api/groups/route.test.ts app/api/groups/messages.test.ts app/components/group-metrics.test.tsx app/components/group-chat.test.tsx
+npx supabase test db supabase/tests/database/chat.test.sql --local
+ONELINER_E2E_PORT=3018 npm run test:e2e -- e2e/chat.spec.ts e2e/groups.spec.ts --workers=1
+```
