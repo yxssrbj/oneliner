@@ -33,10 +33,10 @@
 
 **Interfaces:** Keep `GroupForm({ inviteToken?, onCreated?, onIdentityChange? })`; remove profile editing and direct users with missing display names to `/settings`.
 
-- [ ] Write focused tests for name-only creation, join disclosure, account switch, failed mutation, and missing-profile Settings link.
-- [ ] Run the tests and confirm expected failures.
-- [ ] Implement the form and dialog behavior with the existing `/api/groups` and `/api/groups/join` routes.
-- [ ] Run focused tests and typecheck; inspect the diff; commit with `Groups:` subject.
+- [x] Write focused tests for name-only creation, join disclosure, account switch, failed mutation, and missing-profile Settings link.
+- [x] Run the tests and confirm expected failures.
+- [x] Implement the form and dialog behavior with the existing `/api/groups` and `/api/groups/join` routes.
+- [x] Run focused tests and typecheck; inspect the diff; commit with `Groups:` subject.
 
 ### Task 2: Group workspace and comparison
 
@@ -44,15 +44,15 @@
 
 **Interfaces:** Existing `GroupMetrics({ initialGroup? })`; same group/details/metrics API payloads.
 
-- [ ] Write focused tests for three-region layout, member identities, owner/member controls, weekly comparison, zero-trade case, and stale-data clearing.
-- [ ] Run tests and confirm expected failures.
-- [ ] Implement the desktop layout and responsive CSS. Reuse current fetch and action logic.
-- [ ] Run focused tests and typecheck; inspect every changed privacy-related line; commit with `Groups:` subject.
+- [x] Write focused tests for three-region layout, member identities, owner/member controls, weekly comparison, zero-trade case, and stale-data clearing.
+- [x] Run tests and confirm expected failures.
+- [x] Implement the desktop layout and responsive CSS. Reuse current fetch and action logic.
+- [x] Run focused tests and typecheck; inspect every changed privacy-related line; commit with `Groups:` subject.
 
 ### Task 3: Browser verification and status
 
 **Files:** `tests/e2e/*` existing group journey, `STATUS.md`, `todo.md`, `lessons.md` if an architectural decision needs recording.
 
-- [ ] Extend the relevant Playwright journey for creation, join consent, multiple weeks, member removal, and account isolation; watch new assertions fail before adjusting behavior.
-- [ ] Run focused tests, typecheck, lint of touched files, and browser journeys at 1280×800 and 1440×900 in dark and light themes.
-- [ ] Inspect screenshots and full diff; update status and todo; commit locally.
+- [x] Extend the relevant Playwright journey for creation, join consent, multiple weeks, member removal, and account isolation; watch new assertions fail before adjusting behavior.
+- [x] Run focused tests, typecheck, lint of touched files, and browser journeys at 1280×800 and 1440×900 in dark and light themes.
+- [x] Inspect screenshots and full diff; update status and todo; commit locally.
