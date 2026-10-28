@@ -31,3 +31,9 @@
 
 - Derive personal chart, setup, day, table, and headline data from one authorized, opening-week-filtered trade set. Sum saved unrounded R and round only when displaying values; a late exit or corrected opening time then updates every view together.
 - Compare opening timestamps as instants, not strings. PostgreSQL timestamps may contain milliseconds or offsets, and string comparison can exclude the exact Monday boundary or misorder chart points.
+
+## Private groups · 28 October 2026
+
+- Reuse the membership-checked Supabase group functions for the desktop screen. The UI can rearrange group, member, and weekly aggregate views without changing the privacy boundary or returning individual trades.
+- Registration owns username creation and Settings owns display-name editing. Group creation asks only for a group name; missing profile identity links to Settings.
+- Until chat has authorized storage and sending, the center of the three-column Groups screen shows the real weekly comparison. Do not display a sample conversation or inactive composer in production.
