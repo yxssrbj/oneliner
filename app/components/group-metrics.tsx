@@ -16,6 +16,7 @@ type Metric = { displayName: string; totalR: number; winRate: number | null; com
 
 export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: string }) {
   const [groups, setGroups] = useState<Group[]>([])
+  const [listLoading, setListLoading] = useState(true)
   const [selected, setSelected] = useState(initialGroup)
   const [week, setWeek] = useState(() => weekStartUtc(new Date()))
   const [details, setDetails] = useState<Details | null>(null)
@@ -35,6 +36,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
     setDetails(null)
     setMetrics(null)
     setGroups([])
+    setListLoading(true)
     setCopyStatus('')
     setRevision(value => value + 1)
   }, [])
@@ -66,6 +68,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
       setDetails(null)
       setMetrics(null)
       setError('')
+      setListLoading(true)
       let listed = false
       try {
         const list = await read('/api/groups')
@@ -73,6 +76,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
         const available: Group[] = list.groups
         listed = true
         setGroups(available)
+        setListLoading(false)
         const groupId = available.some(group => group.id === selected) ? selected : available[0]?.id || ''
         if (groupId !== selected) {
           setSelected(groupId)
@@ -90,6 +94,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
       } catch (error) {
         if (!controller.signal.aborted) {
           if (!listed) setGroups([])
+          setListLoading(false)
           setDetails(null)
           setMetrics(null)
           setError(error instanceof Error ? error.message : 'Could not load groups. Try again.')
@@ -186,7 +191,8 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
       </div>}
       {error && <div className="groups-message"><p role="alert" className="error">{error}</p><button onClick={() => setRevision(value => value + 1)}>Try again</button></div>}
       {!error && selected && (!details || !metrics) && <p className="groups-message" role="status">Loading group comparison…</p>}
-      {!error && !selected && <div className="groups-empty"><h2>No groups yet</h2><p>Create a group or open an invite link to compare weekly results.</p></div>}
+      {!error && !selected && listLoading && <p className="groups-message" role="status">Loading groups…</p>}
+      {!error && !selected && !listLoading && <div className="groups-empty"><h2>No groups yet</h2><p>Create a group or open an invite link to compare weekly results.</p></div>}
       {details && metrics && <div className="groups-results">
         <div className="groups-section-title"><h3>Weekly comparison</h3><span>{metrics.length} {metrics.length === 1 ? 'member' : 'members'}</span></div>
         <div className="group-table"><table aria-label="Weekly group comparison">

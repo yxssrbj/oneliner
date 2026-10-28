@@ -56,7 +56,7 @@ export default function GroupForm({ inviteToken, onCreated, onIdentityChange }: 
         if (!data.user) throw new Error('Sign in required.')
         setIdentityReady(true)
         const response = await fetch('/api/profile', { cache: 'no-store', signal: request.signal })
-        if (!response.ok) throw new Error('Could not load display name. Try saving it below.')
+        if (!response.ok) throw new Error('Could not load your profile. Try again.')
         const profile = await response.json()
         if (request.signal.aborted) return
         setProfileReady(!!profile.displayName)
@@ -89,7 +89,7 @@ export default function GroupForm({ inviteToken, onCreated, onIdentityChange }: 
 
   async function submit(event: FormEvent, kind: 'create' | 'join') {
     event.preventDefault()
-    if (checking || !identityReady || pending) return
+    if (checking || !identityReady || !profileReady || pending) return
     setPending(true)
     setError('')
     const controller = new AbortController()
@@ -119,15 +119,15 @@ export default function GroupForm({ inviteToken, onCreated, onIdentityChange }: 
   return <div className="group-forms">
     {inviteToken ? <form className="group-form" onSubmit={event => submit(event, 'join')} aria-label="Group sharing consent">
       <p id="sharing-disclosure">{sharingDisclosure}</p>
-      {!checking && !profileReady && <p>Set your display name in <Link href="/settings">Settings</Link> before joining.</p>}
+      {!checking && !profileReady && !error && <p>Set your display name in <Link href="/settings">Settings</Link> before joining.</p>}
       <button disabled={disabled || !profileReady} aria-describedby="sharing-disclosure">Join group</button>
     </form> : <form className="group-form" onSubmit={event => submit(event, 'create')}>
       <label htmlFor="group-name">Group name</label>
       <input id="group-name" required maxLength={80} value={name} onChange={event => setName(event.target.value)} disabled={disabled} />
-      {!checking && !profileReady && <p>Set your display name in <Link href="/settings">Settings</Link> before creating a group.</p>}
+      {!checking && !profileReady && !error && <p>Set your display name in <Link href="/settings">Settings</Link> before creating a group.</p>}
       <button disabled={disabled || !profileReady}>Create group</button>
     </form>}
     {error && <p role="alert" className="error">{error}</p>}
-    {!checking && !identityReady && <button onClick={() => setRevision(value => value + 1)}>Try again</button>}
+    {!checking && !profileReady && <button onClick={() => setRevision(value => value + 1)}>Try again</button>}
   </div>
 }
