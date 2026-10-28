@@ -17,7 +17,7 @@ Success means a useful, reliable journal that people keep using: fast capture, e
 - **UI-01 — Desktop only for this phase.** No phone layouts, mobile navigation, or native app work is required yet.
 - **UI-02 — Balanced density.** Use space for useful information. Avoid oversized inputs and buttons, excessive empty space, and crowded screens. Navigation and controls must remain readable and keyboard accessible.
 - **UI-03 — Interactive and focused.** Use selection states, chart details, filtering where useful, and clear action feedback. Richer personal statistics belong in the weekly review; group comparisons remain simple.
-- **UI-04 — Approved visual reference.** Follow the layout and visual direction in [the desktop preview](../docs/previews/oneliner-desktop.html). Its sample data, simulated actions, and illustrative restrictions are not production requirements or implementation evidence.
+- **UI-04 — Approved visual target.** Match the desktop layout, typography, spacing, colors, and component styling in [oneliner-desktop.html](../docs/previews/oneliner-desktop.html). Treat visual differences as work to resolve before calling the desktop UI finished. Its sample data, simulated actions, and illustrative restrictions are not production requirements or implementation evidence.
 - **UI-05 — Light and dark appearance.** Users can switch between light and dark mode from account settings. Both modes keep the approved layout, readable contrast, visible focus, and persistent selection. Dark mode follows the approved preview; light mode needs its own visual review before implementation.
 
 ## Current release requirements

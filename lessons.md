@@ -45,3 +45,4 @@
 - Keep chat and weekly comparison in separate center-panel tabs. Retain the draft in the parent workspace while the chat tab is unmounted, and close group action dialogs when the signed-in account changes.
 - Rename private groups through an owner-checked database function, like other group mutations. Hiding the rename menu for members is a usability choice, not the authorization boundary.
 - The Groups desktop screen is a full-height workspace beside the main navigation. Do not wrap it in the padded, width-limited layout used for journal pages.
+- The project owner wants desktop screens to match `docs/previews/oneliner-desktop.html` exactly in visual design. Use that file as the acceptance target, not just inspiration; distinguish its sample content from the real app's data.

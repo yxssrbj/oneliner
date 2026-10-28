@@ -55,7 +55,7 @@ Considered alternatives:
 3. Changing dark/light mode updates the whole app without losing drafts, persists across sessions and devices for that account, and does not carry the previous account's choice into a different account. Both themes retain readable text and focus states; the light palette is reviewed visually before code.
 4. Review calculations and every visual breakdown agree for completed, unfinished, breakeven, corrected, backdated, and empty-week cases. The chart and setup panels contain no fabricated points.
 5. Capture, correction, incomplete trade completion, import, invite, comparison, chat, and picture flows work with keyboard focus and visible feedback. Failures preserve recoverable user input.
-6. A real browser comparison at both sizes includes populated and empty views plus loading and error states. Reviewers compare each page against the relevant preview section and record intentional differences caused by live data or unsimulated behavior.
+6. A real browser comparison at both sizes includes populated and empty views plus loading and error states. Reviewers compare each page against the relevant preview section and resolve differences in layout, typography, spacing, colors, and component styling; live data and unsimulated behavior are documented separately.
 
 ## Delivery boundaries
 
