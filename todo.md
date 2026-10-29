@@ -32,6 +32,8 @@ Last updated: 28 October 2026. This file tracks product work across branches; ch
 - [ ] Review the updated weekly review at `http://localhost:3018/review`.
 - [x] Match the unfinished trades page to the approved desktop preview on `feat/group-chat`; focused browser checks and visual inspection passed.
 - [ ] Review the updated unfinished trades at `http://localhost:3018/inbox`.
+- [x] Align the Groups chat and member layout with the approved desktop preview on `feat/group-chat`; focused component and browser checks passed.
+- [ ] Review the updated Groups screen at `http://localhost:3018/friends`.
 - [ ] Compare the complete app to the approved previews at 1280 × 800 and 1440 × 900, and verify real user journeys and privacy boundaries.
 
 ## Branch and delivery
