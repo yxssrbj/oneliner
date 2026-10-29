@@ -25,6 +25,17 @@ test('loads chronological conversation and keeps the composer visible', async ()
   expect(screen.getByLabelText('Message')).toBeVisible()
   expect(screen.getByLabelText('Attach picture')).toHaveAttribute('type','file')
 })
+test('separates conversation days and marks the current user', async () => {
+  fetchMock.mockResolvedValue(Response.json({messages:[
+    {id:'3',senderId:viewerId,displayName:'Me',body:'today',createdAt:'2026-10-28T10:01:00Z',imageType:null},
+    {id:'2',senderId:'other',displayName:'Friend',body:'yesterday later',createdAt:'2026-10-27T10:01:00Z',imageType:null},
+    {id:'1',senderId:'other',displayName:'Friend',body:'yesterday earlier',createdAt:'2026-10-27T10:00:00Z',imageType:null},
+  ]}))
+  render(<GroupChat groupId={groupId} viewerId={viewerId} draft={draft} onDraftChange={onDraftChange} onAccessLost={vi.fn()} />)
+  expect(await screen.findByText('today')).toBeVisible()
+  expect(screen.getAllByText(/Tuesday, October 27|Wednesday, October 28/)).toHaveLength(2)
+  expect(screen.getByText('you')).toBeVisible()
+})
 test('failed send retains text and shows an error', async () => {
   fetchMock.mockImplementation((url:string,options?:RequestInit) => options?.method === 'POST'
     ? Promise.resolve(Response.json({error:'Could not send.'},{status:503}))

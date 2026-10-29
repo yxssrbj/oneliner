@@ -100,18 +100,22 @@ export default function GroupChat({ groupId, viewerId, draft, onDraftChange, onA
     finally { setPending(false) }
   }
 
+  const orderedMessages = [...messages].reverse()
   return <div className="group-chat">
     <div className="group-chat-log" role="log" aria-label="Group conversation" ref={listRef}>
       {hasOlder && <button type="button" disabled={olderPending} onClick={() => void loadOlder()}>{olderPending ? 'Loading…' : 'Load older messages'}</button>}
       {loading && <p role="status">Loading conversation…</p>}
       {!loading && messages.length === 0 && <p className="group-chat-empty">Start the conversation. Share a thought or a chart picture.</p>}
-      {[...messages].reverse().map(message => <article className="group-chat-message" key={message.id}>
+      {orderedMessages.map((message, index) => <div className="group-chat-entry" key={message.id}>
+        {(index === 0 || new Date(orderedMessages[index - 1].createdAt).toDateString() !== new Date(message.createdAt).toDateString()) && <div className="group-chat-date">{new Date(message.createdAt).toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>}
+        <article className="group-chat-message">
         <span className="group-member-avatar" aria-hidden="true">{message.displayName.slice(0,2).toUpperCase()}</span>
-        <div><div className="group-chat-meta"><strong>{message.displayName}{message.senderId === viewerId ? ' · you' : ''}</strong><time dateTime={message.createdAt}>{new Date(message.createdAt).toLocaleString()}</time></div>
+        <div><div className="group-chat-meta"><strong>{message.displayName}</strong>{message.senderId === viewerId && <span className="group-chat-you">you</span>}<time dateTime={message.createdAt}>{new Date(message.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time></div>
           {message.body && <p>{message.body}</p>}
           {message.imageType && (failedImages.includes(message.id) ? <p role="alert">Could not load picture.</p> : <img src={`/api/groups/${groupId}/messages/${message.id}/image`} alt={`Picture shared by ${message.displayName}`} onError={() => setFailedImages(current => [...current,message.id])} />)}
         </div>
-      </article>)}
+        </article>
+      </div>)}
     </div>
     <div className="group-chat-composer">
       {error && <p role="alert" className="error">{error}</p>}

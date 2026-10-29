@@ -20,8 +20,11 @@ test('two members exchange text and pictures; removal revokes history and bytes'
     const header = document.querySelector('.workspace-header')!.getBoundingClientRect()
     const group = document.querySelector('.groups-workspace')!.getBoundingClientRect()
     const textarea = document.querySelector('.group-chat-compose-row textarea')!
+    const rail = document.querySelector('.groups-rail')!.getBoundingClientRect()
+    const members = document.querySelector('.groups-members')!.getBoundingClientRect()
     return { navRight:nav.right, headerBottom:header.bottom, headerHeight:header.height,
       groupLeft:group.left, groupTop:group.top, groupRight:group.right, groupBottom:group.bottom,
+      railWidth:rail.width, membersWidth:members.width,
       resize:getComputedStyle(textarea).resize }
   })
   expect(layout.headerHeight).toBeLessThan(60)
@@ -29,6 +32,8 @@ test('two members exchange text and pictures; removal revokes history and bytes'
   expect(layout.groupTop).toBe(layout.headerBottom)
   expect(layout.groupRight).toBe(1280)
   expect(layout.groupBottom).toBe(800)
+  expect(layout.railWidth).toBe(180)
+  expect(layout.membersWidth).toBe(188)
   expect(layout.resize).toBe('none')
   await page.getByRole('button',{name:'Group options'}).click()
   await expect(page.getByRole('button',{name:'Rename group'})).toBeVisible()

@@ -254,7 +254,7 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
         {groups.map(group => <button key={group.id} onClick={() => select(group.id)} aria-label={group.name} aria-pressed={selected === group.id}># &nbsp;{group.name}</button>)}
       </nav>
       <div className="groups-rail-bottom">
-        <p>A place to compare the process with your people.</p>
+        <p>A place to share the process, while the market unfolds.</p>
       </div>
     </aside>
     <section className="groups-main" aria-label="Group conversation">
