@@ -117,6 +117,9 @@ npm run dev -- --port 3018
 ```
 
 The two chat migrations have been applied to the shared local Supabase stack.
+If Safari shows oversized icons or an unstyled sidebar after a CSS edit,
+choose **View → Reload Page From Origin**. A normal reload can retain the
+older development stylesheet at the same URL.
 Run focused checks from this worktree with:
 
 ```sh
