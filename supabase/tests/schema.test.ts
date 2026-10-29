@@ -2,6 +2,24 @@ import { existsSync, readFileSync } from 'node:fs'
 import { expect, test } from 'vitest'
 
 const migrationUrl = new URL('../migrations/202610180001_core.sql', import.meta.url)
+const chartDataMigrationUrl = new URL('../migrations/202610190001_trade_chart_data.sql', import.meta.url)
+const chartValidationMigrationUrl = new URL('../migrations/202610190002_validate_trade_chart_data.sql', import.meta.url)
+
+test('chart data is stored as a validated private trade field', () => {
+  expect(existsSync(chartDataMigrationUrl)).toBe(true)
+  if (!existsSync(chartDataMigrationUrl)) return
+  const migration = readFileSync(chartDataMigrationUrl, 'utf8')
+  expect(migration).toMatch(/alter table public\.trades\s+add column chart_data jsonb/i)
+  expect(migration).toMatch(/jsonb_typeof\(chart_data\)\s*=\s*'array'/i)
+})
+
+test('database validates chart bars against direct table writes', () => {
+  expect(existsSync(chartValidationMigrationUrl)).toBe(true)
+  if (!existsSync(chartValidationMigrationUrl)) return
+  const migration = readFileSync(chartValidationMigrationUrl, 'utf8')
+  expect(migration).toMatch(/create or replace function public\.valid_trade_chart_data/i)
+  expect(migration).toMatch(/check\s*\(chart_data is null or public\.valid_trade_chart_data\(chart_data\)\)/i)
+})
 
 test('core migration exists', () => {
   expect(existsSync(migrationUrl)).toBe(true)

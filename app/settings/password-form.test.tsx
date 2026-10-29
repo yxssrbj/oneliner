@@ -1,0 +1,22 @@
+// @vitest-environment jsdom
+import {afterEach,beforeEach,expect,test,vi} from 'vitest'
+import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
+import PasswordForm from './password-form'
+const {signInWithPassword,resetPasswordForEmail,verifyOtp,updateUser,signOut,dispose,navigate,listeners}=vi.hoisted(()=>({signInWithPassword:vi.fn(),resetPasswordForEmail:vi.fn(),verifyOtp:vi.fn(),updateUser:vi.fn(),signOut:vi.fn(),dispose:vi.fn(),navigate:vi.fn(),listeners:new Set<(event:string,session:{user:{id:string}}|null)=>void>()}))
+vi.mock('../../lib/supabase/client',()=>({
+  createSupabaseBrowserClient:()=>({auth:{onAuthStateChange:(listener:(event:string,session:{user:{id:string}}|null)=>void)=>{listeners.add(listener);listener('INITIAL_SESSION',{user:{id:'one'}});return {data:{subscription:{unsubscribe:()=>listeners.delete(listener)}}}}}}),
+  createPasswordVerificationClient:()=>({auth:{signInWithPassword,resetPasswordForEmail,verifyOtp,updateUser,signOut,dispose}})
+}))
+beforeEach(()=>{cleanup();vi.clearAllMocks();listeners.clear();vi.stubGlobal('location',{replace:navigate});signInWithPassword.mockResolvedValue({data:{user:{id:'one'},session:{user:{id:'one'}}},error:null});resetPasswordForEmail.mockResolvedValue({error:null});verifyOtp.mockResolvedValue({data:{user:{id:'one'},session:{user:{id:'one'}}},error:null});updateUser.mockResolvedValue({data:{user:{id:'one'}},error:null});signOut.mockResolvedValue({error:null});dispose.mockResolvedValue(undefined)})
+afterEach(()=>vi.unstubAllGlobals())
+function show(){render(<PasswordForm userId="one" email="one@example.test"/>)}
+function fill(name:string,value:string){fireEvent.change(screen.getByLabelText(name),{target:{value}})}
+function submit(name:string){fireEvent.submit(screen.getByRole('button',{name}).closest('form')!)}
+async function begin(){show();fill('Current password','Old-example-pass-42!');fill('New password','New-example-pass-42!');fill('Confirm new password','New-example-pass-42!');submit('Send verification code');await screen.findByLabelText('Verification code')}
+
+test('current password is required and email-only password setup is absent',()=>{show();expect(screen.getByLabelText('Current password')).toBeVisible();expect(screen.queryByRole('button',{name:'Use email code instead'})).not.toBeInTheDocument();fill('New password','New-example-pass-42!');fill('Confirm new password','New-example-pass-42!');submit('Send verification code');expect(screen.getByRole('alert')).toHaveTextContent('Enter your current password')})
+test('wrong current password does not send recovery code',async()=>{signInWithPassword.mockResolvedValue({data:{user:null,session:null},error:new Error('wrong')});show();fill('Current password','Wrong-pass-42!');fill('New password','New-example-pass-42!');fill('Confirm new password','New-example-pass-42!');submit('Send verification code');expect(await screen.findByRole('alert')).toHaveTextContent('Could not verify your current password');expect(resetPasswordForEmail).not.toHaveBeenCalled()})
+test('verified current password and recovery code update password',async()=>{await begin();expect(resetPasswordForEmail).toHaveBeenCalledWith('one@example.test');fill('Verification code','12345678');submit('Update password');await waitFor(()=>expect(updateUser).toHaveBeenCalledWith({password:'New-example-pass-42!',current_password:'Old-example-pass-42!'}));expect(verifyOtp).toHaveBeenCalledWith({email:'one@example.test',token:'12345678',type:'recovery'});expect(navigate).toHaveBeenCalledWith('/sign-in?password=updated')})
+test('wrong code cannot update password',async()=>{verifyOtp.mockResolvedValue({data:{user:null,session:null},error:new Error('expired')});await begin();fill('Verification code','12345678');submit('Update password');expect(await screen.findByRole('alert')).toHaveTextContent('Could not verify the code');expect(updateUser).not.toHaveBeenCalled()})
+test('switching accounts discards pending password update',async()=>{let finish!:(value:unknown)=>void;updateUser.mockReturnValue(new Promise(resolve=>{finish=resolve}));await begin();fill('Verification code','12345678');submit('Update password');await waitFor(()=>expect(updateUser).toHaveBeenCalledOnce());act(()=>{for(const listener of listeners)listener('SIGNED_IN',{user:{id:'two'}})});await act(async()=>finish({data:{user:{id:'one'}},error:null}));expect(navigate).not.toHaveBeenCalled()})

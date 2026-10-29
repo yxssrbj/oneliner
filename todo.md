@@ -1,6 +1,13 @@
 # Oneliner work tracker
 
-Last updated: 28 October 2026. This file tracks product work across branches; check the linked specs for acceptance details.
+Last updated: 29 October 2026. This file tracks product work across branches; check the linked specs for acceptance details.
+
+## Current delivery
+
+- [x] Run the complete feature-branch check: 377 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.
+- [x] Verify the integrated `main` tree: 380 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.
+- [ ] Push the integrated `main` tree to `origin/main`.
+- [ ] Apply the new group/chat migrations to hosted Supabase and verify hosted privacy and account journeys before deployment or inviting testers.
 
 ## Current status
 
@@ -40,5 +47,5 @@ Last updated: 28 October 2026. This file tracks product work across branches; ch
 
 ## Branch and delivery
 
-- `main` holds the product specs and tracker. `feat/ui-redesign` holds the desktop shell in `.worktrees/ui-redesign`; `feat/account-registration` holds the local account implementation in `.worktrees/account-registration`.
+- `main` now holds the integrated app and shared product specs. Older feature worktrees remain available as history.
 - No pull request is needed for this solo project. A push requires a fresh request.

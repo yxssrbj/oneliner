@@ -130,8 +130,10 @@ After each task, stop and show the diff, checks, normal and edge cases to try, a
 
 ### Task 5: Private friend groups and aggregate comparison
 
+**Status (20 October 2026):** Implemented and reviewed locally on `feat/task-5-private-groups`. Checks: 135 unit tests, 97 SQL assertions, four browser flows, typecheck, lint and production build passed. Review found two client recovery/account-state issues; regression tests reproduce both and the fixes passed scoped re-review. Hosted migration and deployment remain outstanding. User review is the next step.
+
 **Files:**
-- Create: `supabase/migrations/202610180002_groups.sql`
+- Create: `supabase/migrations/202610200001_groups.sql`
 - Create: `supabase/tests/database/groups.test.sql`
 - Create: `app/api/groups/route.ts`, `app/api/groups/[groupId]/route.ts`, `app/api/groups/[groupId]/metrics/route.ts`
 - Create: `app/friends/page.tsx`, `app/friends/invite/[token]/page.tsx`
@@ -140,16 +142,16 @@ After each task, stop and show the diff, checks, normal and edge cases to try, a
 **Interfaces:**
 - Tables: `groups(id, owner_id, name, created_at)`, `group_invites(group_id, token)`, `group_members(group_id, user_id, joined_at)`. Group tables have RLS; only owner/current members see allowed group metadata.
 - Authenticated RPCs: `create_group(name)`, `join_group(token)`, `leave_group(group_id)`, `remove_group_member(group_id, member_id)`, `rotate_group_invite(group_id)`, `close_group(group_id)`, `group_weekly_metrics(group_id, week_start)`. Each enforces current membership/ownership. Only the owner can retrieve the invite token.
-- `group_weekly_metrics` returns current members' IDs, display names, total R, win rate, and completed count for a UTC week; include members with no completed trades as `0`, null, `0`. It returns no note, trade ID, price, setup, or individual trade row. A former member cannot call it.
-- All group API routes use the signed-in user's Supabase session. Any `SECURITY DEFINER` function is in a non-exposed schema with a fixed `search_path`, minimal grants, and membership checks inside the function.
+- `group_weekly_metrics` returns current members' display names, total R, win rate, and completed count for a UTC week; include members with no completed trades as `0`, null, `0`. It returns no note, trade ID, price, setup, or individual trade row. A former member cannot call it.
+- All group API routes use the signed-in user's Supabase session. Callable group RPCs may use `SECURITY DEFINER` in the exposed `public` schema with a fixed `search_path`, execution granted only to authenticated users, and identity/membership/ownership checks inside every function. Internal helpers may use a private schema. This resolves the earlier contradiction between callable RPCs and non-exposed functions (approved 20 October 2026).
 
-- [ ] **Step 1: Write failing pgTAP privacy tests.** Assert nonmembers cannot read group metrics; current members receive only aggregate columns; member A cannot select member B's trade; removal revokes access and rotates the invite; the old token cannot rejoin; leaving/closing revokes access.
-- [ ] **Step 2: Run `npx supabase test db` and confirm failure because the group schema/functions are missing.**
-- [ ] **Step 3: Implement groups, invitation lifecycle, RLS, and narrowly granted aggregate RPCs.** Review function ownership, exposed schemas, grants, search paths, and RLS bypass behavior.
-- [ ] **Step 4: Add failing tests for every group Route Handler before implementing them.** Cover unauthenticated requests, owner/member permissions, invalid/rotated invites, and exact aggregate response fields.
-- [ ] **Step 5: Implement the Friends and invite screens.** Show the opt-in disclosure before joining; compare only weekly total R, win rate, completed count, display name, and the self-reported label. Support create, join, leave, remove, invite rotation, and close.
-- [ ] **Step 6: Run SQL tests, route tests, full unit suite, `npm run typecheck`, `npm run lint`, and `npm run build`; expect all to pass.**
-- [ ] **Step 7: Show the group flow and privacy results for user review; after approval, commit:** `git add app supabase && git commit -m "feat: compare private weekly summaries"`.
+- [x] **Step 1: Write failing pgTAP privacy tests.** Assert nonmembers cannot read group metrics; current members receive only aggregate columns; member A cannot select member B's trade; removal revokes access and rotates the invite; the old token cannot rejoin; leaving/closing revokes access.
+- [x] **Step 2: Run `npx supabase test db` and confirm failure because the group schema/functions are missing.**
+- [x] **Step 3: Implement groups, invitation lifecycle, RLS, and narrowly granted aggregate RPCs.** Review function ownership, exposed schemas, grants, search paths, and RLS bypass behavior.
+- [x] **Step 4: Add failing tests for every group Route Handler before implementing them.** Cover unauthenticated requests, owner/member permissions, invalid/rotated invites, and exact aggregate response fields.
+- [x] **Step 5: Implement the Friends and invite screens.** Show the opt-in disclosure before joining; compare only weekly total R, win rate, completed count, display name, and the self-reported label. Support create, join, leave, remove, invite rotation, and close.
+- [x] **Step 6: Run SQL tests, route tests, full unit suite, `npm run typecheck`, `npm run lint`, and `npm run build`; expect all to pass.**
+- [ ] **Step 7: User review of the local group flow.** Atomic local commits are recorded from `3b910a3` through `584016b`; the standing Git instructions authorize local commits during implementation. No push or hosted migration was performed. Open `/friends`, create a group and try its invite in another account.
 
 ### Task 6: Browser end-to-end verification and release handoff
 

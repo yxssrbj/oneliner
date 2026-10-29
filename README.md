@@ -1,8 +1,8 @@
 # Oneliner
 
-A desktop trading journal in progress. The approved frontend concept is the standalone [desktop preview](docs/previews/oneliner-desktop.html).
+A desktop trading journal for note capture, unfinished trades, weekly review, and private groups with chat. The approved visual target is the standalone [desktop preview](docs/previews/oneliner-desktop.html).
 
-Run `npm run dev` and open [http://localhost:3000](http://localhost:3000) for the existing app. Open the approved HTML preview directly to inspect the redesigned screens; it uses temporary sample data and does not save real trades.
+Run `npm run dev` and open [http://localhost:3000](http://localhost:3000). See [RUNBOOK.md](RUNBOOK.md) for local Supabase, account, and test commands. The HTML preview uses sample data and does not save trades.
 
 ## Shared product specifications
 

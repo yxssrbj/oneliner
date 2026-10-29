@@ -1,23 +1,24 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(42);
+select plan(49);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_column('public', 'profiles', 'display_name', 'profiles have display names');
 select has_table('public', 'trades', 'trades table exists');
 select has_column('public', 'trades', 'r_result', 'trades have calculated R');
 select has_column('public', 'trades', 'idempotency_key', 'trades have idempotency keys');
+select has_column('public', 'trades', 'chart_data', 'trades can store chart data');
 select col_type_is('public', 'trades', 'r_result', 'numeric', 'R uses numeric precision');
-select columns_are('public', 'profiles', array['id', 'display_name'], 'profile column shape');
-select columns_are('public', 'trades', array['id', 'owner_id', 'original_note', 'symbol', 'side', 'entry_price', 'stop_price', 'setup', 'opened_at', 'exit_price', 'r_result', 'idempotency_key', 'created_at', 'updated_at'], 'trade column shape');
+select columns_are('public', 'profiles', array['id', 'display_name', 'username'], 'profile column shape');
+select columns_are('public', 'trades', array['id', 'owner_id', 'original_note', 'symbol', 'side', 'entry_price', 'stop_price', 'setup', 'opened_at', 'exit_price', 'r_result', 'idempotency_key', 'created_at', 'updated_at', 'chart_data'], 'trade column shape');
 
-insert into auth.users (id, email) values
-  ('00000000-0000-0000-0000-000000000001', 'trader-one@example.test'),
-  ('00000000-0000-0000-0000-000000000002', 'trader-two@example.test');
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-000000000001', 'trader-one@example.test', '{"username":"trader_one"}'::jsonb),
+  ('00000000-0000-0000-0000-000000000002', 'trader-two@example.test', '{"username":"trader_two"}'::jsonb);
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
-insert into public.profiles (id, display_name) values (auth.uid(), 'Trader One');
+update public.profiles set display_name = 'Trader One' where id = auth.uid();
 select is((select display_name from public.profiles where id = auth.uid()), 'Trader One', 'owner can read own profile');
 select throws_ok($$update public.profiles set display_name = E'\f' where id = auth.uid()$$, '23514', null, 'form-feed-only display name rejected');
 
@@ -28,6 +29,12 @@ values
   ('10000000-0000-0000-0000-000000000002', auth.uid(), 'short loss', 'ES', 'short', 100, 101, 'breakout', now(), 102, '20000000-0000-0000-0000-000000000002'),
   ('10000000-0000-0000-0000-000000000003', auth.uid(), 'breakeven', 'ES', 'long', 100, 99, 'breakout', now(), 100, '20000000-0000-0000-0000-000000000003'),
   ('10000000-0000-0000-0000-000000000004', auth.uid(), 'unfinished', 'ES', 'long', 100, 99, 'breakout', now(), null, '20000000-0000-0000-0000-000000000004');
+
+update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z","open":101,"high":104,"low":100,"close":103,"volume":25}]'::jsonb where id = '10000000-0000-0000-0000-000000000001';
+select throws_ok($$update public.trades set chart_data = '{}'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data must be an array');
+select throws_ok($$update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z"}]'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data requires complete bars');
+select throws_ok($$update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z","open":101,"high":99,"low":100,"close":103,"volume":25}]'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data rejects invalid OHLC geometry');
+select throws_ok($$update public.trades set chart_data = '[{"time":"2026-10-19T09:30:00Z","open":101,"high":104,"low":100,"close":103,"volume":25},{"time":"2026-10-19T09:30:00Z","open":101,"high":104,"low":100,"close":103,"volume":25}]'::jsonb where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'chart data rejects duplicate timestamps');
 
 select is((select r_result from public.trades where id = '10000000-0000-0000-0000-000000000001'), 2::numeric, 'long win is 2R');
 select is((select r_result from public.trades where id = '10000000-0000-0000-0000-000000000002'), -2::numeric, 'short loss is -2R');
@@ -60,12 +67,15 @@ select throws_ok($$insert into public.trades (owner_id, original_note, symbol, s
 select throws_ok($$update public.trades set owner_id = '00000000-0000-0000-0000-000000000002' where id = '10000000-0000-0000-0000-000000000001'$$, '23514', null, 'owner cannot be changed');
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
-select is((select count(*) from public.profiles), 0::bigint, 'second user cannot read first profile');
+select is((select count(*) from public.profiles where id = '00000000-0000-0000-0000-000000000001'), 0::bigint, 'second user cannot read first profile');
 with changed as (update public.profiles set display_name = 'stolen' where id = '00000000-0000-0000-0000-000000000001' returning id)
 select is((select count(*) from changed), 0::bigint, 'second user cannot update first profile');
 select is((select count(*) from public.trades), 0::bigint, 'second user cannot read first user trades');
+select is((select count(*) from public.trades where chart_data is not null), 0::bigint, 'second user cannot read first user chart data');
 with changed as (update public.trades set original_note = 'stolen' where id = '10000000-0000-0000-0000-000000000001' returning id)
 select is((select count(*) from changed), 0::bigint, 'second user cannot update first user trade');
+with changed as (update public.trades set chart_data = null where id = '10000000-0000-0000-0000-000000000001' returning id)
+select is((select count(*) from changed), 0::bigint, 'second user cannot update first user chart data');
 
 select * from finish();
 rollback;

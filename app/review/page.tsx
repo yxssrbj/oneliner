@@ -1,7 +1,16 @@
+import { connection } from 'next/server'
+import { redirect } from 'next/navigation'
+import { getAuthenticatedUser } from '../../lib/supabase/server'
+import { weekStartUtc } from '../../lib/trades/week'
 import AppShell from '../components/app-shell'
+import TradeWorkspace from '../components/trade-workspace'
 
 export const instant = false
 
-export default function Review() {
-  return <AppShell title="Review"><p>Your weekly trading review will appear here.</p></AppShell>
+export default async function Review({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {
+  await connection()
+  const auth = await getAuthenticatedUser()
+  if (!auth) redirect('/sign-in')
+  const demo = process.env.NODE_ENV === 'development' && (await searchParams).demo === '1'
+  return <AppShell title="Review"><TradeWorkspace mode="review" userId={auth.user.id} initialWeek={weekStartUtc(new Date())} demo={demo} /></AppShell>
 }

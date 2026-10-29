@@ -10,10 +10,10 @@ Specification status:
 | [desktop-preview-parity.md](desktop-preview-parity.md) | Full desktop screen composition and real settings entry | UI-01–05, ACC, CAP, OUT, REV, GRP, CHAT, IMP | Draft |
 | [settings.md](settings.md) | First settings page, theme, password access, and sign-out | UI-01–05, ACC-02–04 | Draft |
 | [trade-journal.md](trade-journal.md) | Capture and unfinished screen slice; existing corrections and chart imports preserved | CAP-01–05, OUT-01–03, IMP-01 | Approved |
-| `weekly-review.md` | Metric definitions, ordering, charts, and review actions | REV-01–04 | Not written |
-| [accounts.md](accounts.md) | Registration, usernames, verification, and recovery | ACC-01–04 | Locally implemented; hosted pending |
-| `private-groups.md` | Group creation, invitations, members, and comparisons | GRP-01–04 | Not written |
-| `group-chat.md` | Continuous messages, pictures, delivery, and access | CHAT-01–03 | Not written |
+| [weekly-review.md](weekly-review.md) | Metric definitions, ordering, charts, and review actions | REV-01–04 | Implemented locally |
+| [accounts.md](accounts.md) | Registration, usernames, verification, and recovery | ACC-01–04 | Implemented and hosted journey checked |
+| [private-groups.md](private-groups.md) | Group creation, invitations, members, and comparisons | GRP-01–04 | Implemented locally |
+| [group-chat.md](group-chat.md) | Continuous messages, pictures, delivery, and access | CHAT-01–03 | Implemented locally |
 
 Each spec records its status (draft, approved, or superseded), the problem and intended user, linked PRD IDs, required behavior, acceptance criteria, exclusions, and decisions still needed. Keep implementation status and verification evidence distinct from design approval.
 

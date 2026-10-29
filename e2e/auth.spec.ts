@@ -1,52 +1,65 @@
-import { expect, test } from '@playwright/test'
+import {expect,test} from '@playwright/test'
+import {registerAccount} from './account-helper'
 
-test.use({ viewport: { width: 390, height: 844 } })
+test.use({viewport:{width:1280,height:800}})
 
-test('email code signs in and opens the mobile shell', async ({ page, request }) => {
-  const email = `oneliner-${Date.now()}@example.test`
-  expect((await request.get('http://localhost:3012/api/profile')).status()).toBe(401)
-  await page.goto('http://localhost:3012/')
+test('password accounts keep journals private across account switches',async({page,request})=>{
+  const first=await registerAccount(page,request,'auth-first')
+  const saved=await page.request.post('/api/trades',{
+    headers:{'Idempotency-Key':crypto.randomUUID()},
+    data:{originalNote:'First account private note',symbol:'ES',side:'long',entryPrice:'100',stopPrice:'99',setup:'breakout',openedAt:new Date().toISOString()}
+  })
+  expect(saved.status()).toBe(201)
+  await page.goto('/settings')
+  await expect(page.getByLabel('Display name')).toHaveValue(first.username)
+  await page.getByRole('button',{name:'Sign out'}).click()
   await expect(page).toHaveURL(/\/sign-in$/)
-  await page.waitForLoadState('networkidle')
-  await page.getByLabel('Email').fill(email)
-  await page.getByRole('button', { name: 'Send code' }).click()
-  await expect(page.getByLabel('Code')).toBeVisible()
+  expect((await page.request.get('/api/trades')).status()).toBe(401)
+  const second=await registerAccount(page,request,'auth-second')
+  await page.goto('/settings')
+  await expect(page.getByLabel('Display name')).toHaveValue(second.username)
+  expect((await(await page.request.get('/api/trades')).json()).trades).toEqual([])
+  await page.goto('/inbox')
+  await expect(page.getByText('First account private note',{exact:true})).toHaveCount(0)
+  await page.goto('/settings')
+  await page.getByRole('button',{name:'Sign out'}).click()
+  await page.getByLabel('Email').fill(first.email)
+  await page.getByLabel('Password').fill(first.password)
+  await page.getByRole('button',{name:'Sign in',exact:true}).click()
+  await expect(page).toHaveURL('/')
+  expect((await(await page.request.get('/api/trades')).json()).trades).toEqual(expect.arrayContaining([expect.objectContaining({original_note:'First account private note'})]))
+})
 
-  let messageId = ''
-  await expect.poll(async () => {
-    const response = await request.get('http://127.0.0.1:54324/api/v1/messages')
-    const inbox = await response.json()
-    messageId = inbox.messages.find((message: { To: { Address: string }[] }) => message.To.some((recipient) => recipient.Address === email))?.ID ?? ''
-    return messageId
-  }).not.toBe('')
+test('password sign-in uses generic errors and a validated invite destination',async({page,request})=>{
+  const account=await registerAccount(page,request,'auth-invite')
+  await page.goto('/settings')
+  await page.getByRole('button',{name:'Sign out'}).click()
+  const invite=crypto.randomUUID()
+  await page.goto(`/sign-in?invite=${invite}`)
+  const error='Could not sign in. Check your email and password.'
+  await page.getByLabel('Email').fill(`missing-${crypto.randomUUID()}@example.test`)
+  await page.getByLabel('Password').fill(account.password)
+  await page.getByRole('button',{name:'Sign in',exact:true}).click()
+  await expect(page.locator('.auth-form [role="alert"]')).toHaveText(error)
+  await page.getByLabel('Email').fill(account.email)
+  await page.getByLabel('Password').fill('Wrong-password-42!')
+  await page.getByRole('button',{name:'Sign in',exact:true}).click()
+  await expect(page.locator('.auth-form [role="alert"]')).toHaveText(error)
+  await page.getByLabel('Password').fill(account.password)
+  await page.getByRole('button',{name:'Sign in',exact:true}).click()
+  await expect(page).toHaveURL(`/friends/invite/${invite}`)
+})
 
-  const message = await (await request.get(`http://127.0.0.1:54324/api/v1/message/${messageId}`)).json()
-  const code = /Enter this code in Oneliner:\s*<strong>(\d{6})<\/strong>/.exec(message.HTML)?.[1]
-  expect(code).toMatch(/^\d{6}$/)
-  await page.getByLabel('Code').fill(code === '000000' ? '000001' : '000000')
-  await page.getByRole('button', { name: 'Verify code' }).click()
-  await expect(page.locator('.auth-form [role="alert"]')).toContainText('Invalid or expired')
-
-  await page.getByLabel('Code').fill(code!)
-  await page.getByRole('button', { name: 'Verify code' }).click()
-  await expect(page).toHaveURL('http://localhost:3012/')
-  await expect(page.getByRole('heading', { name: 'Capture' })).toBeVisible()
-  await expect(page.getByRole('navigation', { name: 'Main navigation' }).last()).toBeVisible()
-
-  const before = await page.evaluate(async () => {
-    const response = await fetch('/api/profile')
-    return { status: response.status, body: await response.json() }
-  })
-  expect(before).toEqual({ status: 200, body: { displayName: null } })
-  const saved = await page.evaluate(async () => {
-    const response = await fetch('/api/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: 'A trader', id: 'another-user' }) })
-    return { status: response.status, body: await response.json() }
-  })
-  expect(saved).toEqual({ status: 200, body: { displayName: 'A trader' } })
-
-  await page.getByRole('navigation', { name: 'Main navigation' }).last().getByRole('link', { name: 'Inbox' }).click()
-  await expect(page.getByRole('heading', { name: 'Inbox' })).toBeVisible()
-  await page.setViewportSize({ width: 1100, height: 800 })
-  await expect(page.getByRole('complementary')).toBeVisible()
-  await expect(page.locator('.mobile-nav').last()).toBeHidden()
+test('sign-in blocks credential entry until its browser listeners are ready',async({page})=>{
+  let release!:()=>void
+  const scripts=new Promise<void>(resolve=>{release=resolve})
+  await page.route('**/_next/static/**/*.js',async route=>{await scripts;await route.continue()})
+  try{
+    await page.goto('/sign-in?password=updated',{waitUntil:'commit'})
+    await expect(page.getByLabel('Email')).toBeDisabled()
+    await expect(page.getByLabel('Password')).toBeDisabled()
+    release()
+    await expect(page.getByLabel('Email')).toBeEnabled()
+    await expect(page.getByLabel('Password')).toBeEnabled()
+  }finally{release()}
 })

@@ -40,6 +40,8 @@
 
 ## Private groups · 28 October 2026
 
+- Group sharing exposes display names and weekly aggregates only; raw trades remain owner-only. Membership changes lock the group, and removing a member rotates its invite so an old link cannot restore access.
+- Comparisons count completed trades in Monday UTC opening weeks; breakeven remains in the win-rate denominator.
 - Reuse the membership-checked Supabase group functions for the desktop screen. The UI can rearrange group, member, and weekly aggregate views without changing the privacy boundary or returning individual trades.
 - Registration owns username creation and Settings owns display-name editing. Group creation asks only for a group name; missing profile identity links to Settings.
 - Keep chat and weekly comparison in separate center-panel tabs. Retain the draft in the parent workspace while the chat tab is unmounted, and close group action dialogs when the signed-in account changes.

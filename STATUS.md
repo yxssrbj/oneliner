@@ -1,6 +1,8 @@
 # Oneliner status
 
-Updated: 28 October 2026. Project-wide status; account implementation branch: `feat/account-registration` in `.worktrees/account-registration`, based on `feat/ui-redesign`. `main` and the account branch were pushed on 26 October; no PR or merge since then.
+Updated: 29 October 2026. `main` integrates the `feat/group-chat` implementation and shared product docs. The combined tree passed 380 unit tests, 140 local database assertions, 23 Playwright journeys, typecheck, and a production build. ESLint passed with two existing chat-image warnings. Hosted Supabase has not received the new group/chat migrations; deployment and hosted browser verification remain separate work.
+
+The sections below retain earlier feature-branch history. The summary above is the current integrated status.
 
 ## Account reset and new direction
 
