@@ -6,7 +6,7 @@ Last updated: 29 October 2026. This file tracks product work across branches; ch
 
 - [x] Run the complete feature-branch check: 377 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.
 - [x] Verify the integrated `main` tree: 380 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.
-- [ ] Push the integrated `main` tree to `origin/main`.
+- [x] Push the integrated `main` tree to `origin/main` (`1242e0d`).
 - [ ] Apply the new group/chat migrations to hosted Supabase and verify hosted privacy and account journeys before deployment or inviting testers.
 
 ## Current status
