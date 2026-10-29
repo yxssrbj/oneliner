@@ -36,6 +36,18 @@ test.each(destinations)('shows the desktop navigation and header for $title', as
   expect(within(screen.getByRole('main')).getByText('Page content')).toBeVisible()
 })
 
+test('shared frame follows the desktop preview hierarchy', async () => {
+  render(await AppShell({ title: 'Review', children: null }))
+  const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+  expect(screen.getByRole('link', { name: 'oneliner.' })).toHaveAttribute('href', '/')
+  expect(within(nav).getByText('Your workspace')).toBeVisible()
+  expect(within(nav).getByText('Together, better')).toBeVisible()
+  expect(screen.getByText('A little reflection.')).toBeVisible()
+  expect(screen.getByText('A better next trade.')).toBeVisible()
+  expect(within(screen.getByRole('banner')).getByText('Workspace')).toBeVisible()
+  expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Start a new trade' })).toHaveAttribute('href', '/')
+})
+
 test('redirects a missing user before rendering private content', async () => {
   getAuthenticatedUser.mockResolvedValue(null)
   await expect(AppShell({ title: 'Capture', children: <p>Private content</p> })).rejects.toThrow('redirect:/sign-in')
@@ -69,6 +81,7 @@ test('settings keeps four destinations and marks only the profile row current', 
   expect(within(nav).getAllByRole('link')).toHaveLength(4)
   expect(within(nav).queryByRole('link', { current: 'page' })).not.toBeInTheDocument()
   expect(screen.getByRole('link', { current: 'page' })).toHaveAttribute('href', '/settings')
-  expect(screen.getByRole('banner')).toHaveTextContent('Workspace / Settings')
+  expect(within(screen.getByRole('banner')).getByText('Workspace')).toBeVisible()
+  expect(within(screen.getByRole('banner')).getByText('Settings')).toBeVisible()
   expect(within(screen.getByRole('banner')).queryByRole('heading')).not.toBeInTheDocument()
 })

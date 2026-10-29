@@ -27,7 +27,10 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900
     for (const [path, title] of [['/review', 'Weekly review'], ['/', 'Capture a trade'], ['/inbox', 'Unfinished'], ['/friends', 'Groups']]) {
       await page.goto(path)
       await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible()
+      await expect(page.getByRole('link', { name: 'oneliner.' })).toBeVisible()
+      await expect(page.getByRole('banner').getByRole('link', { name: 'Start a new trade' })).toBeVisible()
       await expect(page.locator('.account-name:visible')).toHaveText(name)
+      expect((await page.locator('.desktop-nav').boundingBox())!.width).toBe(202)
       const navigation = page.getByRole('navigation', { name: 'Main navigation' })
       await expect(navigation.locator('[aria-current="page"]')).toHaveText(title)
       for (const link of await navigation.getByRole('link').all()) {
@@ -40,7 +43,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900
       await fits()
       await page.screenshot({ path: testInfo.outputPath(`${title.replaceAll(' ', '-')}.png`), fullPage: true })
     }
-    await expect(page.getByText('No groups yet. Create one or open an invite link.')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'No groups yet' })).toBeVisible()
     await page.getByRole('link', { name: 'Capture a trade', exact: true }).click()
     await expect(page.getByLabel('Trade note')).toBeVisible()
     await page.goBack()

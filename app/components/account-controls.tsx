@@ -30,8 +30,10 @@ export default function AccountControls({ userId, displayName, profileError, cur
     return () => { active = false; setReady(false); subscription.unsubscribe() }
   }, [router, userId])
 
+  const shownName = hidden || !ready ? 'Trader' : displayName || 'Trader'
+  const initials = shownName.trim().split(/\s+/).slice(0,2).map(part => part[0]?.toUpperCase()).join('')
   return <div className="account-controls" aria-label="Account">
-    <Link href="/settings" className="account-profile" aria-current={current ? 'page' : undefined}><span className="account-name">{hidden || !ready ? 'Trader' : displayName || 'Trader'}</span><span className="account-workspace">Personal workspace</span><span className="account-arrow" aria-hidden="true">›</span></Link>
+    <Link href="/settings" className="account-profile" aria-current={current ? 'page' : undefined}><span className="account-avatar" aria-hidden="true">{initials}</span><span className="account-identity"><span className="account-name">{shownName}</span><span className="account-workspace">Personal workspace</span></span><span className="account-arrow" aria-hidden="true">›</span></Link>
     {!hidden && ready && profileError && <p role="alert" className="error">Could not load display name.</p>}
   </div>
 }

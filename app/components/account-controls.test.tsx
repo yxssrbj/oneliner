@@ -26,6 +26,10 @@ test('the profile row opens settings', () => {
   show()
   expect(screen.getByRole('link', { name: /River/ })).toHaveAttribute('href', '/settings')
 })
+test('the profile avatar uses the confirmed visible name', () => {
+  render(<AccountControls userId="one" displayName="Alex Lee" profileError={false}/>)
+  expect(screen.getByText('AL')).toBeVisible()
+})
 test('settings marks the profile row current', () => {
   render(<AccountControls userId="one" displayName="River" profileError={false} current />)
   expect(screen.getByRole('link', { current: 'page' })).toHaveAttribute('href', '/settings')
