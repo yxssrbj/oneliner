@@ -4,6 +4,8 @@ Last updated: 30 October 2026. This file tracks product work across branches; ch
 
 ## Current delivery
 
+- [x] Approve TradingView paper-trading history import design.
+- [ ] Review the [trade-history implementation plan](docs/superpowers/plans/2026-10-30-tradingview-trade-history.md), then implement it in an isolated worktree with focused checks and the supplied CSV.
 - [x] Apply the approved signup and password-code email designs to local templates and hosted Auth; integrate into `main`.
 - [ ] Inspect a real hosted signup and recovery email with a disposable account before inviting testers.
 - [x] Run the complete feature-branch check: 377 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.

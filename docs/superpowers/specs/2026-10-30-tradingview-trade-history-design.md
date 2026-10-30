@@ -1,6 +1,6 @@
 # TradingView trade-history import
 
-Status: Proposed for owner review · 30 October 2026
+Status: Approved by the project owner · 30 October 2026
 
 ## Intent
 
