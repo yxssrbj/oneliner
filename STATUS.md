@@ -1,5 +1,7 @@
 # Oneliner status
 
+30 October 2026 · `feat/email-templates`: The approved signup and password-code design is in the two Supabase HTML templates and hosted project `svohohmwwbriepmupswk`. Hosted Auth reported four properties updated (two bodies and two subjects), then up to date on a second check; 16 undeclared settings, including SMTP and OTP length, were left unchanged. Template tests failed before implementation and now pass; 20 focused tests, typecheck, focused ESLint, and 700px/320px browser rendering checks passed. No live hosted email was requested or inspected, and the full suite was not run. The branch is local and unpushed.
+
 30 October 2026 · `main`: Weekly review daily results now use each trade's UTC opening date. A regression case with offsets crossing UTC midnight failed before the fix and passes afterward. Focused unit tests (6), typecheck, focused ESLint, and the local review browser journey passed. The full suite and hosted flow were not run. This change is local and unpushed.
 
 Local app: `main` development server started on port 3000 on 29 October 2026. `/sign-in` returned HTTP 200 and local Supabase Auth health returned HTTP 200. Open `http://localhost:3000`.

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oneliner — email design preview</title>
+  <style>
+    :root{font-family:Arial,Helvetica,sans-serif;color:#e8eee5;background:#101310}
+    *{box-sizing:border-box}
+    body{margin:0}
+    .page{max-width:1240px;margin:auto;padding:42px 26px 70px}
+    .eyebrow{color:#c5ed88;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+    h1{font-size:32px;letter-spacing:-.04em;margin:8px 0 8px}
+    .intro{color:#a7b2a5;font-size:15px;line-height:1.5;margin:0 0 28px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+    .frame{min-width:0;background:#1b211b;border:1px solid #354033;border-radius:14px;overflow:hidden;box-shadow:0 20px 55px #0004}
+    .inbox{padding:18px 22px;border-bottom:1px solid #354033}
+    .kind{color:#c5ed88;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+    .subject{font-size:16px;font-weight:700;color:#f1f4ee}
+    .sender{color:#a7b2a5;font-size:12px;margin-top:5px}
+    .mail-wrap{padding:24px 18px 30px;background:#e8ece5}
+    .mail{max-width:510px;margin:auto;background:#fff;border:1px solid #dce3d8;border-radius:10px;overflow:hidden;color:#263026}
+    .mail-head{background:#171c17;padding:26px 34px;display:flex;align-items:center;gap:12px;color:#f4f7f1}
+    .mark{height:24px;width:24px;display:inline-block;background:#c5ed88;clip-path:polygon(52% 0,100% 0,48% 100%,0 100%)}
+    .brand{font-size:23px;font-weight:700;letter-spacing:-.06em}
+    .mail-body{padding:33px 34px 31px}
+    .mail-label{color:#4c6b2f;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin:0 0 11px}
+    h2{font-size:27px;line-height:1.15;letter-spacing:-.035em;margin:0 0 14px;color:#1e281d}
+    .copy{font-size:15px;line-height:1.55;color:#4b584a;margin:0 0 22px}
+    .code-box{background:#f2f7ec;border:1px solid #dae9cc;border-radius:8px;padding:20px 22px;margin:0 0 22px}
+    .code-caption{display:block;color:#4e6341;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;margin-bottom:9px}
+    .code{display:block;font-size:32px;line-height:1.2;letter-spacing:.12em;font-weight:700;color:#1a2618;font-variant-numeric:tabular-nums;user-select:all;white-space:nowrap}
+    .steps{font-size:14px;line-height:1.55;color:#4b584a;margin:0 0 18px}
+    .notice{border-top:1px solid #e2e8df;padding-top:17px;color:#697568;font-size:12px;line-height:1.5;margin:0}
+    .mail-foot{background:#f7f8f5;border-top:1px solid #e2e8df;padding:17px 34px;color:#788276;font-size:12px;line-height:1.45}
+    .mail-foot strong{color:#40503c}
+    .preview-note{margin-top:19px;color:#a7b2a5;font-size:12px;line-height:1.5}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}.page{max-width:620px}}
+    @media(max-width:560px){.page{padding:25px 12px 40px}.mail-wrap{padding:12px}.mail-head{padding:23px 24px}.mail-body{padding:28px 24px}.mail-foot{padding:17px 24px}.code{font-size:26px;letter-spacing:.08em}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="eyebrow">Oneliner / email concept</div>
+    <h1>One clear action. One clear code.</h1>
+    <p class="intro">A visual preview of the two code emails. Codes are examples; no email is sent from this page.</p>
+    <div class="grid">
+      <section class="frame" aria-labelledby="signup-subject">
+        <div class="inbox">
+          <div class="kind">01 / Create account</div>
+          <div class="subject" id="signup-subject">Confirm your Oneliner email</div>
+          <div class="sender">From Oneliner · Account verification</div>
+        </div>
+        <div class="mail-wrap"><article class="mail">
+          <header class="mail-head"><span class="mark" aria-hidden="true"></span><span class="brand">oneliner.</span></header>
+          <div class="mail-body">
+            <p class="mail-label">Account verification</p>
+            <h2>Confirm your email.</h2>
+            <p class="copy">Enter this code in Oneliner to finish creating your account.</p>
+            <div class="code-box"><span class="code-caption">Your verification code</span><strong class="code">48271936</strong></div>
+            <p class="steps">Return to the verification screen and enter the full code.</p>
+            <p class="notice">If you didn’t create an Oneliner account, you can ignore this email. Don’t share this code with anyone.</p>
+          </div>
+          <footer class="mail-foot"><strong>Oneliner</strong> · Your trading journal, one note at a time.</footer>
+        </article></div>
+      </section>
+      <section class="frame" aria-labelledby="recovery-subject">
+        <div class="inbox">
+          <div class="kind">02 / Password</div>
+          <div class="subject" id="recovery-subject">Your Oneliner password code</div>
+          <div class="sender">From Oneliner · Password verification</div>
+        </div>
+        <div class="mail-wrap"><article class="mail">
+          <header class="mail-head"><span class="mark" aria-hidden="true"></span><span class="brand">oneliner.</span></header>
+          <div class="mail-body">
+            <p class="mail-label">Password verification</p>
+            <h2>Here’s your code.</h2>
+            <p class="copy">Enter this code in Oneliner to continue with your password change or recovery.</p>
+            <div class="code-box"><span class="code-caption">Your password code</span><strong class="code">65128473</strong></div>
+            <p class="steps">Return to Oneliner and enter the full code. This code is for one use.</p>
+            <p class="notice">If you didn’t request a password change or recovery, you can ignore this email. Don’t share this code with anyone.</p>
+          </div>
+          <footer class="mail-foot"><strong>Oneliner</strong> · Your trading journal, one note at a time.</footer>
+        </article></div>
+      </section>
+    </div>
+    <p class="preview-note">Design preview only. Live emails use a fresh code generated by Supabase.</p>
+  </main>
+</body>
+</html>

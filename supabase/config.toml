@@ -4,9 +4,9 @@ project_id = "oneliner"
 enable_confirmations = true
 
 [auth.email.template.confirmation]
-subject = "Verify your Oneliner account"
+subject = "Confirm your Oneliner email"
 content_path = "./supabase/templates/confirmation-code.html"
 
 [auth.email.template.recovery]
-subject = "Reset your Oneliner password"
+subject = "Your Oneliner password code"
 content_path = "./supabase/templates/recovery-code.html"

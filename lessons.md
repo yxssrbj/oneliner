@@ -23,6 +23,7 @@
 - Once signup creates every profile with a required username, profile editing must use an update. An upsert without the username fails its insert path even for an existing row; the browser test exposed this.
 - Email codes serve signup confirmation, recovery, and Settings password verification. Password sign-in is the only sign-in method in Oneliner. Local Supabase templates and hosted Auth templates are separate configuration surfaces.
 - `supabase config diff` previews declared hosted Auth drift; `supabase config push` uploads the referenced template bodies as well as subjects and preserves undeclared hosted SMTP settings. Recheck the diff after pushing.
+- For email body edits, the read-only config diff may list only subject changes; the push prompt lists body changes, and a second no-op push confirms both bodies match hosted Auth. Review the prompt before accepting it.
 - A hosted Supabase URL can still fail with `Invalid API key` when an old worktree carries a stale publishable key. Compare against the current project key before attributing the failure to Auth or email delivery.
 - With Cache Components enabled, private Friends pages must enter a request boundary before rendering code that reads auth or the current time. `await io()` at the page entry fixes development prerender errors on both Friends routes; a production build and browser log check confirmed it.
 
