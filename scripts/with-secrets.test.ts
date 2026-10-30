@@ -40,6 +40,11 @@ test('ordinary startup scripts wrap runtime commands only', () => {
   expect(scripts.typecheck).toBe('next typegen && tsc --noEmit')
 })
 
+test('Vercel builds from configured environment variables', () => {
+  const config = JSON.parse(readFileSync('vercel.json', 'utf8'))
+  expect(config.buildCommand).toBe('next build')
+})
+
 test('decrypts into the child environment and preserves literal arguments', () => {
   const args = ['--port', '3100', 'space value', "quote'\"", '$(touch forbidden); & `touch forbidden`', 'line\nbreak', '']
   const result = run([process.execPath, '-e', 'process.stdout.write(JSON.stringify([process.env.ONELINER_SYNTHETIC_VALUE, process.argv.slice(1)]))', '--', ...args], { ONELINER_SYNTHETIC_VALUE: 'wrong-inherited-value' })
