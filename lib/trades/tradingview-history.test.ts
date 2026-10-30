@@ -20,6 +20,8 @@ test.each([
   ['missing entry', (csv: string) => csv.split('\n').slice(0, 2).join('\n'), /Row 2.*entry/i],
   ['mismatched side', (csv: string) => csv.replace('Entry long', 'Entry short'), /Row 3.*side/i],
   ['mismatched quantity', (csv: string) => csv.replace('100,4,', '100,5,'), /Row 3.*quantity/i],
+  ['precision-mismatched quantity', (csv: string) => csv.replace('100,4,', '100,4.0000000000000001,'), /Row 3.*quantity/i],
+  ['precision-mismatched PnL', (csv: string) => csv.replace('100,4,400,8', '100,4,400,8.0000000000000001'), /Row 3.*P&L/i],
   ['mismatched PnL', (csv: string) => csv.replace('100,4,400,8', '100,4,400,9'), /Row 3.*P&L/i],
   ['duplicate order', (csv: string) => csv.replace(',entry,entry,', ',exit,entry,'), /Row 3.*order/i],
   ['unknown type', (csv: string) => csv.replace('Entry long', 'Buy'), /Row 3.*type/i],
@@ -52,4 +54,13 @@ test('requires an existing timezone and rejects DST gaps and overlaps', () => {
   expect(() => parse(pair('Mar 29, 2026 at 02:30', 'Mar 29, 2026 at 04:00'), 'Europe/Warsaw')).toThrow(/Row 3.*nonexistent/i)
   expect(() => parse(pair('Oct 25, 2026 at 02:30', 'Oct 25, 2026 at 04:00'), 'Europe/Warsaw')).toThrow(/Row 3.*ambiguous/i)
   expect(parse(pair('Oct 25, 2026 at 03:30', 'Oct 25, 2026 at 04:00'), 'Europe/Warsaw')[0].openedAt).toBe('2026-10-25T02:30:00.000Z')
+})
+
+test.each([
+  ['4', '4.00', '8', '+008.000'],
+  ['.5', '0.500', '-8', '-008.000'],
+  ['+0004.00', '4', '-0', '+0.000'],
+])('accepts equivalent exact source decimals %s/%s and %s/%s', (exitQty, entryQty, exitPnl, entryPnl) => {
+  const csv = pair().replace('102,4,400,8', `102,${exitQty},400,${exitPnl}`).replace('100,4,400,8', `100,${entryQty},400,${entryPnl}`)
+  expect(parse(csv, 'UTC')[0]).toMatchObject({ quantity: entryQty, sourcePnlUsd: exitPnl })
 })

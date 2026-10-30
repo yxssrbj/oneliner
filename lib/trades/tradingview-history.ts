@@ -76,6 +76,14 @@ function timestampParser(timeZone: string) {
   }
 }
 
+function normalizedDecimal(value: string): string {
+  const [whole, fraction = ''] = value.replace(/^[+-]/, '').split('.')
+  const integer = whole.replace(/^0+/, '') || '0'
+  const decimal = fraction.replace(/0+$/, '')
+  const sign = value.startsWith('-') && (integer !== '0' || decimal) ? '-' : ''
+  return `${sign}${integer}${decimal ? `.${decimal}` : ''}`
+}
+
 export function parseTradingViewTradeHistoryCsv(csv: string, timeZone: string): ImportedTrade[] {
   if (new TextEncoder().encode(csv).length > 2_000_000) throw new Error('CSV must be at most 2 MB.')
   const [header, ...rows] = csvRows(csv.replace(/^\uFEFF/, ''))
@@ -112,8 +120,8 @@ export function parseTradingViewTradeHistoryCsv(csv: string, timeZone: string): 
     const row: SourceRow = { line, symbol, trade, order, side: type[2] as 'long' | 'short', price: numeric('price', 'price', true), quantity: numeric('size (qty)', 'quantity', true), pnl: numeric('net pnl usd', 'P&L', false), time: parseTime(get('date and time'), line) }
     const other = pair.entry ?? pair.exit
     if (other && row.side !== other.side) throw new Error(`Row ${line} has a mismatched side with row ${other.line}.`)
-    if (other && Number(row.quantity) !== Number(other.quantity)) throw new Error(`Row ${line} has a mismatched quantity with row ${other.line}.`)
-    if (other && Number(row.pnl) !== Number(other.pnl)) throw new Error(`Row ${line} has mismatched P&L with row ${other.line}.`)
+    if (other && normalizedDecimal(row.quantity) !== normalizedDecimal(other.quantity)) throw new Error(`Row ${line} has a mismatched quantity with row ${other.line}.`)
+    if (other && normalizedDecimal(row.pnl) !== normalizedDecimal(other.pnl)) throw new Error(`Row ${line} has mismatched P&L with row ${other.line}.`)
     pair[kind] = row
     pairs.set(key, pair)
   }
