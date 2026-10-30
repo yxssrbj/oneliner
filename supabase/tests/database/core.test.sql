@@ -10,7 +10,7 @@ select has_column('public', 'trades', 'idempotency_key', 'trades have idempotenc
 select has_column('public', 'trades', 'chart_data', 'trades can store chart data');
 select col_type_is('public', 'trades', 'r_result', 'numeric', 'R uses numeric precision');
 select columns_are('public', 'profiles', array['id', 'display_name', 'username'], 'profile column shape');
-select columns_are('public', 'trades', array['id', 'owner_id', 'original_note', 'symbol', 'side', 'entry_price', 'stop_price', 'setup', 'opened_at', 'exit_price', 'r_result', 'idempotency_key', 'created_at', 'updated_at', 'chart_data'], 'trade column shape');
+select columns_are('public', 'trades', array['id', 'owner_id', 'original_note', 'symbol', 'side', 'entry_price', 'stop_price', 'setup', 'opened_at', 'exit_price', 'r_result', 'idempotency_key', 'created_at', 'updated_at', 'chart_data', 'source_key', 'source_net_pnl_usd', 'source_quantity', 'source_payload'], 'trade column shape');
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-000000000001', 'trader-one@example.test', '{"username":"trader_one"}'::jsonb),
