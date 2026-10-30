@@ -44,6 +44,19 @@ select throws_ok($$select public.close_group(group_id) from fixture$$,'P0002',nu
 select throws_ok($$select public.remove_group_member(group_id,'50000000-0000-0000-0000-000000000001') from fixture$$,'P0002',null,'member cannot remove');
 select results_eq($$select display_name,total_r,round(win_rate,4),completed_count from public.group_weekly_metrics((select group_id from fixture),'2026-10-19') order by display_name$$,$$values ('Member'::text,0::numeric,null::numeric,0::bigint),('Owner',1::numeric,0.3333::numeric,3::bigint)$$,'aggregate includes zero results and correct UTC week');
 select is((select array_agg(key order by key) from jsonb_object_keys((select to_jsonb(m) from public.group_weekly_metrics((select group_id from fixture),'2026-10-19') m limit 1)) key),array['completed_count','display_name','total_r','win_rate'],'only aggregate columns exposed');
+select set_config('request.jwt.claim.sub','50000000-0000-0000-0000-000000000001',true);
+insert into public.trades(owner_id,symbol,side,entry_price,exit_price,opened_at,idempotency_key,source_key,source_net_pnl_usd,source_quantity,source_payload)
+select auth.uid(),'ES','long',100,102,'2026-10-19T12:00:00Z',gen_random_uuid(),'group-import-' || n,pnl,1,'{}'::jsonb
+from (values (1,10),(2,-2),(3,0),(4,3),(5,-1),(6,5)) as imports(n,pnl);
+select set_config('request.jwt.claim.sub','50000000-0000-0000-0000-000000000002',true);
+select results_eq($$select total_r,round(win_rate,4),completed_count from public.group_weekly_metrics((select group_id from fixture),'2026-10-19') where display_name='Owner'$$,$$values (null::numeric,0.4444::numeric,9::bigint)$$,'missing risk leaves R unavailable while source outcomes count');
+select is((select count(*) from public.trades),0::bigint,'member cannot read imported source rows');
+select set_config('request.jwt.claim.sub','50000000-0000-0000-0000-000000000001',true);
+update public.trades set stop_price=99,setup='ORB' where source_key='group-import-2';
+select results_eq($$select total_r,round(win_rate,4),completed_count from public.group_weekly_metrics((select group_id from fixture),'2026-10-19') where display_name='Owner'$$,$$values (null::numeric,0.4444::numeric,9::bigint)$$,'partial risk stays unavailable and edited positive R does not override source loss');
+update public.trades set stop_price=99,setup='ORB' where source_key is not null;
+select results_eq($$select total_r,round(win_rate,4),completed_count from public.group_weekly_metrics((select group_id from fixture),'2026-10-19') where display_name='Owner'$$,$$values (13::numeric,0.4444::numeric,9::bigint)$$,'complete risk restores total without changing source win rate');
+select set_config('request.jwt.claim.sub','50000000-0000-0000-0000-000000000002',true);
 select throws_ok($$select * from public.group_weekly_metrics((select group_id from fixture),'2026-10-20')$$,'22023',null,'week must begin Monday');
 select set_config('request.jwt.claim.sub','50000000-0000-0000-0000-000000000001',true);
 select throws_ok($$select public.rename_group(group_id,' ') from fixture$$,'22023',null,'blank rename rejected');
@@ -63,7 +76,7 @@ select throws_ok($$select public.get_group_details(group_id) from fixture$$,'P00
 select lives_ok($$select public.join_group(token) from fixture$$,'member can explicitly rejoin active invite');
 select set_config('request.jwt.claim.sub','50000000-0000-0000-0000-000000000001',true);
 select lives_ok($$select public.close_group(group_id) from fixture$$,'owner closes');
-select is((select count(*) from public.trades),6::bigint,'closing preserves journal');
+select is((select count(*) from public.trades),12::bigint,'closing preserves journal');
 select throws_ok($$select public.join_group(token) from fixture$$,'P0002',null,'closed invite unavailable');
 select throws_ok($$select * from public.group_weekly_metrics((select group_id from fixture),'2026-10-19')$$,'P0002',null,'closed summary unavailable');
 select set_config('request.jwt.claim.sub','',true);

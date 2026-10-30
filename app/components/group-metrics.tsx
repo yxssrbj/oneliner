@@ -13,7 +13,7 @@ type Details = {
   inviteToken: string | null
   viewerId: string
 }
-type Metric = { displayName: string; totalR: number; winRate: number | null; completedCount: number }
+type Metric = { displayName: string; totalR: number | null; winRate: number | null; completedCount: number }
 
 export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: string }) {
   const [groups, setGroups] = useState<Group[]>([])
@@ -280,11 +280,11 @@ export default function GroupMetrics({ initialGroup = '' }: { initialGroup?: str
         <div className="group-table"><table aria-label="Weekly group comparison">
           <thead><tr><th scope="col">Display name</th><th scope="col">Total R</th><th scope="col">Win rate</th><th scope="col">Completed trades</th></tr></thead>
           <tbody>{metrics.map((row, index) => <tr key={index}>
-            <th scope="row">{row.displayName}</th><td className={row.totalR < 0 ? 'group-negative' : 'group-positive'}>{row.totalR > 0 ? '+' : ''}{row.totalR.toFixed(2)}R</td>
+            <th scope="row">{row.displayName}</th><td className={row.totalR === null ? '' : row.totalR < 0 ? 'group-negative' : 'group-positive'}>{row.totalR === null ? 'Unavailable' : `${row.totalR > 0 ? '+' : ''}${row.totalR.toFixed(2)}R`}</td>
             <td>{row.winRate === null ? '—' : `${(row.winRate * 100).toFixed(1)}%`}</td><td>{row.completedCount}</td>
           </tr>)}</tbody>
         </table></div>
-        <p className="groups-disclosure">Only weekly totals are shared. Personal notes and trades stay private.</p>
+        <p className="groups-disclosure">R is unavailable when closed trades are missing initial risk. Only weekly totals are shared. Personal notes and trades stay private.</p>
       </div>}
       </div>}
       {activeTab === 'chat' && error && <div className="groups-message"><p role="alert" className="error">{error}</p><button onClick={() => setRevision(value => value + 1)}>Try again</button></div>}

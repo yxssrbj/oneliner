@@ -10,9 +10,9 @@ test('all weekly sections reconcile wins losses breakeven and unfinished trades'
     row('c', '2026-10-20T10:00:00Z', 'VWAP', '0'),
     row('d', '2026-10-20T11:00:00Z', 'VWAP', null),
   ], '2026-10-19')
-  expect(model.metrics).toEqual({ totalR: 1.5, averageR: 0.5, bestR: 2.5, winRate: 1 / 3, wins: 1, completedCount: 3, unfinishedCount: 1 })
+  expect(model.metrics).toMatchObject({ totalR: 1.5, averageR: 0.5, bestR: 2.5, winRate: 1 / 3, wins: 1, completedCount: 3, unfinishedCount: 1 })
   expect(model.points.map(point => point.totalR)).toEqual([0, 2.5, 1.5, 1.5])
-  expect(model.setups).toEqual([{ name: 'ORB', totalR: 1.5, completedCount: 2, unfinishedCount: 0, wins: 1 }, { name: 'VWAP', totalR: 0, completedCount: 1, unfinishedCount: 1, wins: 0 }])
+  expect(model.setups).toMatchObject([{ name: 'ORB', totalR: 1.5, completedCount: 2, unfinishedCount: 0, wins: 1 }, { name: 'VWAP', totalR: 0, completedCount: 1, unfinishedCount: 1, wins: 0 }])
   expect(model.days.slice(0, 2).map(day => [day.totalR, day.completedCount, day.unfinishedCount])).toEqual([[1.5, 2, 0], [0, 1, 1]])
 })
 
@@ -49,6 +49,22 @@ test('daily results use UTC dates when timestamp offsets cross midnight', () => 
 
   expect(model.days.slice(0, 2).map(day => [day.date, day.totalR, day.completedCount, day.unfinishedCount])).toEqual([
     ['2026-10-19', 1.5, 1, 0],
-    ['2026-10-20', 0, 0, 1],
+    ['2026-10-20', null, 0, 1],
   ])
+})
+
+const imported = (id: string, pnl: string, r: string | null = null) => ({ ...row(id, '2026-10-19T10:00:00Z', '', r), setup: null, exit_price: '102', source_net_pnl_usd: pnl })
+
+test('six closed imports have outcomes without fabricated R or unfinished trades', () => {
+  const model = buildWeeklyReview(['10', '-2', '0', '3', '-1', '5'].map((pnl, i) => imported(String(i), pnl)), '2026-10-19')
+  expect(model.metrics).toMatchObject({completedCount: 6, unfinishedCount: 0, missingRCount: 6, wins: 3, losses: 2, breakeven: 1, winRate: 0.5, totalR: null, averageR: null, bestR: null})
+  expect(model.points).toEqual([])
+  expect(model.setups).toEqual([expect.objectContaining({name: 'Unclassified', completedCount: 6, missingRCount: 6, totalR: null, wins: 3})])
+  expect(model.days[0]).toMatchObject({completedCount: 6, missingRCount: 6, totalR: null})
+})
+
+test('mixed weeks count source outcomes even after edits while R covers only known risk', () => {
+  const model = buildWeeklyReview([imported('a', '-10', '2'), imported('b', '0'), row('c', '2026-10-19T11:00:00Z', 'ORB', '1'), row('d', '2026-10-19T12:00:00Z', 'ORB', null)], '2026-10-19')
+  expect(model.metrics).toMatchObject({completedCount: 3, unfinishedCount: 1, missingRCount: 1, wins: 1, losses: 1, breakeven: 1, winRate: 1 / 3, totalR: 3, averageR: 1.5, bestR: 2})
+  expect(model.points.map(point => point.tradeId)).toEqual([null, 'a', 'c'])
 })

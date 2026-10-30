@@ -305,3 +305,15 @@ await waitFor(()=>expect(screen.queryByRole('table')).not.toBeInTheDocument())
 expect(screen.queryByRole('button',{name:'Friends'})).not.toBeInTheDocument()
 expect(screen.queryByRole('table')).not.toBeInTheDocument()
 })
+
+test('missing risk shows unavailable R while closed count and win rate remain visible', async () => {
+  const fallback = fetchMock.getMockImplementation()!
+  fetchMock.mockImplementation((url: string, options?: RequestInit) => url.includes('/metrics') ? response({metrics:[{displayName:'Owner',totalR:null,winRate:0.5,completedCount:6}]}) : fallback(url, options))
+  render(<GroupMetrics initialGroup={id}/>)
+  await openComparison()
+  const table = await screen.findByRole('table', {name:'Weekly group comparison'})
+  expect(table).toHaveTextContent('Unavailable')
+  expect(table).toHaveTextContent('50.0%')
+  expect(table).toHaveTextContent('6')
+  expect(table).not.toHaveTextContent('0.00R')
+})
