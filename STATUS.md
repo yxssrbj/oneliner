@@ -1,5 +1,7 @@
 # Oneliner status
 
+30 October 2026 · `main`: Weekly review daily results now use each trade's UTC opening date. A regression case with offsets crossing UTC midnight failed before the fix and passes afterward. Focused unit tests (6), typecheck, focused ESLint, and the local review browser journey passed. The full suite and hosted flow were not run. This change is local and unpushed.
+
 Local app: `main` development server started on port 3000 on 29 October 2026. `/sign-in` returned HTTP 200 and local Supabase Auth health returned HTTP 200. Open `http://localhost:3000`.
 
 Updated: 29 October 2026. `main` integrates the `feat/group-chat` implementation and shared product docs, pushed to `origin/main` as `1242e0d`. The combined tree passed 380 unit tests, 140 local database assertions, 23 Playwright journeys, typecheck, and a production build. ESLint passed with two existing chat-image warnings. Hosted Supabase has not received the new group/chat migrations; deployment and hosted browser verification remain separate work.

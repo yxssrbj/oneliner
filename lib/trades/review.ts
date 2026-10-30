@@ -26,7 +26,7 @@ export function buildWeeklyReview<T extends ReviewTrade>(trades: T[], week: stri
     const date = new Date(start)
     date.setUTCDate(date.getUTCDate() + index)
     const day = date.toISOString().slice(0, 10)
-    const rows = selected.filter(trade => trade.opened_at.slice(0, 10) === day)
+    const rows = selected.filter(trade => new Date(trade.opened_at).toISOString().slice(0, 10) === day)
     const done = rows.filter(trade => trade.exit_price !== null && trade.r_result !== null)
     return { date: day, totalR: done.reduce((sum, trade) => sum + result(trade), 0), completedCount: done.length, unfinishedCount: rows.length - done.length }
   })

@@ -40,3 +40,15 @@ test('UTC Monday boundaries place trades in the correct days', () => {
   expect(model.days[6].completedCount).toBe(1)
   expect(model.metrics.totalR).toBe(0)
 })
+
+test('daily results use UTC dates when timestamp offsets cross midnight', () => {
+  const model = buildWeeklyReview([
+    row('monday', '2026-10-20T00:30:00+02:00', 'ORB', '1.5'),
+    row('tuesday', '2026-10-19T23:30:00-02:00', 'ORB', null),
+  ], '2026-10-19')
+
+  expect(model.days.slice(0, 2).map(day => [day.date, day.totalR, day.completedCount, day.unfinishedCount])).toEqual([
+    ['2026-10-19', 1.5, 1, 0],
+    ['2026-10-20', 0, 0, 1],
+  ])
+})
