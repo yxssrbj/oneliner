@@ -63,12 +63,12 @@
 
 ### Task 4: Preview, warn, save, and edit
 
-**Files:** Create `app/api/trades/import/tradingview/route.ts` and `route.test.ts`, `app/components/tradingview-history-import.tsx` and `.test.tsx`; modify `app/components/capture-form.tsx` and `.test.tsx`, `app/components/trade-edit-form.tsx`, `app/components/trade-workspace.tsx`, `app/components/exit-form.tsx`, and existing component CSS. Extend the new import component test for edit and display behavior.
+**Files:** Create `app/api/trades/import/tradingview/route.ts` and `route.test.ts`, `app/components/tradingview-history-import.tsx` and `.test.tsx`, and `e2e/tradingview-history.spec.ts`; modify `app/api/trades/route.ts` and `.test.ts`, `app/api/trades/[tradeId]/route.ts` and `.test.ts`, `lib/trades/summary.ts` and `.test.ts`, `app/components/capture-form.tsx` and `.test.tsx`, `app/components/trade-edit-form.tsx`, `app/components/trade-workspace.tsx`, `app/components/exit-form.tsx`, and existing component CSS. Extend the new import component test for edit and display behavior.
 
 **Interfaces:** `POST /api/trades/import/tradingview` accepts `{csv,timeZone,commit}`. `commit:false` returns parsed preview without writing. `commit:true` reparses and calls Task 2's RPC; returns inserted/already-present counts. The UI retains the CSV in memory until Cancel or confirmed save, defaults the timezone field to the browser zone but requires explicit confirmation, and has accessible Continue/Cancel actions.
 
 - [ ] Write failing route/component tests for the supplied six-trade shape, timezone confirmation, missing stop/setup warning with effects, Cancel making no write, Continue saving, retry after failure, owner/session change, and imported-trade edit actions. Include row-specific parse errors. Add the focused Playwright journey from Task 5 and observe its missing-UI failure before implementation.
-- [ ] Implement the route and preview UI. Require server authentication on both preview and commit; keep CSV size bounded and pass only validated rows to the RPC. Label missing note/stop/setup on saved trades; edit form adds details and leaves original source P&L labeled.
+- [ ] Implement the route and preview UI. Require server authentication on both preview and commit; keep CSV size bounded and pass only validated rows to the RPC. Add source P&L to trade reads and correction responses, and make the legacy weekly API summary count closed imports consistently. Label missing note/stop/setup on saved trades; edit form adds details and leaves original source P&L labeled.
 - [ ] Re-run focused route/component tests and `npm run typecheck`; run focused ESLint on touched TS/TSX; inspect private-data paths and commit with `Import: add trade-history review flow`.
 
 ### Task 5: Browser proof and product documentation
