@@ -101,7 +101,7 @@ export default function TradingViewHistoryImport({ userId, onSaved }: { userId: 
     {message && <p role="status">{message}</p>}
     {savedTrades.length > 0 && <section aria-label="Imported trades" className="history-saved"><h3>Imported trades</h3>{savedTrades.map(trade => <article key={trade.id}>
       <h4>{trade.symbol} · {trade.side}</h4>
-      <p>Opened (UTC): {trade.opened_at.replace('T', ' ').slice(0, 19)} · {resultLabel(trade.r_result, trade.exit_price)}</p>
+      <p>Opened (UTC): {trade.opened_at.replace('T', ' ').slice(0, 19)} · {resultLabel(trade.r_result, trade.exit_price, trade.source_net_pnl_usd)}</p>
       <p>{[!trade.original_note && 'Missing note', !trade.stop_price && 'Missing initial stop', !trade.setup && 'Missing setup'].filter(Boolean).join(' · ')}</p>
       <p>Source-reported net P&amp;L: {trade.source_net_pnl_usd} USD</p>
       <details><summary>Edit details</summary><TradeEditForm key={JSON.stringify(trade)} trade={trade} onSaved={updated => {

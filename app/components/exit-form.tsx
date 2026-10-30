@@ -31,6 +31,6 @@ export default function ExitForm({ trade, onSaved }: { trade: SavedTrade; onSave
       {error && <p role="alert" className="error">{error}</p>}
       <button type="submit">{pending ? 'Saving…' : 'Save exit'}</button>
     </fieldset>
-    {result && <p role="status">{resultLabel(result.r_result, result.exit_price)}</p>}
+    {result && <p role="status">{resultLabel(result.r_result, result.exit_price, result.source_net_pnl_usd)}</p>}
   </form>
 }

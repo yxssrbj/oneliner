@@ -14,7 +14,7 @@ type Loaded = { key: string; trades: SavedTrade[]; error?: string }
 
 function TradeCard({ trade, onSaved, readOnly = false, compact = false }: { trade: SavedTrade; onSaved: (trade: SavedTrade) => void; readOnly?: boolean; compact?: boolean }) {
   return <article className={compact ? 'trade-card unfinished-card' : 'trade-card'}>
-    {compact ? <div className="unfinished-top"><div><div className="trade-card-heading"><h3>{trade.symbol} <span>{trade.side}</span></h3><span className="trade-setup">{trade.setup ?? 'Missing setup'}</span></div><p className="trade-note">{trade.original_note ?? 'Missing note'}</p></div><p className="trade-opened">Opened (UTC) · <time dateTime={trade.opened_at}>{new Date(trade.opened_at).toISOString().replace('T', ' ').slice(0, 19)}</time></p></div> : <><div className="trade-card-heading"><h3>{trade.symbol} <span>{trade.side}</span></h3><span className={trade.r_result === null ? 'outcome-pending' : Number(trade.r_result) > 0 ? 'outcome-win' : Number(trade.r_result) < 0 ? 'outcome-loss' : ''}>{resultLabel(trade.r_result, trade.exit_price)}</span></div><p className="trade-note">{trade.original_note ?? 'Missing note'}</p></>}
+    {compact ? <div className="unfinished-top"><div><div className="trade-card-heading"><h3>{trade.symbol} <span>{trade.side}</span></h3><span className="trade-setup">{trade.setup ?? 'Missing setup'}</span></div><p className="trade-note">{trade.original_note ?? 'Missing note'}</p></div><p className="trade-opened">Opened (UTC) · <time dateTime={trade.opened_at}>{new Date(trade.opened_at).toISOString().replace('T', ' ').slice(0, 19)}</time></p></div> : <><div className="trade-card-heading"><h3>{trade.symbol} <span>{trade.side}</span></h3><span className={trade.r_result === null && trade.source_net_pnl_usd == null ? 'outcome-pending' : Number(trade.source_net_pnl_usd ?? trade.r_result) > 0 ? 'outcome-win' : Number(trade.source_net_pnl_usd ?? trade.r_result) < 0 ? 'outcome-loss' : ''}>{resultLabel(trade.r_result, trade.exit_price, trade.source_net_pnl_usd)}</span></div><p className="trade-note">{trade.original_note ?? 'Missing note'}</p></>}
     {trade.exit_price !== null && (!trade.stop_price || !trade.setup) && <p>Needs details</p>}
     {trade.source_net_pnl_usd != null && <p>Source-reported net P&amp;L: {trade.source_net_pnl_usd} USD</p>}
     <div className={compact ? 'unfinished-entry' : undefined}>
@@ -82,7 +82,7 @@ export default function TradeWorkspace({ mode, userId, initialWeek, demo = false
   }, [demo, key, mode, ownerReady, revision, url, week])
   function saved(trade: SavedTrade) {
     if (signedOut.current || !ownerReady || routeOwner.current !== userId) return
-    setMessage({ owner: userId, text: `${trade.symbol}: ${resultLabel(trade.r_result, trade.exit_price)}. Saved.` })
+    setMessage({ owner: userId, text: `${trade.symbol}: ${resultLabel(trade.r_result, trade.exit_price, trade.source_net_pnl_usd)}. Saved.` })
     setRevision(value => value + 1)
   }
   if (sessionChanged) return <p role="alert">Your session changed. Reload this page to continue.</p>

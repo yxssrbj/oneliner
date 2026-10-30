@@ -241,3 +241,8 @@ test('recent imports label missing data and expose detail editing with source P&
   expect(screen.getByLabelText('Initial stop', { selector: '.capture-recent input' })).toHaveValue('')
   expect(screen.getAllByText(/Source-reported net P&L/).length).toBeGreaterThan(0)
 })
+test('recent imported outcome follows source P&L when corrected R disagrees', async () => {
+  recentMock.mockResolvedValueOnce(Response.json({ trades: [{ id: 'imported', symbol: 'TEST:ABC', side: 'long', original_note: null, stop_price: '9', setup: 'ORB', entry_price: '10', exit_price: '12', opened_at: '2026-03-17T13:33:00Z', r_result: '2', source_net_pnl_usd: '-1' }] }))
+  render(<CaptureForm userId="owner" />)
+  expect(await screen.findByText('Loss · +2.00R')).toBeVisible()
+})

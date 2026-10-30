@@ -5,10 +5,11 @@ import { validateDraft } from '../../lib/trades/validation'
 
 export type SavedTrade = { id: string; original_note: string | null; symbol: string; side: 'long' | 'short'; entry_price: string; stop_price: string | null; setup: string | null; opened_at: string; exit_price: string | null; r_result: string | null; source_net_pnl_usd?: string | null }
 
-export function resultLabel(result: string | null, exitPrice: string | null = null): string {
-  if (result === null) return exitPrice === null ? 'Pending outcome' : 'Closed · R unavailable'
-  const r = Number(result)
-  return `${r > 0 ? 'Win' : r < 0 ? 'Loss' : 'Breakeven'} · ${r > 0 ? '+' : ''}${r.toFixed(2)}R`
+export function resultLabel(result: string | null, exitPrice: string | null = null, sourcePnl: string | null = null): string {
+  if (result === null && sourcePnl === null) return exitPrice === null ? 'Pending outcome' : 'Closed · R unavailable'
+  const outcome = Number(sourcePnl ?? result)
+  const r = result === null ? 'R unavailable' : `${Number(result) > 0 ? '+' : ''}${Number(result).toFixed(2)}R`
+  return `${outcome > 0 ? 'Win' : outcome < 0 ? 'Loss' : 'Breakeven'} · ${r}`
 }
 
 export default function TradeEditForm({ trade, onSaved }: { trade: SavedTrade; onSaved: (trade: SavedTrade) => void }) {
