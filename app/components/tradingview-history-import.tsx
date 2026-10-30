@@ -62,7 +62,7 @@ export default function TradingViewHistoryImport({ userId, onSaved }: { userId: 
     busy.current = true; setPending(true); setError(''); setMessage('')
     if (!commit) { setTrades(null); setConfirmed(false) }
     try {
-      const response = await fetch('/api/trades/import/tradingview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csv, timeZone, commit }) })
+      const response = await fetch('/api/trades/import/tradingview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csv, timeZone, commit, previewOwner: userId }) })
       const body = await response.json()
       if (!response.ok) throw new Error(body.error || 'Could not import the CSV. Retry.')
       if (current !== generation.current || owner.current !== userId) return

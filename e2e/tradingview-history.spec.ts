@@ -52,3 +52,32 @@ test('previews, cancels, imports once and corrects missing private trade details
     expect((await other.request.patch(`/api/trades/${edited.id}`, { data: { exitPrice: '500' } })).status()).toBe(404)
   } finally { await context.close() }
 })
+
+test('changed cookies cannot save a stale preview before account notification', async ({ page, request, browser }) => {
+  test.setTimeout(60_000)
+  await registerAccount(page, request, 'historyracefirst')
+  const firstState = await page.context().storageState()
+  await page.getByLabel('TradingView history CSV').setInputFiles('lib/trades/fixtures/tradingview-history.csv')
+  await page.getByLabel('Export timezone').fill('UTC')
+  await page.getByRole('button', { name: 'Preview trades', exact: true }).click()
+  await expect(page.getByText('6 closed trades ready to import.')).toBeVisible()
+  await page.getByLabel('I confirm this is the timezone used by the export').check()
+  const secondContext = await browser.newContext()
+  const firstContext = await browser.newContext({ storageState: firstState })
+  try {
+    const secondPage = await secondContext.newPage()
+    await registerAccount(secondPage, request, 'historyracesecond')
+    // Replacing cookies externally leaves the first tab awaiting its auth notification.
+    await page.context().clearCookies()
+    await page.context().addCookies(await secondContext.cookies())
+    await expect(page.getByText('6 closed trades ready to import.')).toBeVisible()
+    const saving = page.waitForResponse(response => response.url().endsWith('/api/trades/import/tradingview') && response.request().method() === 'POST')
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    expect((await saving).status()).toBe(409)
+    expect((await (await firstContext.request.get('/api/trades?week=2026-03-16')).json()).trades).toHaveLength(0)
+    expect((await (await secondContext.request.get('/api/trades?week=2026-03-16')).json()).trades).toHaveLength(0)
+  } finally {
+    await firstContext.close()
+    await secondContext.close()
+  }
+})

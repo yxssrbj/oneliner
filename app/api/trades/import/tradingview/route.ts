@@ -24,6 +24,7 @@ export async function POST(request: Request) {
     input = JSON.parse(await new Blob(chunks as BlobPart[]).text())
   } catch { return failure('Invalid request.', 400) }
   if (!input || typeof input.csv !== 'string' || typeof input.timeZone !== 'string' || input.timeZone.length > 100 || typeof input.commit !== 'boolean') return failure('Supply a CSV, timezone and preview or save choice.', 400)
+  if (input.commit && input.previewOwner !== auth.user.id) return failure('Account changed. Preview the CSV again before saving.', 409)
   let trades
   try { trades = parseTradingViewTradeHistoryCsv(input.csv, input.timeZone) }
   catch (cause) { return failure(cause instanceof Error ? cause.message : 'Could not read the CSV.', 400) }
