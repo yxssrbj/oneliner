@@ -155,3 +155,42 @@ The synthetic fixture is portable and contains no supplied account history.
 Local focused ESLint and both synthetic and private-file browser checks
 passed; the temporary private-file test was removed after verification.
 No hosted writes, push, full suite, or production build was performed.
+
+## Friend preview deployment checklist
+
+The full local check on `feat/tradingview-history` passed on 30 October 2026:
+463 unit tests, 182 database assertions, 25 browser journeys, typecheck,
+lint (two existing chat image warnings), and a production build. A direct
+`next build` also passed using environment variables. `vercel.json` tells
+Vercel to use `next build`; local `npm run dev` and `npm run build` still use
+SOPS. Do not upload the age identity or encrypted local environment as
+Vercel variables.
+
+Before sharing a Vercel URL with friends:
+
+1. Integrate and push this branch; the GitHub `main` branch does not yet
+   contain the import. Connect that pushed branch or updated `main` to Vercel.
+2. Apply and verify these pending migrations on hosted Supabase project
+   `svohohmwwbriepmupswk`, in order: `202610280001_group_chat`,
+   `202610280002_chat_sender_retention`, `202610280003_group_rename`,
+   `202610300001_trade_history_import`, and
+   `202610300002_group_history_metrics`. Check migration history and
+   privacy behavior afterward. The local database already has them.
+3. In Vercel project settings, choose Node.js 24 and configure
+   `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+   from the **hosted** Supabase project. Configure `OPENAI_API_KEY` as a
+   server-side variable for note suggestions. Never use the local Supabase
+   URL or put the OpenAI key in a `NEXT_PUBLIC_` variable.
+4. Once Vercel provides the actual URL, set it as the hosted Supabase Auth
+   Site URL and add any needed preview URLs to the Auth redirect allowlist.
+   Verify code delivery, signup, password sign-in/recovery, private trade
+   reads, capture, review, and group invite with two separate accounts.
+   Chat may remain unfinished for this first friend test.
+5. Confirm the SMTP sender can reach a friend's address. Delivery to the
+   project owner's address alone does not prove this; a Resend test sender
+   may require a verified domain before sending to other recipients.
+
+Vercel's [build configuration](https://vercel.com/docs/project-configuration/vercel-json)
+and Supabase's [redirect URL guide](https://supabase.com/docs/guides/auth/redirect-urls)
+describe the hosted settings. No hosted migration, push, or Vercel deployment
+was performed during the local release check.

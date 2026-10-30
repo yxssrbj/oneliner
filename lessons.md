@@ -55,3 +55,4 @@
 - Closure follows exit presence; R measures risk coverage. Imported source P&L determines outcomes independently of calculated R, so missing stops never become zero R or unfinished trades. Withhold group R totals until every closed trade has R; retain count and win rate.
 - Timezone-free exports require explicit owner confirmation before UTC week placement. A local smoke-test timezone is an assumption, never evidence of the export's actual timezone.
 - Preserve immutable source identity/P&L separately from editable journal details. Reparse on commit and save through an owner-scoped atomic RPC, so corrected journal fields do not break identical-source retries.
+- Keep SOPS for local startup, but use Vercel's managed environment variables for its build. A repository build script that needs a local age identity cannot run on Vercel without exporting that private identity.

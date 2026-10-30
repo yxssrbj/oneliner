@@ -6,7 +6,9 @@ Last updated: 30 October 2026. This file tracks product work across branches; ch
 
 - [x] Approve TradingView paper-trading history import design.
 - [x] Implement the approved [trade-history plan](docs/superpowers/plans/2026-10-30-tradingview-trade-history.md) on `feat/tradingview-history`; focused parser/API/component/database and browser checks, including the supplied local CSV, passed.
+- [x] Run the full local release check on `feat/tradingview-history`: 463 unit tests, 182 database assertions, 25 browser journeys, typecheck, lint, and production build passed. Configure Vercel to build from its environment variables.
 - [ ] Review and integrate `feat/tradingview-history`; hosted migration/deployment and a push require separate authorization.
+- [ ] Apply the five pending hosted migrations, configure Vercel variables and Auth URL, and verify signup code delivery to another address before inviting friends.
 - [x] Apply the approved signup and password-code email designs to local templates and hosted Auth; integrate into `main`.
 - [ ] Inspect a real hosted signup and recovery email with a disposable account before inviting testers.
 - [x] Run the complete feature-branch check: 377 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.
