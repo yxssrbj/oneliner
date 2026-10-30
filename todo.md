@@ -7,7 +7,7 @@ Last updated: 30 October 2026. This file tracks product work across branches; ch
 - [x] Approve TradingView paper-trading history import design.
 - [x] Implement the approved [trade-history plan](docs/superpowers/plans/2026-10-30-tradingview-trade-history.md) on `feat/tradingview-history`; focused parser/API/component/database and browser checks, including the supplied local CSV, passed.
 - [x] Run the full local release check on `feat/tradingview-history`: 463 unit tests, 182 database assertions, 25 browser journeys, typecheck, lint, and production build passed. Configure Vercel to build from its environment variables.
-- [ ] Review and integrate `feat/tradingview-history`; deployment and a push require separate authorization.
+- [ ] Review and integrate `feat/tradingview-history`; deployment requires separate authorization. The feature branch is pushed for Vercel preview.
 - [x] Apply and verify the five pending hosted Supabase migrations; migration history and a follow-up dry run are up to date.
 - [ ] Configure Vercel variables and Auth URL, then verify signup code delivery to another address before inviting friends.
 - [x] Apply the approved signup and password-code email designs to local templates and hosted Auth; integrate into `main`.
