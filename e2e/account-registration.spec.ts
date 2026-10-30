@@ -1,20 +1,7 @@
-import {expect,test,type APIRequestContext} from '@playwright/test'
+import {expect,test} from '@playwright/test'
+import {emailCode} from './account-helper'
 
 test.use({viewport:{width:1280,height:800}})
-
-async function emailCode(request:APIRequestContext,email:string,subject:string){
-  let id=''
-  await expect.poll(async()=>{
-    const response=await request.get('http://127.0.0.1:54324/api/v1/messages')
-    const inbox=await response.json()
-    id=inbox.messages.find((message:{To:{Address:string}[];Subject:string})=>message.Subject===subject && message.To.some(recipient=>recipient.Address===email))?.ID??''
-    return id
-  }).not.toBe('')
-  const message=await(await request.get(`http://127.0.0.1:54324/api/v1/message/${id}`)).json()
-  const code=/<strong>(\d{6,8})<\/strong>/.exec(message.HTML)?.[1]
-  expect(code).toMatch(/^\d{6,8}$/)
-  return code!
-}
 
 test('register, confirm, sign in, and recover password',async({page,request})=>{
   test.setTimeout(90_000)
@@ -28,7 +15,7 @@ test('register, confirm, sign in, and recover password',async({page,request})=>{
   await page.getByRole('button',{name:'Create account'}).click()
   await expect(page.getByLabel('Verification code')).toBeVisible()
   expect((await page.request.get('/api/trades')).status()).toBe(401)
-  const code=await emailCode(request,email,'Verify your Oneliner account')
+  const {code}=await emailCode(request,email,'Confirm your Oneliner email')
   await page.getByLabel('Verification code').fill(code==='000000'?'000001':'000000')
   await page.getByRole('button',{name:'Verify email'}).click()
   await expect(page.locator('.auth-form [role="alert"]')).toContainText('Invalid or expired code')
@@ -52,7 +39,7 @@ test('register, confirm, sign in, and recover password',async({page,request})=>{
   await page.getByLabel('Email').fill(email)
   await page.getByRole('button',{name:'Send recovery code'}).click()
   await expect(page.getByLabel('Recovery code')).toBeVisible()
-  const recovery=await emailCode(request,email,'Reset your Oneliner password')
+  const {code:recovery}=await emailCode(request,email,'Your Oneliner password code')
   await page.getByLabel('Recovery code').fill(recovery)
   await page.getByLabel('New password').fill(replacement)
   await page.getByLabel('Confirm password').fill(replacement)

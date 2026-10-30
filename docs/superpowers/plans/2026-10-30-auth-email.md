@@ -40,5 +40,6 @@
 - [x] Compare hosted Auth config with the declared template settings and inspect SMTP-preservation behavior.
 - [x] Apply only the reviewed template configuration if the connection permits it.
 - [x] Verify hosted Auth reports both template bodies and subjects up to date.
+- [x] Restart local Supabase with its backup and verify both delivered templates through Mailpit and account journeys.
 - [ ] Check an actual hosted email delivery with a test account.
 - [x] Record the unverified delivery step in `STATUS.md`.

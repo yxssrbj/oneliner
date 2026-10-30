@@ -9,7 +9,7 @@ export async function emailCode(request:APIRequestContext,email:string,subject:s
     return id
   }).not.toBe('')
   const message=await(await request.get(`http://127.0.0.1:54324/api/v1/message/${id}`)).json()
-  const code=/<strong>(\d{6,8})<\/strong>/.exec(message.HTML)?.[1]
+  const code=/<strong\b[^>]*>(\d{6,8})<\/strong>/.exec(message.HTML)?.[1]
   expect(code).toMatch(/^\d{6,8}$/)
   return {code:code!,id}
 }
@@ -23,7 +23,7 @@ export async function registerAccount(page:Page,request:APIRequestContext,prefix
   await page.getByLabel('Password').fill(password)
   await page.getByRole('button',{name:'Create account'}).click()
   await expect(page.getByLabel('Verification code')).toBeVisible()
-  const {code,id}=await emailCode(request,email,'Verify your Oneliner account')
+  const {code,id}=await emailCode(request,email,'Confirm your Oneliner email')
   await page.getByLabel('Verification code').fill(code)
   await page.getByRole('button',{name:'Verify email'}).click()
   await expect(page).toHaveURL(invite?new RegExp(`/friends/invite/${invite}$`):'/')

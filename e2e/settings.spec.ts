@@ -259,7 +259,7 @@ test('settings password change preserves the account and its private data',async
   await panel.getByLabel('Current password').fill(account.password)
   await panel.getByRole('button',{name:'Send verification code'}).click()
   await expect(panel.getByLabel('Verification code')).toBeVisible()
-  const {code}=await emailCode(request,account.email,'Reset your Oneliner password')
+  const {code}=await emailCode(request,account.email,'Your Oneliner password code')
   await panel.getByLabel('Verification code').fill(code==='000000'?'000001':'000000')
   await panel.getByRole('button',{name:'Update password'}).click()
   await expect(panel.getByRole('alert')).toContainText('Could not verify the code')
