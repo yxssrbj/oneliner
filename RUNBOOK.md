@@ -170,12 +170,14 @@ Before sharing a Vercel URL with friends:
 
 1. Integrate and push this branch; the GitHub `main` branch does not yet
    contain the import. Connect that pushed branch or updated `main` to Vercel.
-2. Apply and verify these pending migrations on hosted Supabase project
-   `svohohmwwbriepmupswk`, in order: `202610280001_group_chat`,
-   `202610280002_chat_sender_retention`, `202610280003_group_rename`,
+2. The following migrations were applied and verified on hosted Supabase
+   project `svohohmwwbriepmupswk` on 30 October 2026, in order:
+   `202610280001_group_chat`, `202610280002_chat_sender_retention`,
+   `202610280003_group_rename`,
    `202610300001_trade_history_import`, and
-   `202610300002_group_history_metrics`. Check migration history and
-   privacy behavior afterward. The local database already has them.
+   `202610300002_group_history_metrics`. Hosted migration history and a
+   follow-up CLI dry run show no pending migrations. New RPCs deny anonymous
+   execute; a two-account hosted browser journey remains to be run.
 3. In Vercel project settings, choose Node.js 24 and configure
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    from the **hosted** Supabase project. Configure `OPENAI_API_KEY` as a
@@ -192,5 +194,5 @@ Before sharing a Vercel URL with friends:
 
 Vercel's [build configuration](https://vercel.com/docs/project-configuration/vercel-json)
 and Supabase's [redirect URL guide](https://supabase.com/docs/guides/auth/redirect-urls)
-describe the hosted settings. No hosted migration, push, or Vercel deployment
-was performed during the local release check.
+describe the hosted settings. The hosted migrations were applied after the
+local release check; no push or Vercel deployment has been performed.
