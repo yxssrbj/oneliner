@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, test } from 'vitest'
 import { spawnSync } from 'node:child_process'
-import { join, resolve } from 'node:path'
+import { join, resolve, sep } from 'node:path'
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { ESLint } from 'eslint'
 import ts from 'typescript'
@@ -34,5 +34,5 @@ test('TypeScript includes this checkout without nested worktree sources', () => 
   const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, process.cwd())
   expect(parsed.errors).toEqual([])
   expect(parsed.fileNames).toContain(resolve('scripts/worktree-boundaries.test.ts'))
-  expect(parsed.fileNames.filter((file) => file.includes('/.worktrees/'))).toEqual([])
+  expect(parsed.fileNames.filter((file) => file.startsWith(resolve('.worktrees') + sep))).toEqual([])
 })
