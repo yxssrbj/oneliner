@@ -1,0 +1,13 @@
+Symbol,Trade number,Type,Date and time,Order ID,Signal,Price,Size (qty),Size (value),Net PnL USD,Return %,Commission USD,Cumulative PnL USD,Cumulative PnL %
+TEST:ABC,1,Exit long,"Mar 17, 2026 at 14:50",exit1,exit1,102,4,400,7,0,0,0,0
+TEST:ABC,1,Entry long,"Mar 17, 2026 at 14:33",entry1,entry1,100.25,4,400,7,0,0,0,0
+TEST:ABC,2,Exit short,"Mar 18, 2026 at 14:50",exit2,exit2,102,4,400,-4,0,0,0,0
+TEST:ABC,2,Entry short,"Mar 18, 2026 at 14:33",entry2,entry2,100.25,4,400,-4,0,0,0,0
+TEST:ABC,3,Exit long,"Mar 19, 2026 at 14:50",exit3,exit3,102,4,400,0,0,0,0,0
+TEST:ABC,3,Entry long,"Mar 19, 2026 at 14:33",entry3,entry3,100.25,4,400,0,0,0,0,0
+TEST:ABC,4,Exit short,"Mar 20, 2026 at 14:50",exit4,exit4,102,4,400,12.50,0,0,0,0
+TEST:ABC,4,Entry short,"Mar 20, 2026 at 14:33",entry4,entry4,100.25,4,400,12.50,0,0,0,0
+TEST:ABC,5,Exit long,"Mar 21, 2026 at 14:50",exit5,exit5,102,4,400,-1,0,0,0,0
+TEST:ABC,5,Entry long,"Mar 21, 2026 at 14:33",entry5,entry5,100.25,4,400,-1,0,0,0,0
+TEST:ABC,6,Exit short,"Mar 22, 2026 at 14:50",exit6,exit6,102,4,400,3,0,0,0,0
+TEST:ABC,6,Entry short,"Mar 22, 2026 at 14:33",entry6,entry6,100.25,4,400,3,0,0,0,0
