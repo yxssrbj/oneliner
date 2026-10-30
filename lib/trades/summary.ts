@@ -1,10 +1,11 @@
-export function summarizeTrades(trades: { r_result: number | null }[]) {
-  let totalR = 0, wins = 0, completedCount = 0
+export function summarizeTrades(trades: { r_result: number | null; exit_price: string | null; source_net_pnl_usd?: string | null }[]) {
+  let totalR = 0, wins = 0, completedCount = 0, missingRCount = 0
   for (const trade of trades) {
-    if (trade.r_result === null) continue
-    totalR += trade.r_result
+    if (trade.exit_price === null) continue
     completedCount++
-    if (trade.r_result > 0) wins++
+    if (Number(trade.source_net_pnl_usd ?? trade.r_result) > 0) wins++
+    if (trade.r_result === null) missingRCount++
+    else totalR += trade.r_result
   }
-  return { totalR, wins, completedCount, unfinishedCount: trades.length - completedCount, winRate: completedCount ? wins / completedCount : null }
+  return { totalR: completedCount > missingRCount ? totalR : null, wins, completedCount, unfinishedCount: trades.length - completedCount, winRate: completedCount ? wins / completedCount : null, missingRCount }
 }

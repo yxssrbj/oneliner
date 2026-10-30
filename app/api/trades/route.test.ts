@@ -54,9 +54,9 @@ test('does not discard corrected fields if an uncertain prior save already succe
   expect((await POST(request())).status).toBe(409)
 })
 test('canonical filters return opening-week metrics, with breakeven in denominator', async () => {
-  range.mockResolvedValueOnce({ data: [2, -1, 0, null].map(r_result => ({ r_result: r_result === null ? null : String(r_result) })), error: null })
+  range.mockResolvedValueOnce({ data: [2, -1, 0, null].map(r_result => ({ r_result: r_result === null ? null : String(r_result), exit_price: r_result === null ? null : "12" })), error: null })
   const result = await GET(new Request('http://localhost/api/trades?weekStart=2026-10-19&status=open'))
-  expect((await result.json()).summary).toEqual({ totalR: 1, wins: 1, completedCount: 3, unfinishedCount: 1, winRate: 1 / 3 })
+  expect((await result.json()).summary).toEqual({ totalR: 1, wins: 1, completedCount: 3, unfinishedCount: 1, winRate: 1 / 3, missingRCount: 0 })
   expect(is).toHaveBeenCalledWith('exit_price', null)
   expect(gte).toHaveBeenCalledWith('opened_at', '2026-10-19T00:00:00.000Z')
   expect(lt).toHaveBeenCalledWith('opened_at', '2026-10-26T00:00:00.000Z')
@@ -73,7 +73,7 @@ test('GET rejects missing auth and scopes results to the signed-in owner', async
 })
 
 test('weekly metrics include trades beyond the database page size', async () => {
-  range.mockResolvedValueOnce({ data: Array.from({ length: 1000 }, () => ({ r_result: '1' })), error: null }).mockResolvedValueOnce({ data: [{ r_result: '-1' }], error: null })
+  range.mockResolvedValueOnce({ data: Array.from({ length: 1000 }, () => ({ r_result: '1', exit_price: '12' })), error: null }).mockResolvedValueOnce({ data: [{ r_result: '-1', exit_price: '12' }], error: null })
   const response = await GET(new Request('http://localhost/api/trades?weekStart=2026-10-19'))
   expect(response.status).toBe(200)
   const body = await response.json()
@@ -83,7 +83,7 @@ test('weekly metrics include trades beyond the database page size', async () => 
 })
 
 test('a failed later page never returns partial weekly metrics', async () => {
-  range.mockResolvedValueOnce({ data: Array.from({ length: 1000 }, () => ({ r_result: '1' })), error: null }).mockResolvedValueOnce({ data: null, error: { message: 'secret' } })
+  range.mockResolvedValueOnce({ data: Array.from({ length: 1000 }, () => ({ r_result: '1', exit_price: '12' })), error: null }).mockResolvedValueOnce({ data: null, error: { message: 'secret' } })
   const response = await GET(new Request('http://localhost/api/trades?weekStart=2026-10-19'))
   expect(response.status).toBe(500)
   expect(await response.json()).toEqual({ error: 'Could not load trades.' })
@@ -154,4 +154,10 @@ test.each(['exitPrice', 'entryPrice', 'stopPrice'])('retry accepts PostgreSQL le
   const existing = { ...saved, entry_price: submitted.entryPrice, stop_price: submitted.stopPrice, exit_price: null, [field === 'exitPrice' ? 'exit_price' : field === 'entryPrice' ? 'entry_price' : 'stop_price']: `0${fractionalPrice}` }
   single.mockResolvedValueOnce({ data: null, error: { code: '23505' } }).mockResolvedValueOnce({ data: existing, error: null })
   expect((await POST(request(submitted))).status).toBe(200)
+})
+test('weekly reads include source fields and closed imports in the summary', async () => {
+  range.mockResolvedValueOnce({ data: [{ exit_price: '12', r_result: null, source_net_pnl_usd: '4' }], error: null })
+  const response = await GET(new Request('http://localhost/api/trades?weekStart=2026-10-19'))
+  expect((await response.json()).summary).toEqual({ totalR: null, wins: 1, completedCount: 1, unfinishedCount: 0, winRate: 1, missingRCount: 1 })
+  expect(select).toHaveBeenCalledWith(expect.stringContaining('source_net_pnl_usd::text'))
 })

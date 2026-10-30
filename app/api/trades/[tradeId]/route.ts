@@ -26,7 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ tr
     changes = { symbol: draft.symbol, side: draft.side, entry_price: draft.entryPrice, stop_price: draft.stopPrice, setup: draft.setup, opened_at: draft.openedAt }
   }
   try {
-    const { data, error } = await auth.supabase.from('trades').update(changes).eq('owner_id', auth.user.id).eq('id', tradeId).select('id,original_note,symbol,side,entry_price::text,stop_price::text,setup,opened_at,exit_price::text,r_result::text,created_at,updated_at').maybeSingle()
+    const { data, error } = await auth.supabase.from('trades').update(changes).eq('owner_id', auth.user.id).eq('id', tradeId).select('id,original_note,symbol,side,entry_price::text,stop_price::text,setup,opened_at,exit_price::text,r_result::text,source_net_pnl_usd::text,created_at,updated_at').maybeSingle()
     if (error) return failure('Could not save the correction. Your changes are kept; retry saving.', 500)
     if (!data) return failure('Trade not found.', 404)
     return Response.json({ trade: data }, { headers })

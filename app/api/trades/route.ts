@@ -3,7 +3,7 @@ import { summarizeTrades } from '../../../lib/trades/summary'
 import { getAuthenticatedUser } from '../../../lib/supabase/server'
 import { comparePrices, validateDraft } from '../../../lib/trades/validation'
 
-const columns = 'id,original_note,symbol,side,entry_price::text,stop_price::text,setup,opened_at,exit_price::text,r_result::text,created_at,updated_at'
+const columns = 'id,original_note,symbol,side,entry_price::text,stop_price::text,setup,opened_at,exit_price::text,r_result::text,source_net_pnl_usd::text,created_at,updated_at'
 const headers = { 'Cache-Control': 'private, no-store' }
 const failure = (error: string, status: number) => Response.json({ error }, { status, headers })
 export async function POST(request: Request) {
@@ -65,6 +65,6 @@ export async function GET(request: Request) {
       pageSize = page.data?.length ?? 0
       data.push(...(page.data ?? []))
     }
-    return Response.json({ trades: data, ...(start ? { summary: summarizeTrades((data ?? []).map(trade => ({ r_result: trade.r_result === null ? null : Number(trade.r_result) }))) } : {}) }, { headers })
+    return Response.json({ trades: data, ...(start ? { summary: summarizeTrades((data ?? []).map(trade => ({ r_result: trade.r_result === null ? null : Number(trade.r_result), exit_price: trade.exit_price, source_net_pnl_usd: trade.source_net_pnl_usd }))) } : {}) }, { headers })
   } catch { return failure('Could not load trades.', 500) }
 }
