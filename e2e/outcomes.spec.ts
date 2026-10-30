@@ -45,7 +45,7 @@ test('completes exits, reviews opening weeks, corrects fields and denies another
   }
   const week = await (await page.request.get('/api/trades?weekStart=2026-10-19')).json()
   expect(week.trades).toHaveLength(4)
-  expect(week.summary).toEqual({ totalR: 1, wins: 1, completedCount: 3, unfinishedCount: 1, winRate: 1 / 3 })
+  expect(week.summary).toEqual({ totalR: 1, wins: 1, completedCount: 3, unfinishedCount: 1, winRate: 1 / 3, missingRCount: 0 })
   expect((await (await page.request.get('/api/trades?weekStart=2026-10-12')).json()).summary.totalR).toBe(2)
   await page.getByRole('complementary').getByRole('link', { name: 'Weekly review', exact: true }).click()
   // Navigate from the real current UTC week to the fixture opening week.
