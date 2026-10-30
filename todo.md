@@ -4,7 +4,7 @@ Last updated: 30 October 2026. This file tracks product work across branches; ch
 
 ## Current delivery
 
-- [x] Apply the approved signup and password-code email designs to local templates and hosted Auth on `feat/email-templates`.
+- [x] Apply the approved signup and password-code email designs to local templates and hosted Auth; integrate into `main`.
 - [ ] Inspect a real hosted signup and recovery email with a disposable account before inviting testers.
 - [x] Run the complete feature-branch check: 377 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.
 - [x] Verify the integrated `main` tree: 380 unit tests, 140 database assertions, 23 browser journeys, typecheck, build, and lint with two existing warnings.
