@@ -19,7 +19,7 @@ export default function ExitForm({ trade, onSaved }: { trade: SavedTrade; onSave
     try {
       const response = await fetch(`/api/trades/${trade.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ exitPrice: exit }) })
       const body = await response.json()
-      if (!response.ok || !body.trade?.id || body.trade.r_result == null) throw new Error(body.error || 'Could not confirm the exit was saved. Retry saving.')
+      if (!response.ok || !body.trade?.id || body.trade.exit_price == null) throw new Error(body.error || 'Could not confirm the exit was saved. Retry saving.')
       setResult(body.trade); onSaved(body.trade)
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not save the exit. Retry saving.') }
     finally { busy.current = false; setPending(false) }
@@ -31,6 +31,6 @@ export default function ExitForm({ trade, onSaved }: { trade: SavedTrade; onSave
       {error && <p role="alert" className="error">{error}</p>}
       <button type="submit">{pending ? 'Saving…' : 'Save exit'}</button>
     </fieldset>
-    {result && <p role="status">{resultLabel(result.r_result)}</p>}
+    {result && <p role="status">{resultLabel(result.r_result, result.exit_price)}</p>}
   </form>
 }

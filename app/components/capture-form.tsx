@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import { normalizeSuggestion } from '../../lib/trades/parse-schema'
 import { validateDraft, validateNote, type TradeDraft } from '../../lib/trades/validation'
-import { resultLabel, type SavedTrade } from './trade-edit-form'
+import TradeEditForm, { resultLabel, type SavedTrade } from './trade-edit-form'
+import TradingViewHistoryImport from './tradingview-history-import'
 import './capture-form.css'
 
 function emptyDraft(): TradeDraft {
@@ -142,6 +143,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
 
   if (!draft || !ownerReady) return <p>{loggedOut ? 'Your session changed. Reload this page to continue.' : 'Loading your draft…'}</p>
   return <div className="capture-page"><header className="capture-heading"><div><span className="capture-eyebrow">Get it out of your head</span><h1>One line. A clearer picture.</h1><p>Write the trade the way you remember it. Review the details before saving.</p></div><span>Your journal is personal.</span></header>
+    <TradingViewHistoryImport key={userId} userId={userId} onSaved={() => setRecentRevision(value => value + 1)} />
     <div className="capture-layout"><div><form onSubmit={save} className="capture-form">
     <h2 className="capture-step"><span>01</span> Capture the moment</h2>
     {saved && <p role="status" className="capture-success">Trade saved.</p>}
@@ -186,7 +188,7 @@ export default function CaptureForm({ userId }: { userId: string }) {
     <div className="capture-sidebar"><aside className="capture-recent" aria-label="Recent trades">
       <h2 id="recent-heading">Recently captured</h2>
       <p className="capture-hint">Your three most recently saved trades.</p>
-      {!recent || recent.owner !== userId ? <p>Loading recent trades…</p> : recent.error ? <div><p role="alert">{recent.error}</p><button type="button" onClick={() => setRecentRevision(value => value + 1)}>Retry recent trades</button></div> : recent.trades.length === 0 ? <p>No trades saved yet.</p> : recent.trades.map(trade => <article key={trade.id} className="capture-recent-item"><div><h3>{trade.symbol} · {trade.side}</h3><span>{trade.exit_price === null ? 'Needs exit' : resultLabel(trade.r_result)}</span></div><p>{trade.setup}</p><p className="capture-note-excerpt">{trade.original_note.slice(0, 160)}</p></article>)}
+      {!recent || recent.owner !== userId ? <p>Loading recent trades…</p> : recent.error ? <div><p role="alert">{recent.error}</p><button type="button" onClick={() => setRecentRevision(value => value + 1)}>Retry recent trades</button></div> : recent.trades.length === 0 ? <p>No trades saved yet.</p> : recent.trades.map(trade => <article key={trade.id} className="capture-recent-item"><div><h3>{trade.symbol} · {trade.side}</h3><span>{trade.exit_price === null ? 'Needs exit' : !trade.stop_price || !trade.setup ? 'Needs details' : resultLabel(trade.r_result, trade.exit_price)}</span></div><p>{[!trade.stop_price && 'Missing initial stop', trade.setup || 'Missing setup'].filter(Boolean).join(' · ')}</p><p className="capture-note-excerpt">{trade.original_note?.slice(0, 160) ?? 'Missing note'}</p>{trade.source_net_pnl_usd != null && <p>Source-reported net P&amp;L: {trade.source_net_pnl_usd} USD</p>}<details><summary>Edit details</summary><TradeEditForm key={JSON.stringify(trade)} trade={trade} onSaved={() => { if (!signedOut.current) setRecentRevision(value => value + 1) }} /></details></article>)}
     </aside><div className="capture-quote"><span className="capture-eyebrow">A small habit</span><p>The best journal is the one you actually keep.</p><span>Start with the trade. The patterns come later.</span></div></div>
   </div></div>
 }

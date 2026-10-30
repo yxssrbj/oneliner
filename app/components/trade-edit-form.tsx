@@ -3,17 +3,17 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { validateDraft } from '../../lib/trades/validation'
 
-export type SavedTrade = { id: string; original_note: string; symbol: string; side: 'long' | 'short'; entry_price: string; stop_price: string; setup: string; opened_at: string; exit_price: string | null; r_result: string | null }
+export type SavedTrade = { id: string; original_note: string | null; symbol: string; side: 'long' | 'short'; entry_price: string; stop_price: string | null; setup: string | null; opened_at: string; exit_price: string | null; r_result: string | null; source_net_pnl_usd?: string | null }
 
-export function resultLabel(result: string | null): string {
-  if (result === null) return 'Pending outcome'
+export function resultLabel(result: string | null, exitPrice: string | null = null): string {
+  if (result === null) return exitPrice === null ? 'Pending outcome' : 'Closed · R unavailable'
   const r = Number(result)
   return `${r > 0 ? 'Win' : r < 0 ? 'Loss' : 'Breakeven'} · ${r > 0 ? '+' : ''}${r.toFixed(2)}R`
 }
 
 export default function TradeEditForm({ trade, onSaved }: { trade: SavedTrade; onSaved: (trade: SavedTrade) => void }) {
   const id = useId()
-  const [draft, setDraft] = useState({ symbol: trade.symbol, side: trade.side, entryPrice: trade.entry_price, stopPrice: trade.stop_price, setup: trade.setup, openedAt: new Date(trade.opened_at).toISOString().slice(0, -1) })
+  const [draft, setDraft] = useState({ symbol: trade.symbol, side: trade.side, entryPrice: trade.entry_price, stopPrice: trade.stop_price ?? '', setup: trade.setup ?? '', openedAt: new Date(trade.opened_at).toISOString().slice(0, -1) })
   const [confirmed, setConfirmed] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
@@ -25,7 +25,7 @@ export default function TradeEditForm({ trade, onSaved }: { trade: SavedTrade; o
   async function save(event: FormEvent) {
     event.preventDefault()
     if (busy.current) return
-    const result = validateDraft({ ...draft, originalNote: trade.original_note, openedAt: `${draft.openedAt}Z` })
+    const result = validateDraft({ ...draft, originalNote: trade.original_note ?? 'original note absent', openedAt: `${draft.openedAt}Z` })
     if (result.error) { setError(result.error); return }
     if (!confirmed) { setError('Review and confirm the corrected fields.'); return }
     busy.current = true; setPending(true); setError(''); setSaved(false)
@@ -42,6 +42,7 @@ export default function TradeEditForm({ trade, onSaved }: { trade: SavedTrade; o
   return <form className="trade-form" onSubmit={save}>
     <p>Corrections recalculate R. Changing the opening time moves the trade to its corrected opening week. Original notes are kept.</p>
     <fieldset disabled={pending}>
+      {trade.source_net_pnl_usd != null && <p>Source-reported net P&amp;L: {trade.source_net_pnl_usd} USD. Original source data stays unchanged when prices are corrected.</p>}
       <div className="trade-grid">
         <div><label htmlFor={`${id}-symbol`}>Symbol</label><input id={`${id}-symbol`} value={draft.symbol} onChange={event => change('symbol', event.target.value)} required maxLength={40} /></div>
         <div><label htmlFor={`${id}-side`}>Direction</label><select id={`${id}-side`} value={draft.side} onChange={event => change('side', event.target.value)}><option value="long">Long</option><option value="short">Short</option></select></div>

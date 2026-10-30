@@ -9,9 +9,10 @@ const fetchMock = vi.fn()
 const recentMock = vi.fn()
 const unsubscribe = vi.fn()
 type AuthSession = { user: { id: string } } | null
-let authChanged: (event: string, session?: AuthSession) => void
+const authListeners = new Set<(event: string, session?: AuthSession) => void>()
+const authChanged = (event: string, session?: AuthSession) => authListeners.forEach(fn => fn(event, session))
 let autoConfirm = true
-vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: (event: string, session?: AuthSession) => void) => { authChanged = fn; if (autoConfirm) fn('INITIAL_SESSION', { user: { id: 'owner' } }); return { data: { subscription: { unsubscribe } } } } } }) }))
+vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: (event: string, session?: AuthSession) => void) => { authListeners.add(fn); if (autoConfirm) fn('INITIAL_SESSION', { user: { id: 'owner' } }); return { data: { subscription: { unsubscribe: () => { authListeners.delete(fn); unsubscribe() } } } } } } }) }))
 beforeEach(() => { cleanup(); autoConfirm = true; sessionStorage.clear(); vi.stubGlobal('fetch', (url: string, options?: RequestInit) => url === '/api/trades?recent=3' ? recentMock() : fetchMock(url, options)); fetchMock.mockReset(); recentMock.mockReset(); recentMock.mockImplementation(async () => Response.json({ trades: [] })) })
 const suggestion = { symbol: 'CL', side: 'short', entryPrice: '87.64', stopPrice: null, setup: 'ORB', clarifications: ['Please confirm the initial stop price.'] }
 test('capture follows the desktop preview composition with live data', async () => {
@@ -212,7 +213,7 @@ test('recent waits for owner confirmation and ignores late results after account
   expect(screen.queryByRole('heading', { name: 'Recent trades' })).not.toBeInTheDocument()
 })
 test('recent shows real saved notes and server results then clears on sign-out', async () => {
-  recentMock.mockResolvedValue(Response.json({ trades: [{ id: 'recent', symbol: 'ES', side: 'long', setup: 'ORB', original_note: 'my saved note', exit_price: '12', r_result: '2' }] }))
+  recentMock.mockResolvedValue(Response.json({ trades: [{ id: 'recent', opened_at: '2026-03-17T13:33:00Z', entry_price: '10', stop_price: '9', symbol: 'ES', side: 'long', setup: 'ORB', original_note: 'my saved note', exit_price: '12', r_result: '2' }] }))
   render(<CaptureForm userId="owner" />)
   expect(await screen.findByText('my saved note')).toBeInTheDocument()
   expect(screen.getByText('Win · +2.00R')).toBeInTheDocument()
@@ -230,3 +231,13 @@ for (const field of ['stopPrice', 'exitPrice'] as const) {
     expect(input).toHaveValue('9')
   })
 }
+test('recent imports label missing data and expose detail editing with source P&L', async () => {
+  recentMock.mockResolvedValueOnce(Response.json({ trades: [{ id: 'imported', symbol: 'TEST:ABC', side: 'long', original_note: null, stop_price: null, setup: null, entry_price: '10', exit_price: '12', opened_at: '2026-03-17T13:33:00Z', r_result: null, source_net_pnl_usd: '4' }] }))
+  render(<CaptureForm userId="owner" />)
+  expect(await screen.findByText('Missing note')).toBeVisible()
+  expect(screen.getByText('Missing initial stop · Missing setup')).toBeVisible()
+  expect(screen.getByText('Needs details')).toBeVisible()
+  await userEvent.click(screen.getByText('Edit details'))
+  expect(screen.getByLabelText('Initial stop', { selector: '.capture-recent input' })).toHaveValue('')
+  expect(screen.getAllByText(/Source-reported net P&L/).length).toBeGreaterThan(0)
+})

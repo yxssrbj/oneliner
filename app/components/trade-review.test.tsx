@@ -70,7 +70,7 @@ test('review shows reconciled metrics, chart, setups, daily cards, and trade tab
   expect(await screen.findByRole('heading', { name: 'Cumulative return' })).toBeInTheDocument()
   expect(screen.getByRole('img', { name: /Cumulative R chart/ })).toBeInTheDocument()
   expect(screen.getByText('Week start')).toBeInTheDocument()
-  expect(screen.getByText('2 completed trades')).toBeInTheDocument()
+  expect(screen.getByText('2 trades with R')).toBeInTheDocument()
   expect(screen.getByText('Avg. return')).toBeInTheDocument()
   expect(screen.getByText('1 loss', { exact: false })).toHaveTextContent('1 win · 1 loss · 0 flat')
   expect(screen.getByText('Best trade')).toBeInTheDocument()

@@ -1,0 +1,142 @@
+// @vitest-environment jsdom
+import { beforeEach, expect, test, vi } from 'vitest'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import '@testing-library/jest-dom/vitest'
+import TradingViewHistoryImport from './tradingview-history-import'
+import TradeEditForm, { type SavedTrade } from './trade-edit-form'
+import ExitForm from './exit-form'
+import TradeWorkspace from './trade-workspace'
+const fetchMock = vi.fn(), onSaved = vi.fn()
+let initialOwner = 'owner'
+let authChanged: (event: string, session: { user: { id: string } } | null) => void
+vi.mock('../../lib/supabase/client', () => ({ createSupabaseBrowserClient: () => ({ auth: { onAuthStateChange: (fn: typeof authChanged) => { authChanged = fn; fn('INITIAL_SESSION', { user: { id: initialOwner } }); return { data: { subscription: { unsubscribe: vi.fn() } } } } } }) }))
+const trades = Array.from({ length: 6 }, (_, index) => ({ sourceKey: `${index}`, symbol: `TEST:${index}`, side: 'long', entryPrice: '10', exitPrice: '12', openedAt: '2026-03-17T13:33:00.000Z', sourcePnlUsd: '4', quantity: '2' }))
+const imported: SavedTrade = { id: 'imported', symbol: 'TEST:0', side: 'long', entry_price: '10', exit_price: '12', stop_price: null, setup: null, original_note: null, opened_at: trades[0].openedAt, source_net_pnl_usd: '4', r_result: null }
+beforeEach(() => { cleanup(); initialOwner = 'owner'; vi.clearAllMocks(); fetchMock.mockReset(); vi.stubGlobal('fetch', fetchMock); fetchMock.mockResolvedValue(Response.json({ trades })) })
+async function preview() {
+  const file = new File(['private CSV'], 'history.csv', { type: 'text/csv' })
+  Object.defineProperty(file, 'text', { value: async () => 'private CSV' })
+  await userEvent.upload(screen.getByLabelText('TradingView history CSV'), file)
+  await userEvent.clear(screen.getByLabelText('Export timezone'))
+  await userEvent.type(screen.getByLabelText('Export timezone'), 'UTC')
+  await userEvent.click(screen.getByRole('button', { name: 'Preview trades' }))
+  await screen.findByText('6 closed trades ready to import.')
+}
+test('shows six trades, resolved UTC dates and missing-details warning; requires timezone confirmation', async () => {
+  render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  expect(screen.getByLabelText('Export timezone')).toHaveValue(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  await preview()
+  expect(screen.getByRole('alert')).toHaveTextContent('6 trades lack an initial stop and setup')
+  expect(screen.getByRole('alert')).toHaveTextContent('R-based charts and totals, and setup analysis will be incomplete')
+  expect(screen.getAllByText('2026-03-17 13:33:00 UTC')).toHaveLength(6)
+  expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+  await userEvent.click(screen.getByLabelText('I confirm this is the timezone used by the export'))
+  expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled()
+  await userEvent.type(screen.getByLabelText('Export timezone'), 'x')
+  expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument()
+})
+test('Cancel clears private CSV and never commits', async () => {
+  render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  await preview()
+  await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+  expect(screen.queryByText('TEST:0')).not.toBeInTheDocument()
+  expect(screen.getByLabelText('TradingView history CSV')).toHaveValue('')
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).commit).toBe(false)
+  expect(onSaved).not.toHaveBeenCalled()
+})
+test('Continue retries a failed save with retained CSV, then clears it on confirmed save', async () => {
+  render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  await preview()
+  fetchMock.mockResolvedValueOnce(Response.json({ error: 'Retry saving.' }, { status: 500 })).mockResolvedValueOnce(Response.json({ inserted: 6, alreadyPresent: 0, trades: trades.map((trade, index) => ({ ...imported, id: `saved-${index}`, symbol: trade.symbol })) }))
+  await userEvent.click(screen.getByLabelText('I confirm this is the timezone used by the export'))
+  await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+  expect(await screen.findByText('Retry saving.')).toBeVisible()
+  expect(onSaved).not.toHaveBeenCalled()
+  await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+  expect(await screen.findByText('Saved 6 trades. 0 already present.')).toBeVisible()
+  expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({ csv: 'private CSV', timeZone: 'UTC', commit: true })
+  expect(onSaved).toHaveBeenCalledTimes(1)
+  expect(screen.getByLabelText('TradingView history CSV')).toHaveValue('')
+})
+test('row-specific parser errors retain the selected CSV for retry', async () => {
+  render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  await preview()
+  fetchMock.mockResolvedValueOnce(Response.json({ error: 'Row 2 has an invalid type.' }, { status: 400 }))
+  await userEvent.click(screen.getByRole('button', { name: 'Preview trades' }))
+  expect(await screen.findByText('Row 2 has an invalid type.')).toBeVisible()
+  expect(screen.getByLabelText('TradingView history CSV')).not.toHaveValue('')
+})
+test.each(['SIGNED_OUT', 'SIGNED_IN'])('session change %s clears preview and ignores an in-flight save', async event => {
+  render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  await preview()
+  let finish!: (response: Response) => void
+  fetchMock.mockReturnValueOnce(new Promise<Response>(resolve => { finish = resolve }))
+  await userEvent.click(screen.getByLabelText('I confirm this is the timezone used by the export'))
+  await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+  act(() => authChanged(event, event === 'SIGNED_OUT' ? null : { user: { id: 'other' } }))
+  await act(async () => finish(Response.json({ inserted: 6, alreadyPresent: 0, trades: trades.map((trade, index) => ({ ...imported, id: `saved-${index}`, symbol: trade.symbol })) })))
+  expect(screen.queryByText('TEST:0')).not.toBeInTheDocument()
+  expect(screen.queryByLabelText('TradingView history CSV')).not.toBeInTheDocument()
+  expect(onSaved).not.toHaveBeenCalled()
+})
+test('owner prop change immediately hides the previous private preview', async () => {
+  const view = render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  await preview()
+  view.rerender(<TradingViewHistoryImport userId="other" onSaved={onSaved} />)
+  expect(screen.queryByText('TEST:0')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument()
+})
+test('imported details can gain stop/setup without inventing a note and retain labeled source P&L', async () => {
+  fetchMock.mockResolvedValueOnce(Response.json({ trade: { ...imported, stop_price: '9', setup: 'ORB', r_result: '2' } }))
+  render(<TradeEditForm trade={imported} onSaved={onSaved} />)
+  expect(screen.getByText(/Source-reported net P&L/)).toHaveTextContent('4 USD')
+  expect(screen.getByLabelText('Initial stop')).toHaveValue('')
+  await userEvent.type(screen.getByLabelText('Initial stop'), '9')
+  await userEvent.type(screen.getByLabelText('Setup name'), 'ORB')
+  await userEvent.click(screen.getByLabelText('I reviewed these corrections'))
+  await userEvent.click(screen.getByRole('button', { name: 'Save corrections' }))
+  await waitFor(() => expect(onSaved).toHaveBeenCalled())
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty('originalNote')
+})
+test('correcting an imported exit succeeds even when initial stop and R are missing', async () => {
+  fetchMock.mockResolvedValueOnce(Response.json({ trade: imported }))
+  render(<ExitForm trade={imported} onSaved={onSaved} />)
+  fireEvent.submit(screen.getByRole('button', { name: 'Save exit' }).closest('form')!)
+  await waitFor(() => expect(onSaved).toHaveBeenCalledWith(imported))
+  expect(screen.getByRole('status')).toHaveTextContent('Closed · R unavailable')
+})
+test('confirming a replacement owner never restores the previous owner CSV', async () => {
+  const view = render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  await preview()
+  initialOwner = 'other'
+  view.rerender(<TradingViewHistoryImport userId="other" onSaved={onSaved} />)
+  act(() => authChanged('INITIAL_SESSION', { user: { id: 'other' } }))
+  expect(screen.queryByText('TEST:0')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument()
+})
+test('weekly imported trade details label missing fields and preserve source P&L', async () => {
+  fetchMock.mockResolvedValue(Response.json({ trades: [imported] }))
+  render(<TradeWorkspace mode="review" userId="owner" initialWeek="2026-03-16" />)
+  await userEvent.click(await screen.findByRole('button', { name: 'Review TEST:0 trade imported' }))
+  expect(screen.getByText('Missing note')).toBeVisible()
+  expect(screen.getByText('Missing initial stop')).toBeVisible()
+  expect(screen.getByText('Missing setup')).toBeVisible()
+  expect(screen.getByText('Closed · R unavailable')).toBeVisible()
+  expect(screen.getByText('Source-reported net P&L: 4 USD')).toBeVisible()
+  await userEvent.click(screen.getByText('Edit details'))
+  expect(screen.getByLabelText('Initial stop')).toHaveValue('')
+})
+test('confirmed save exposes Edit details for all six imported trades', async () => {
+  render(<TradingViewHistoryImport userId="owner" onSaved={onSaved} />)
+  await preview()
+  fetchMock.mockResolvedValueOnce(Response.json({ inserted: 6, alreadyPresent: 0, trades: trades.map((trade, index) => ({ ...imported, id: `saved-${index}`, symbol: trade.symbol })) }))
+  await userEvent.click(screen.getByLabelText('I confirm this is the timezone used by the export'))
+  await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+  await screen.findByText('Saved 6 trades. 0 already present.')
+  const saved = screen.getByRole('region', { name: 'Imported trades' })
+  expect(within(saved).getAllByText('Edit details')).toHaveLength(6)
+  expect(within(saved).getByText('TEST:0 · long')).toBeVisible()
+  expect(within(saved).getByText('TEST:5 · long')).toBeVisible()
+})
