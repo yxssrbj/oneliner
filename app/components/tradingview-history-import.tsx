@@ -49,6 +49,7 @@ export default function TradingViewHistoryImport({ userId, onSaved }: { userId: 
     const current = generation.current
     setCsv(''); setTrades(null); setConfirmed(false); setError(''); setMessage(''); setSavedTrades([])
     if (!file) return
+    if (file.size === 0) { setError('CSV is empty.'); return }
     if (file.size > 2_000_000) { setError('CSV must be at most 2 MB.'); return }
     try {
       const content = await file.text()
