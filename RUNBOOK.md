@@ -109,3 +109,49 @@ preserves its data backup.
 Shared project status and next work are in `STATUS.md` and `todo.md` at
 `/Users/yasser/Documents/Projects/oneliner`. No Git push is implied by any
 command here.
+
+## Try TradingView history on the feature branch
+
+The import is on `feat/tradingview-history`, not yet integrated into `main`.
+Use its worktree and an unused port:
+
+```sh
+cd /Users/yasser/Documents/Projects/oneliner/.worktrees/tradingview-history
+git status -sb
+export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
+npx supabase status             # verify the shared local stack is healthy
+npx supabase migration up --local
+npm run dev -- --port 3020
+```
+
+Open [the feature capture page](http://localhost:3020/), register or sign in
+with a local account, and use **Import TradingView history**. Select a
+paper-trading history CSV, enter its actual export timezone, and select
+**Preview trades**. Inspect UTC opening times and the missing-details warning.
+Confirm the timezone before **Continue**, or **Cancel** without saving.
+Every saved import offers **Edit details**. Weekly review groups by UTC
+opening week; completed count/win rate are available before R. A valid stop
+reveals R; setup corrections update classification. **Chart data** on a
+trade remains the separate OHLC candle attachment flow.
+
+The supplied private CSV contains no timezone. The local verification used
+`Europe/Warsaw` only as an explicit smoke-test assumption; confirm the real
+export timezone before using its weekly placement as a journal record.
+Do not commit private exports or upload them to a hosted test app.
+
+Focused checks run on 30 October 2026 (204 tests, 145 SQL assertions):
+
+```sh
+npx vitest run lib/trades/tradingview-history.test.ts lib/trades/summary.test.ts lib/trades/review.test.ts app/api/trades/import/tradingview/route.test.ts app/api/trades/route.test.ts 'app/api/trades/[tradeId]/route.test.ts' 'app/api/groups/[groupId]/metrics/route.test.ts' app/components/tradingview-history-import.test.tsx app/components/capture-form.test.tsx app/components/trade-review.test.tsx app/components/weekly-review.test.tsx app/components/group-metrics.test.tsx
+npx supabase test db supabase/tests/database/trade_history_import.test.sql supabase/tests/database/groups.test.sql supabase/tests/database/core.test.sql
+npm run typecheck
+CI=1 ONELINER_E2E_PORT=3021 npm run test:e2e -- e2e/tradingview-history.spec.ts --workers=1
+```
+
+The SOPS identity export also applies to Playwright's launcher. `CI=1`
+starts a fresh app, so choose a port with no existing listener. Browser tests
+create local accounts and data; do not reset the shared Supabase stack.
+The synthetic fixture is portable and contains no supplied account history.
+Local focused ESLint and both synthetic and private-file browser checks
+passed; the temporary private-file test was removed after verification.
+No hosted writes, push, full suite, or production build was performed.

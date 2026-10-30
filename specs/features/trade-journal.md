@@ -2,7 +2,7 @@
 
 Status: Approved by project owner · 27 October 2026
 
-Product baseline: [PRD](../prd.md) CAP-01–05, OUT-01–03, ACC-03, UI-01–04, and IMP-01. Visual target: [approved desktop preview](../../docs/previews/oneliner-desktop.html), Capture and Unfinished screens.
+Product baseline: [PRD](../prd.md) CAP-01–05, OUT-01–03, ACC-03, UI-01–04, and IMP-01–03. Visual target: [approved desktop preview](../../docs/previews/oneliner-desktop.html), Capture and Unfinished screens.
 
 ## Intent and completion
 
@@ -43,3 +43,14 @@ The selected approach is an implementation choice based on the approved preview 
 6. Browser review covers populated, empty, loading, and error states at 1280 × 800 and 1440 × 900, keyboard focus, labels, visible feedback, and both themes.
 
 No broker sync, mobile layout, AI advice, generated trade examples, or new database tables are included.
+
+## TradingView paper-trading history · approved 30 October 2026
+
+The [approved import design](../../docs/superpowers/specs/2026-10-30-tradingview-trade-history-design.md) extends capture with **Import TradingView history**. This reads paired Entry/Exit rows; **Chart data** continues to attach OHLC candles independently.
+
+- Select a history CSV, supply its timezone, and preview symbol, side, prices, UTC opening time, and source-reported net USD P&L. The timezone default is a suggestion; saving requires explicit confirmation. Reject malformed, ambiguous, oversized, or conflicting source data with a visible error.
+- Warn that missing initial stops and setups leave R-based totals/charts and setup analysis incomplete. **Cancel** saves zero; **Continue** saves every valid trade in one transaction. Show saved/already-present counts and **Edit details** on every imported trade. Identical reimports are safe; conflicting source details are rejected.
+- Keep absent notes, stops, and setups absent and labeled. A saved exit makes an imported trade closed even when R is unavailable. Source P&L determines win/loss/breakeven; it is reported data, not broker verification. Manual capture validation stays strict.
+- Personal review shows closed count and win rate immediately, explicit missing-R coverage, and **Unclassified** setups. Group comparison returns unavailable R when any closed trade lacks it; source P&L, prices, notes, and individual trades remain private.
+- Adding a valid stop reveals calculated R; adding a setup updates classification. Corrections never replace the original source P&L or source identity. An imported closed trade needing details does not enter the unfinished inbox.
+- Browser acceptance uses a portable synthetic CSV: preview, timezone gate, warning, cancel with zero writes, save six, repeat with zero new rows, week-filtered count/win rate with unavailable R, correct one stop/setup, and deny a second account access. Exercise supplied private exports separately against local Supabase only; never commit them.

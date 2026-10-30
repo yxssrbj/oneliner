@@ -49,3 +49,9 @@
 - Rename private groups through an owner-checked database function, like other group mutations. Hiding the rename menu for members is a usability choice, not the authorization boundary.
 - The Groups desktop screen is a full-height workspace beside the main navigation. Do not wrap it in the padded, width-limited layout used for journal pages.
 - The project owner wants desktop screens to match `docs/previews/oneliner-desktop.html` exactly in visual design. Use that file as the acceptance target, not just inspiration; distinguish its sample content from the real app's data.
+
+## TradingView history · 30 October 2026
+
+- Closure follows exit presence; R measures risk coverage. Imported source P&L determines outcomes independently of calculated R, so missing stops never become zero R or unfinished trades. Withhold group R totals until every closed trade has R; retain count and win rate.
+- Timezone-free exports require explicit owner confirmation before UTC week placement. A local smoke-test timezone is an assumption, never evidence of the export's actual timezone.
+- Preserve immutable source identity/P&L separately from editable journal details. Reparse on commit and save through an owner-scoped atomic RPC, so corrected journal fields do not break identical-source retries.

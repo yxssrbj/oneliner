@@ -74,9 +74,11 @@ The review feature spec will define chart ordering, precision, rounding, and fil
 
 The chat slice is specified in [group-chat.md](features/group-chat.md) and implemented locally. The HTML preview's online dots and sample biographies do not approve a presence or biography feature.
 
-### Existing chart imports
+### CSV imports
 
-- **IMP-01:** Preserve the existing local CSV chart-import capability while redesigning its presentation. It is separate from automatic trade synchronization and must not fabricate trades or results from chart-price data. Imported chart data stays private by default.
+- **IMP-01:** Preserve local CSV chart-candle attachment as a separate private feature. OHLC chart data never fabricates journal trades or results.
+- **IMP-02:** Import TradingView paper-trading history Entry/Exit pairs into private, closed journal trades. Preview first, require the export timezone to be confirmed, show resolved UTC dates and missing-details warnings, and offer Continue/Cancel. Cancel writes nothing; Continue saves atomically. Reimporting identical source trades creates no duplicates; changed source details fail visibly.
+- **IMP-03:** Imported notes, initial stops, and setups may be absent and must be labeled missing. Manual capture keeps its required fields. Closed count and win rate use source-reported net USD P&L; R stays unavailable until a valid stop exists. Personal reviews identify partial R coverage and Unclassified setups; group comparison withholds incomplete R totals. Editing journal details preserves immutable source data and owner-only access.
 
 ## Outside this release
 
